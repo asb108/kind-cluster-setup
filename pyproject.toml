@@ -7,7 +7,7 @@ name = "kind-cluster-setup"
 version = "0.1.0"
 description = "A tool for setting up Kind clusters with independent app deployments"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Kind Cluster Setup Contributors", email = "contributors@kind-cluster-setup.dev"}

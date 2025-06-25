@@ -2,12 +2,12 @@
 
 <div align="center">
 
-![Kind Cluster Setup Logo](https://via.placeholder.com/200x100/2196F3/FFFFFF?text=Kind+Cluster+Setup)
+![Kind Cluster Setup](docs/images/dashboard.png)
 
 **A comprehensive tool for managing Kind (Kubernetes in Docker) clusters with a modern web interface**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3-black.svg)](https://nextjs.org/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Compatible-326CE5.svg)](https://kubernetes.io/)
 
@@ -24,6 +24,8 @@ Kind Cluster Setup is a powerful, user-friendly platform for creating, managing,
 - **📦 Application Templates**: Extensible template system for deploying popular applications (Airflow, MySQL, etc.)
 - **🚀 One-Click Deployments**: Deploy complex applications with pre-configured templates
 - **📊 Real-Time Monitoring**: Live status updates, resource monitoring, and application health checks
+- **🗄️ Storage Management**: Comprehensive storage resource management - monitor persistent volumes, storage classes, and volume claims across all clusters
+- **⚙️ Settings Management**: Full application configuration system with user preferences, security settings, notifications, and cluster defaults
 - **🔄 Port Forwarding**: Built-in port forwarding for easy access to deployed applications
 - **🌍 Multi-Environment Support**: Support for dev, test, staging, and production environments
 - **🔌 Flexible Deployment**: Support for both Helm charts and raw Kubernetes manifests
@@ -44,7 +46,7 @@ Kind Cluster Setup is a powerful, user-friendly platform for creating, managing,
 
 ## 🛠️ Prerequisites
 
-- **Python 3.7+** - Backend API server
+- **Python 3.8+** - Backend API server (3.7 reached end-of-life)
 - **Node.js 18+** - Frontend development and build
 - **Docker** - Required for Kind clusters
 - **Kind** - Kubernetes in Docker
@@ -55,7 +57,7 @@ Kind Cluster Setup is a powerful, user-friendly platform for creating, managing,
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/asb108/kind-cluster-setup.git
+git clone https://github.com/meatulvimal/kind-cluster-setup.git
 cd kind-cluster-setup
 ```
 
@@ -103,6 +105,18 @@ npm run dev
 2. **Create Cluster**: Click "Create Cluster" and configure your cluster settings
 3. **Deploy Applications**: Use the "Deploy App" section to deploy from templates
 4. **Manage Applications**: Monitor and manage your deployments in "Manage Apps"
+5. **Manage Storage**: Monitor storage resources, persistent volumes, and storage classes at `/manage-storage`
+6. **Configure Settings**: Customize application preferences, security settings, and notifications at `/settings`
+
+### Navigation Guide
+
+- **Dashboard** (`/`) - Overview of all clusters and system status
+- **Create Cluster** (`/create-cluster`) - Set up new Kind clusters with custom configurations
+- **Deploy App** (`/deploy-app`) - Deploy applications using templates or custom configurations
+- **Manage Apps** (`/manage-apps`) - Monitor, scale, and manage deployed applications
+- **Storage Management** (`/manage-storage`) - View and manage storage resources across clusters
+- **Settings** (`/settings`) - Configure user preferences, security, notifications, and system defaults
+- **Cluster Status** (`/cluster-status`) - Detailed cluster monitoring and resource utilization
 
 ### Using Templates
 
@@ -125,6 +139,38 @@ curl -X POST http://localhost:8020/api/apps/deploy \
     }
   }'
 ```
+
+### API Endpoints
+
+#### Core Cluster Management
+- `GET /api/cluster/status` - Get cluster status and health information
+- `POST /api/cluster/create` - Create a new Kind cluster
+- `DELETE /api/cluster/{cluster_name}` - Delete a cluster
+- `GET /api/templates` - List available application templates
+
+#### Application Management
+- `POST /api/apps/deploy` - Deploy an application from template
+- `GET /api/apps` - List deployed applications across clusters
+- `DELETE /api/apps/{app_name}` - Delete a deployed application
+- `POST /api/apps/{app_name}/scale` - Scale application replicas
+
+#### Storage Management API
+- `GET /api/storage/overview` - Get storage overview across all clusters
+- `GET /api/storage/classes` - List storage classes
+- `GET /api/storage/persistent-volumes` - List persistent volumes
+- `GET /api/storage/persistent-volume-claims` - List persistent volume claims
+- `GET /api/storage/metrics` - Get storage utilization metrics
+- `DELETE /api/storage/persistent-volumes/{name}` - Delete a persistent volume
+
+#### Settings Management API
+- `GET /api/settings/user-preferences` - Get user preferences
+- `PUT /api/settings/user-preferences` - Update user preferences
+- `GET /api/settings/cluster-defaults` - Get cluster default configurations
+- `PUT /api/settings/cluster-defaults` - Update cluster defaults
+- `GET /api/settings/security-settings` - Get security configuration
+- `PUT /api/settings/security-settings` - Update security settings
+- `POST /api/settings/export` - Export configuration backup
+- `POST /api/settings/import` - Import configuration from backup
 
 ### Command Line Interface
 
@@ -225,6 +271,65 @@ To contribute a new application template:
 3. Include tests and documentation
 4. Submit a pull request
 
+## 📸 User Interface
+
+The application features a modern, responsive web interface with comprehensive functionality:
+
+- **Dashboard**: Overview of clusters and system status
+- **Storage Management**: Monitor and manage storage resources across clusters
+- **Settings**: Configure application preferences, security, and notifications
+- **Cluster Management**: Create and monitor Kind clusters
+- **Application Management**: Deploy and manage applications
+
+For detailed UI documentation with screenshots and workflows, see [docs/ui-guide.md](docs/ui-guide.md).
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Frontend not starting:**
+```bash
+# Install dependencies (required before first run)
+cd kind-setup-frontend && npm install
+
+# Check Node.js version (requires 18+)
+node --version
+
+# Then start the development server
+npm run dev
+```
+
+**Backend API errors:**
+```bash
+# Check Python version (requires 3.8+)
+python --version
+
+# Install dependencies
+pip install -e .
+```
+
+**Port conflicts:**
+```bash
+# Check if ports are in use
+lsof -i :3000  # Frontend
+lsof -i :8020  # Backend
+```
+
+**Docker/Kind issues:**
+```bash
+# Verify Docker is running
+docker ps
+
+# Check Kind installation
+kind version
+```
+
+### Environment Variables
+
+Ensure your environment files are properly configured:
+- Backend: `.env` (copy from `.env.example`)
+- Frontend: `.env.local` (copy from `.env.local.example`)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -247,26 +352,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <div align="center">
 Made with ❤️ by the Kind Cluster Setup community
 </div>
-
-The unit tests use mocking to avoid creating actual clusters.
-
-### Integration Test
-
-A test script is provided to demonstrate the KindCluster functionality in a real-world scenario:
-
-```sh
-# Basic usage (1 worker node, with resource limits, using context manager)
-python test_kind_cluster.py
-
-# Custom configuration
-python test_kind_cluster.py --workers 2 --no-limits --no-context-manager
-```
-
-Options:
-- `--workers N`: Set the number of worker nodes (default: 1)
-- `--no-limits`: Disable resource limits
-- `--no-context-manager`: Don't use the context manager pattern (manual cleanup)
-
-## Usage
-
-### Creating a Kind cluster
