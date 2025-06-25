@@ -1,0 +1,155 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths: 
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/docs.yml'
+
+jobs:
+  link-check:
+    name: Check Documentation Links
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check links in markdown files
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/markdown-link-check-config.json'
+        folder-path: 'docs'
+        
+    - name: Check links in root markdown files
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/markdown-link-check-config.json'
+        file-path: './README.md, ./CONTRIBUTING.md, ./CHANGELOG.md'
+
+  spell-check:
+    name: Spell Check Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install cspell
+      run: npm install -g cspell
+      
+    - name: Run spell check
+      run: |
+        cspell "**/*.md" --config .cspell.json --no-progress --show-context
+
+  markdown-lint:
+    name: Lint Markdown Files
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run markdownlint
+      uses: articulate/actions-markdownlint@v1
+      with:
+        config: .markdownlint.json
+        files: '**/*.md'
+        ignore: 'node_modules'
+
+  docs-build-test:
+    name: Test Documentation Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install documentation dependencies
+      run: |
+        pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
+        
+    - name: Test MkDocs build
+      run: |
+        # Create a simple mkdocs.yml for testing if it doesn't exist
+        if [ ! -f mkdocs.yml ]; then
+          cat > mkdocs.yml << EOF
+        site_name: Kind Cluster Setup
+        site_description: A tool for setting up Kind clusters with independent app deployments
+        site_url: https://asb108.github.io/kind-cluster-setup
+        repo_url: https://github.com/asb108/kind-cluster-setup
+        repo_name: asb108/kind-cluster-setup
+        
+        theme:
+          name: material
+          palette:
+            primary: blue
+            accent: blue
+        
+        nav:
+          - Home: README.md
+          - Architecture: ARCHITECTURE.md
+          - Contributing: CONTRIBUTING.md
+          - Template Development: TEMPLATE_DEVELOPMENT_GUIDE.md
+          - Documentation:
+            - Core Abstractions: docs/core_abstractions.md
+            - Application Management: docs/application_management.md
+            - Deployment Guide: docs/deployment.md
+            - UI Guide: docs/ui-guide.md
+        EOF
+        fi
+        mkdocs build --strict
+
+  update-readme-toc:
+    name: Update README Table of Contents
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install markdown-toc
+      run: npm install -g markdown-toc
+      
+    - name: Update TOC in README
+      run: |
+        markdown-toc -i README.md
+        
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md
+        git diff --staged --quiet || git commit -m "docs: update README table of contents [skip ci]"
+        git push

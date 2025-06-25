@@ -1,20 +1,5 @@
 const nextJest = require('next/jest')
 
-// Mock the next.config.mjs file to avoid experimental PPR error
-jest.mock('./next.config.mjs', () => ({
-  reactStrictMode: false,
-  output: 'export',
-  images: {
-    unoptimized: true
-  },
-  compiler: {
-    styledComponents: true
-  },
-  experimental: {
-    ppr: false
-  }
-}), { virtual: true })
-
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
   dir: './',

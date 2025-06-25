@@ -37,9 +37,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=6.2.5",
+    "pytest-cov>=4.0.0",
     "pylint>=2.8.3",
     "black>=21.6b0",
     "mypy>=0.910",
+    "isort>=5.10.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
 ]
 
 [project.scripts]

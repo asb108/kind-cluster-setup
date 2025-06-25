@@ -1,0 +1,109 @@
+{
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "labels": ["feature", "enhancement", "feat"]
+    },
+    {
+      "title": "## 🐛 Bug Fixes",
+      "labels": ["bug", "fix", "bugfix"]
+    },
+    {
+      "title": "## 📚 Documentation",
+      "labels": ["documentation", "docs"]
+    },
+    {
+      "title": "## 🔧 Maintenance",
+      "labels": ["maintenance", "chore", "refactor"]
+    },
+    {
+      "title": "## 🔒 Security",
+      "labels": ["security"]
+    },
+    {
+      "title": "## 📦 Dependencies",
+      "labels": ["dependencies", "deps"]
+    },
+    {
+      "title": "## 🏗️ CI/CD",
+      "labels": ["ci", "cd", "github-actions"]
+    },
+    {
+      "title": "## 🎨 UI/UX",
+      "labels": ["ui", "ux", "frontend"]
+    },
+    {
+      "title": "## ⚡ Performance",
+      "labels": ["performance", "optimization"]
+    },
+    {
+      "title": "## 🧪 Testing",
+      "labels": ["test", "testing"]
+    }
+  ],
+  "ignore_labels": [
+    "ignore-for-release",
+    "duplicate",
+    "question",
+    "invalid",
+    "wontfix"
+  ],
+  "sort": "ASC",
+  "template": "#{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
+  "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
+  "empty_template": "- No changes",
+  "label_extractor": [
+    {
+      "pattern": "feat(.*)",
+      "target": "feature"
+    },
+    {
+      "pattern": "fix(.*)",
+      "target": "bug"
+    },
+    {
+      "pattern": "docs(.*)",
+      "target": "documentation"
+    },
+    {
+      "pattern": "chore(.*)",
+      "target": "maintenance"
+    },
+    {
+      "pattern": "ci(.*)",
+      "target": "ci"
+    },
+    {
+      "pattern": "test(.*)",
+      "target": "testing"
+    },
+    {
+      "pattern": "perf(.*)",
+      "target": "performance"
+    },
+    {
+      "pattern": "refactor(.*)",
+      "target": "maintenance"
+    },
+    {
+      "pattern": "style(.*)",
+      "target": "ui"
+    }
+  ],
+  "transformers": [
+    {
+      "pattern": "[\\-\\*] (\\[(...|TEST|CI|SKIP)\\])( )?(.+)",
+      "target": "- $4"
+    }
+  ],
+  "max_tags_to_fetch": 200,
+  "max_pull_requests": 200,
+  "max_back_track_time_days": 365,
+  "exclude_merge_branches": [
+    "main",
+    "master",
+    "develop",
+    "dev",
+    "release"
+  ]
+}
