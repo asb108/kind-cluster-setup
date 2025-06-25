@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-init-db
+  labels:
+    app: {{ .Release.Name }}-init
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgres {{ .Values.postgres.service.port }}; do echo waiting for postgres; sleep 2; done;']
+      containers:
+      - name: airflow-init
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["airflow", "db", "init"]
+        env:
+        {{- range $key, $value := .Values.config }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      restartPolicy: Never
+  backoffLimit: 4

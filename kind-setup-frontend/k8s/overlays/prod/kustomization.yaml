@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: prod-
+
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - patches/deployment-patch.yaml
+  - patches/configmap-patch.yaml
+  - patches/ingress-patch.yaml
+
+replicas:
+  - name: kind-setup-frontend
+    count: 3

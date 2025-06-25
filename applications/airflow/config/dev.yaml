@@ -1,0 +1,75 @@
+# Airflow Helm Chart Configuration for Dev Environment
+helm:
+  repository: https://airflow.apache.org
+  chart: airflow
+  version: 1.11.0
+  values:
+    # Basic Airflow configuration
+    airflow:
+      image:
+        repository: apache/airflow
+        tag: 2.7.3
+      config:
+        AIRFLOW__CORE__LOAD_EXAMPLES: "true"
+        AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+        AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      
+    # Resource limits for dev environment
+    workers:
+      replicas: 2
+      resources:
+        limits:
+          cpu: "1"
+          memory: "2Gi"
+        requests:
+          cpu: "0.5"
+          memory: "1Gi"
+    
+    # Webserver configuration
+    web:
+      replicas: 1
+      resources:
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+        requests:
+          cpu: "0.5"
+          memory: "512Mi"
+    
+    # Redis (for Celery executor)
+    redis:
+      enabled: true
+      resources:
+        limits:
+          cpu: "0.5"
+          memory: "512Mi"
+        requests:
+          cpu: "0.2"
+          memory: "256Mi"
+    
+    # PostgreSQL (metadata database)
+    postgresql:
+      enabled: true
+      resources:
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+        requests:
+          cpu: "0.5"
+          memory: "512Mi"
+    
+    # Enable persistence for logs
+    logs:
+      persistence:
+        enabled: true
+        size: 5Gi
+    
+    # Enable persistence for DAGs
+    dags:
+      persistence:
+        enabled: true
+        size: 1Gi
+        
+    # Ingress configuration (disabled by default in dev)
+    ingress:
+      enabled: false

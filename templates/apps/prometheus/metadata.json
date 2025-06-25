@@ -1,0 +1,316 @@
+{
+  "display_name": "Prometheus Monitoring",
+  "description": "Deploy Prometheus monitoring server with customizable scraping configuration and storage options",
+  "version": "2.45.0",
+  "icon": "https://prometheus.io/assets/prometheus_logo_grey.svg",
+  "category": "Monitoring",
+  "tags": ["monitoring", "prometheus", "metrics", "observability"],
+  "deployment_methods": ["kubectl", "helm"],
+  "min_kubernetes_version": "1.20.0",
+  "parameters": {
+    "app_name": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Application Name",
+      "description": "Name for the Prometheus instance",
+      "default": "prometheus",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-]+$",
+        "min": 3,
+        "max": 50
+      },
+      "group": "basic"
+    },
+    "prometheus_version": {
+      "type": "enum",
+      "ui_control": "select",
+      "label": "Prometheus Version",
+      "description": "Prometheus version to deploy",
+      "default": "v2.45.0",
+      "validation": {
+        "options": ["v2.40.0", "v2.43.0", "v2.45.0", "latest"]
+      },
+      "group": "basic"
+    },
+    "retention_time": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Data Retention Time",
+      "description": "How long to retain metrics data (e.g., 15d, 30d, 1y)",
+      "default": "15d",
+      "validation": {
+        "pattern": "^[0-9]+(d|w|m|y)$"
+      },
+      "group": "basic"
+    },
+    "scrape_interval": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Scrape Interval",
+      "description": "How often to scrape targets (e.g., 15s, 30s, 1m)",
+      "default": "15s",
+      "validation": {
+        "pattern": "^[0-9]+(s|m|h)$"
+      },
+      "group": "basic"
+    },
+    "cpu_request": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "CPU Request",
+      "description": "CPU resource request (e.g., 500m, 1)",
+      "default": "500m",
+      "validation": {
+        "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+      },
+      "group": "resources"
+    },
+    "memory_request": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Memory Request",
+      "description": "Memory resource request (e.g., 1Gi, 2Gi)",
+      "default": "1Gi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi)$"
+      },
+      "group": "resources"
+    },
+    "cpu_limit": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "CPU Limit",
+      "description": "CPU resource limit (e.g., 1, 2)",
+      "default": "2",
+      "validation": {
+        "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+      },
+      "group": "resources"
+    },
+    "memory_limit": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Memory Limit",
+      "description": "Memory resource limit (e.g., 2Gi, 4Gi)",
+      "default": "2Gi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi)$"
+      },
+      "group": "resources"
+    },
+    "storage_size": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Storage Size",
+      "description": "Size of persistent storage for metrics data",
+      "default": "50Gi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi|Ti)$"
+      },
+      "group": "storage"
+    },
+    "storage_class": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Storage Class",
+      "description": "Kubernetes storage class for persistent volume (leave empty for default)",
+      "default": "",
+      "group": "storage"
+    },
+    "enable_web_ui": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Web UI",
+      "description": "Enable Prometheus web interface",
+      "default": true,
+      "group": "ui"
+    },
+    "web_ui_port": {
+      "type": "number",
+      "ui_control": "number",
+      "label": "Web UI Port",
+      "description": "Port for Prometheus web interface",
+      "default": 9090,
+      "validation": {
+        "min": 1024,
+        "max": 65535
+      },
+      "dependencies": {
+        "show_when": {"enable_web_ui": true}
+      },
+      "group": "ui"
+    },
+    "enable_admin_api": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Admin API",
+      "description": "Enable Prometheus admin API endpoints",
+      "default": false,
+      "dependencies": {
+        "show_when": {"enable_web_ui": true}
+      },
+      "group": "ui"
+    },
+    "service_type": {
+      "type": "enum",
+      "ui_control": "select",
+      "label": "Service Type",
+      "description": "Kubernetes service type for Prometheus access",
+      "default": "ClusterIP",
+      "validation": {
+        "options": ["ClusterIP", "NodePort", "LoadBalancer"]
+      },
+      "group": "networking"
+    },
+    "enable_service_discovery": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Kubernetes Service Discovery",
+      "description": "Automatically discover and scrape Kubernetes services",
+      "default": true,
+      "group": "discovery"
+    },
+    "scrape_pods": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Scrape Pods",
+      "description": "Automatically scrape pods with prometheus annotations",
+      "default": true,
+      "dependencies": {
+        "show_when": {"enable_service_discovery": true}
+      },
+      "group": "discovery"
+    },
+    "scrape_services": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Scrape Services",
+      "description": "Automatically scrape services with prometheus annotations",
+      "default": true,
+      "dependencies": {
+        "show_when": {"enable_service_discovery": true}
+      },
+      "group": "discovery"
+    },
+    "scrape_endpoints": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Scrape Endpoints",
+      "description": "Automatically scrape endpoints with prometheus annotations",
+      "default": false,
+      "dependencies": {
+        "show_when": {"enable_service_discovery": true}
+      },
+      "group": "discovery"
+    },
+    "external_labels": {
+      "type": "string",
+      "ui_control": "textarea",
+      "label": "External Labels",
+      "description": "External labels to add to all metrics (YAML format)",
+      "default": "cluster: kind\nenvironment: dev",
+      "group": "advanced"
+    },
+    "additional_scrape_configs": {
+      "type": "string",
+      "ui_control": "textarea",
+      "label": "Additional Scrape Configs",
+      "description": "Additional scrape configurations (YAML format)",
+      "default": "",
+      "group": "advanced"
+    },
+    "enable_alertmanager": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Alertmanager Integration",
+      "description": "Configure Prometheus to send alerts to Alertmanager",
+      "default": false,
+      "group": "alerting"
+    },
+    "alertmanager_url": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Alertmanager URL",
+      "description": "URL of the Alertmanager instance",
+      "default": "http://alertmanager:9093",
+      "dependencies": {
+        "show_when": {"enable_alertmanager": true},
+        "required_when": {"enable_alertmanager": true}
+      },
+      "group": "alerting"
+    }
+  },
+  "parameter_groups": {
+    "basic": {
+      "label": "Basic Configuration",
+      "description": "Essential Prometheus settings",
+      "order": 1,
+      "collapsible": false
+    },
+    "resources": {
+      "label": "Resource Limits",
+      "description": "CPU and memory resource configuration",
+      "order": 2,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "storage": {
+      "label": "Storage Configuration",
+      "description": "Persistent storage settings for metrics data",
+      "order": 3,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "ui": {
+      "label": "Web Interface",
+      "description": "Prometheus web UI configuration",
+      "order": 4,
+      "collapsible": true,
+      "collapsed": false
+    },
+    "networking": {
+      "label": "Networking",
+      "description": "Network and service configuration",
+      "order": 5,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "discovery": {
+      "label": "Service Discovery",
+      "description": "Kubernetes service discovery configuration",
+      "order": 6,
+      "collapsible": true,
+      "collapsed": false
+    },
+    "alerting": {
+      "label": "Alerting",
+      "description": "Alertmanager integration settings",
+      "order": 7,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "advanced": {
+      "label": "Advanced Settings",
+      "description": "Advanced Prometheus configuration",
+      "order": 8,
+      "collapsible": true,
+      "collapsed": true
+    }
+  },
+  "resources": {
+    "cpu_request": "500m",
+    "memory_request": "1Gi",
+    "cpu_limit": "2",
+    "memory_limit": "2Gi"
+  },
+  "networking": {
+    "ports": [
+      {
+        "name": "web",
+        "port": 9090,
+        "protocol": "TCP"
+      }
+    ]
+  }
+}

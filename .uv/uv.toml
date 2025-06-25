@@ -1,0 +1,19 @@
+[tool]
+# Configure uv to use the pyproject.toml for dependencies
+requirements_file = false
+
+[install]
+# Use the latest versions of packages when resolving dependencies
+latest = false
+# Use the system Python installation
+system = true
+
+[venv]
+# Create a virtual environment in the .venv directory
+virtualenv = ".venv"
+
+[resolver]
+# Use the latest compatible versions of packages
+strategy = "highest"
+# Allow pre-releases for development dependencies
+allow-prereleases = false

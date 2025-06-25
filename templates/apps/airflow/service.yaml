@@ -1,0 +1,50 @@
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-postgres
+  labels:
+    app: airflow
+    component: postgres
+spec:
+  selector:
+    app: airflow
+    component: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-redis
+  labels:
+    app: airflow
+    component: redis
+spec:
+  selector:
+    app: airflow
+    component: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+---
+# Airflow Webserver Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  type: {{ service_type }}
+  selector:
+    app: airflow
+    component: webserver
+  ports:
+  - port: {{ ui_port }}
+    targetPort: 8080
+    name: web

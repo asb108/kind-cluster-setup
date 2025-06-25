@@ -1,0 +1,25 @@
+{
+  "display_name": "Apache Airflow",
+  "description": "Apache Airflow is a platform to programmatically author, schedule, and monitor workflows",
+  "version": "3.0.0",
+  "icon": "https://airflow.apache.org/images/feature-image.png",
+  "deployment_methods": ["kubectl", "helm"],
+  "category": "Workflow Management",
+  "default_values": {
+    "replicas": 1,
+    "version": "3.0.0",
+    "service_type": "ClusterIP",
+    "memory_request": "1Gi",
+    "cpu_request": "500m",
+    "memory_limit": "2Gi",
+    "cpu_limit": "1000m",
+    "postgres_version": "15",
+    "postgres_password": "airflow",
+    "admin_password": "admin",
+    "enable_dag_examples": true,
+    "expose_ui": true,
+    "ui_port": 8080,
+    "ingress_host": "airflow.local",
+    "create_ingress": false
+  }
+}

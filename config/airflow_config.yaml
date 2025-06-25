@@ -1,0 +1,11 @@
+image:
+  repository: apache/airflow
+  tag: 2.2.3
+replicas: 1
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi

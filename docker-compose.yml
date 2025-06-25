@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8020:8020"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8020
+      - DEBUG=true
+      - USE_MOCK_DATA=false
+      - TASK_STORE_TYPE=file
+      - TASK_FILE_PATH=/app/data/tasks.json
+    volumes:
+      - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.kube:/root/.kube:ro
+    depends_on:
+      - redis
+    networks:
+      - kind-cluster-setup
+
+  frontend:
+    build:
+      context: ./kind-setup-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8020
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - kind-cluster-setup
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kind-cluster-setup
+
+volumes:
+  redis_data:
+
+networks:
+  kind-cluster-setup:
+    driver: bridge
+
+# Development override file
+# Create docker-compose.override.yml for local customizations

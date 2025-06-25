@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kind-cluster-setup"
+version = "0.1.0"
+description = "A tool for setting up Kind clusters with independent app deployments"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "Kind Cluster Setup Contributors", email = "contributors@kind-cluster-setup.dev"}
+]
+keywords = ["kubernetes", "kind", "docker", "cluster", "deployment", "devops"]
+homepage = "https://github.com/asb108/kind-cluster-setup"
+repository = "https://github.com/asb108/kind-cluster-setup"
+documentation = "https://github.com/asb108/kind-cluster-setup#readme"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+]
+dependencies = [
+    "PyYAML>=5.4.1",
+    "kubernetes>=17.17.0",
+    "click>=8.0.1",
+    "fastapi>=0.68.0",
+    "uvicorn>=0.15.0",
+    "pydantic>=1.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.5",
+    "pylint>=2.8.3",
+    "black>=21.6b0",
+    "mypy>=0.910",
+]
+
+[project.scripts]
+kind-cluster-setup = "kind_cluster_setup.main:main"
+
+[tool.uv]
+# uv configuration
+index-url = "https://pypi.org/simple/"
+pip = { upgrade = true }
+
+[tool.black]
+line-length = 88
+target-version = ["py37", "py38", "py39"]
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

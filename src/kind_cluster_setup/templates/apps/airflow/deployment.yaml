@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-init-script
+data:
+  init.sh: |
+    #!/bin/bash
+    airflow db init
+    airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+    exec airflow webserver
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: webserver
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: webserver
+    spec:
+      containers:
+      - name: webserver
+        image: apache/airflow:2.6.0
+        command: ["/bin/bash"]
+        args: ["-c", "cp /init-scripts/init.sh /tmp/init.sh && chmod +x /tmp/init.sh && /tmp/init.sh"]
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: SequentialExecutor
+        - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+          value: sqlite:////opt/airflow/airflow.db
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          value: openssl-rand-base64-30
+        - name: AIRFLOW__CORE__LOAD_EXAMPLES
+          value: "false"
+        - name: AIRFLOW__WEBSERVER__BASE_URL
+          value: "http://localhost:30081"
+        ports:
+        - name: web
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: airflow-storage
+          mountPath: /opt/airflow
+        - name: init-scripts
+          mountPath: /init-scripts
+      volumes:
+      - name: airflow-storage
+        emptyDir: {}
+      - name: init-scripts
+        configMap:
+          name: airflow-init-script

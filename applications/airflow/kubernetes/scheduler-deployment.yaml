@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z airflow-postgres 5432; do echo waiting for postgres; sleep 2; done;']
+      containers:
+      - name: airflow-scheduler
+        image: apache/airflow:2.7.1
+        command: ["airflow", "scheduler"]
+        env:
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: "postgresql+psycopg2://postgres:postgres@airflow-postgres:5432/airflow"
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "LocalExecutor"
+        - name: AIRFLOW__CORE__LOAD_EXAMPLES
+          value: "true"
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          value: "airflow-secret-key"
+        - name: AIRFLOW__WEBSERVER__CSRF_ENABLED
+          value: "true"
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi

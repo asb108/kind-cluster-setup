@@ -1,0 +1,355 @@
+/* Global Theme System for Kind Setup */
+
+:root {
+  /* Base colors that apply to all themes */
+  --radius: 0.5rem;
+  --transition-speed: 0.3s;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Light Theme (Default) */
+.theme-light {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  --primary: 267 100% 65%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 30% 25%; /* Improved contrast for muted text */
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 267 100% 65%;
+
+  --success: 142 76% 36%;
+  --warning: 38 92% 50%;
+  --info: 217 91% 60%;
+  --error: 0 84% 60%;
+
+  /* RGB variants for opacity adjustments */
+  --background-rgb: 255, 255, 255;
+  --foreground-rgb: 10, 10, 20;
+  --card-rgb: 255, 255, 255;
+  --primary-rgb: 165, 82, 218;
+}
+
+/* Dark Theme */
+.theme-dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+
+  --card: 222.2 84% 9.8%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 267 100% 80%; /* Brighter primary color for dark mode */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 85%; /* Improved contrast for muted text in dark mode */
+
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 267 100% 80%;
+
+  --success: 142 76% 50%; /* Brighter success color for dark mode */
+  --warning: 38 92% 65%; /* Brighter warning color for dark mode */
+  --info: 217 91% 75%; /* Brighter info color for dark mode */
+  --error: 0 84% 75%; /* Brighter error color for dark mode */
+
+  /* RGB variants for opacity adjustments */
+  --background-rgb: 10, 10, 20;
+  --foreground-rgb: 245, 245, 245;
+  --card-rgb: 20, 20, 40;
+  --primary-rgb: 190, 140, 255; /* Brighter RGB values for dark mode */
+}
+
+/* Nord Theme */
+.theme-nord {
+  --background: 220 16% 96%;
+  --foreground: 220 16% 22%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 220 16% 22%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 16% 22%;
+
+  --primary: 213 32% 52%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 16% 36%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 220 16% 90%;
+  --muted-foreground: 220 16% 46%;
+
+  --accent: 179 25% 65%;
+  --accent-foreground: 220 16% 22%;
+
+  --destructive: 354 42% 56%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 220 16% 86%;
+  --input: 220 16% 86%;
+  --ring: 213 32% 52%;
+
+  --success: 92 28% 65%;
+  --warning: 40 71% 73%;
+  --info: 213 32% 52%;
+  --error: 354 42% 56%;
+
+  /* RGB variants for opacity adjustments */
+  --background-rgb: 236, 239, 244;
+  --foreground-rgb: 46, 52, 64;
+  --card-rgb: 255, 255, 255;
+  --primary-rgb: 94, 129, 172;
+}
+
+/* Dark Nord Theme */
+.theme-nord.dark {
+  --background: 220 16% 22%;
+  --foreground: 220 16% 96%;
+
+  --card: 220 16% 28%;
+  --card-foreground: 220 16% 96%;
+
+  --popover: 220 16% 22%;
+  --popover-foreground: 220 16% 96%;
+}
+
+/* Solarized Theme */
+.theme-solarized {
+  --background: 44 87% 94%;
+  --foreground: 194 14% 40%;
+
+  --card: 44 100% 99%;
+  --card-foreground: 194 14% 40%;
+
+  --popover: 44 100% 99%;
+  --popover-foreground: 194 14% 40%;
+
+  --primary: 194 66% 36%;
+  --primary-foreground: 44 100% 99%;
+
+  --secondary: 44 50% 80%;
+  --secondary-foreground: 194 14% 40%;
+
+  --muted: 44 50% 90%;
+  --muted-foreground: 194 14% 60%;
+
+  --accent: 175 74% 37%;
+  --accent-foreground: 44 100% 99%;
+
+  --destructive: 1 71% 52%;
+  --destructive-foreground: 44 100% 99%;
+
+  --border: 44 50% 85%;
+  --input: 44 50% 85%;
+  --ring: 194 66% 36%;
+
+  --success: 68 100% 30%;
+  --warning: 45 100% 35%;
+  --info: 194 66% 36%;
+  --error: 1 71% 52%;
+
+  /* RGB variants for opacity adjustments */
+  --background-rgb: 253, 246, 227;
+  --foreground-rgb: 101, 123, 131;
+  --card-rgb: 255, 255, 240;
+  --primary-rgb: 38, 139, 210;
+}
+
+/* Dracula Theme */
+.theme-dracula {
+  --background: 231 15% 18%;
+  --foreground: 60 30% 96%;
+
+  --card: 232 14% 24%;
+  --card-foreground: 60 30% 96%;
+
+  --popover: 232 14% 24%;
+  --popover-foreground: 60 30% 96%;
+
+  --primary: 265 89% 78%;
+  --primary-foreground: 60 30% 96%;
+
+  --secondary: 232 14% 31%;
+  --secondary-foreground: 60 30% 96%;
+
+  --muted: 232 14% 31%;
+  --muted-foreground: 60 30% 80%;
+
+  --accent: 326 100% 74%;
+  --accent-foreground: 60 30% 96%;
+
+  --destructive: 0 100% 67%;
+  --destructive-foreground: 60 30% 96%;
+
+  --border: 232 14% 31%;
+  --input: 232 14% 31%;
+  --ring: 265 89% 78%;
+
+  --success: 135 94% 65%;
+  --warning: 31 100% 71%;
+  --info: 191 97% 77%;
+  --error: 0 100% 67%;
+
+  /* RGB variants for opacity adjustments */
+  --background-rgb: 40, 42, 54;
+  --foreground-rgb: 248, 248, 242;
+  --card-rgb: 50, 52, 64;
+  --primary-rgb: 189, 147, 249;
+}
+
+/* UI Element Theming */
+
+/* Cards */
+.card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: all var(--transition-speed) ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: var(--radius);
+  transition: all var(--transition-speed) ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-radius: var(--radius);
+  transition: all var(--transition-speed) ease;
+}
+
+.btn-secondary:hover {
+  filter: brightness(0.95);
+}
+
+/* Inputs */
+.input {
+  background-color: transparent;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+  transition: all var(--transition-speed) ease;
+}
+
+.input:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsla(var(--ring), 0.2);
+  outline: none;
+}
+
+/* Alerts and Notifications */
+.alert-info {
+  background-color: hsla(var(--info), 0.1);
+  border-left: 4px solid hsl(var(--info));
+  color: hsl(var(--foreground));
+}
+
+.alert-success {
+  background-color: hsla(var(--success), 0.1);
+  border-left: 4px solid hsl(var(--success));
+  color: hsl(var(--foreground));
+}
+
+.alert-warning {
+  background-color: hsla(var(--warning), 0.1);
+  border-left: 4px solid hsl(var(--warning));
+  color: hsl(var(--foreground));
+}
+
+.alert-error {
+  background-color: hsla(var(--error), 0.1);
+  border-left: 4px solid hsl(var(--error));
+  color: hsl(var(--foreground));
+}
+
+/* Sidebar and Navigation */
+.sidebar {
+  background-color: hsl(var(--card));
+  border-right: 1px solid hsl(var(--border));
+}
+
+.nav-item {
+  color: hsl(var(--foreground));
+  transition: all var(--transition-speed) ease;
+}
+
+.nav-item:hover {
+  background-color: hsla(var(--muted), 0.5);
+}
+
+.nav-item.active {
+  background-color: hsla(var(--primary), 0.1);
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
+
+/* Tables */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  text-align: left;
+  padding: 0.75rem 1rem;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.table tr:hover {
+  background-color: hsla(var(--muted), 0.5);
+}

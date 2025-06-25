@@ -1,0 +1,1568 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { NodePortOption, AccessUrl, Pod, Service, IngressHost, AppInfo } from './types'
+import { clusterApi } from '@/services/api'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { 
+  Play, 
+  Square, 
+  RefreshCw, 
+  Trash2, 
+  AlertCircle, 
+  AppWindow, 
+  Settings, 
+  X, 
+  ChevronDown, 
+  ChevronUp, 
+  Server, 
+  Box, 
+  Network, 
+  PlugZap, 
+  Link, 
+  ExternalLink, 
+  Info 
+} from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useToast } from '@/components/ui/use-toast'
+
+// Type definitions
+interface AppContainer {
+  name: string
+  image: string
+  ready: boolean
+  state: string
+}
+
+interface AppPod {
+  name: string
+  phase: string
+  ready: boolean
+  containers: AppContainer[]
+}
+
+interface AppPort {
+  name: string
+  port: number
+  target_port: number
+  node_port?: number
+}
+
+interface AppService {
+  name: string
+  type: string
+  cluster_ip: string
+  external_ip: string
+  ports: AppPort[]
+}
+
+interface AppIngress {
+  name: string
+  hosts: string[]
+}
+
+interface AppAccessUrl {
+  type: string
+  url: string
+}
+
+interface AppSpecificInfo {
+  admin_user?: string
+  admin_password?: string
+  [key: string]: any
+}
+
+interface DeploymentStatus {
+  app: string
+  namespace: string
+  pods: AppPod[]
+  services: AppService[]
+  ingresses?: AppIngress[]
+  access_urls: AppAccessUrl[]
+  app_info: AppSpecificInfo
+}
+
+interface Application {
+  id: string; // Changed from number to string
+  name: string
+  display_name?: string
+  description?: string
+  icon?: string
+  status: string
+  version: string
+  cluster: string
+  namespace?: string
+  deployment_method?: string
+  deployment_status?: DeploymentStatus
+  metadata?: any
+}
+
+// App details card component to display detailed application information
+function AppDetailsCard({ app }: { app: Application }) {
+  const { toast } = useToast()
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  // Extract status and default nested arrays/objects
+  const deploymentStatus = app.deployment_status;
+  let accessUrls = deploymentStatus?.access_urls ?? [];
+  const pods = deploymentStatus?.pods ?? [];
+  const services = deploymentStatus?.services ?? [];
+  const ingresses = deploymentStatus?.ingresses ?? [];
+  const appInfo = deploymentStatus?.app_info ?? {};
+  
+  // Generate and prioritize URLs for Kind clusters
+  // Kind clusters require special handling for NodePort and ClusterIP services
+  if (services.length > 0) {
+    // First priority: Look for NodePort services
+    const nodePortServices = services.filter(svc => 
+      svc.type === 'NodePort' && 
+      svc.ports && 
+      svc.ports.some(p => p.node_port)
+    );
+    
+    if (nodePortServices.length > 0) {
+      // Generate NodePort URLs for each NodePort service
+      nodePortServices.forEach(svc => {
+        svc.ports.forEach(port => {
+          if (port.node_port) {
+            const nodePortUrl = `http://localhost:${port.node_port}`;
+            // Check if this URL already exists
+            if (!accessUrls.some(url => url.url === nodePortUrl)) {
+              accessUrls.push({
+                type: 'nodeport',
+                url: nodePortUrl
+              });
+              console.log(`Generated NodePort URL for ${app.name}: ${nodePortUrl}`);
+            }
+          }
+        });
+      });
+    }
+    
+    // Second priority: Look for ClusterIP services if no valid NodePort URLs exist
+    // or if all existing URLs contain 'undefined'
+    const hasValidNodePortUrl = accessUrls.some(url => 
+      url.type === 'nodeport' && url.url && !url.url.includes('undefined')
+    );
+    
+    if (!hasValidNodePortUrl) {
+      const clusterIpServices = services.filter(svc => 
+        svc.type === 'ClusterIP' && 
+        svc.ports && 
+        svc.ports.length > 0
+      );
+      
+      if (clusterIpServices.length > 0) {
+        // Generate ClusterIP URLs for each service port
+        clusterIpServices.forEach(svc => {
+          svc.ports.forEach(port => {
+            if (port.port) {
+              const clusterIpUrl = `http://localhost:${port.port}`;
+              // Check if this URL already exists
+              if (!accessUrls.some(url => url.url === clusterIpUrl)) {
+                accessUrls.push({
+                  type: 'clusterip',
+                  url: clusterIpUrl
+                });
+                console.log(`Generated ClusterIP URL for ${app.name}: ${clusterIpUrl}`);
+              }
+            }
+          });
+        });
+      }
+    }
+    
+    // Third priority: If no valid URLs exist at all, try to create a generic localhost URL
+    // This is a last resort for Kind clusters
+    const hasAnyValidUrl = accessUrls.some(url => url.url && !url.url.includes('undefined'));
+    
+    if (!hasAnyValidUrl && services.length > 0) {
+      // Try to find any port from any service
+      for (const svc of services) {
+        if (svc.ports && svc.ports.length > 0) {
+          const port = svc.ports[0].port || svc.ports[0].target_port;
+          if (port) {
+            const fallbackUrl = `http://localhost:${port}`;
+            accessUrls.push({
+              type: 'fallback',
+              url: fallbackUrl
+            });
+            console.log(`Generated fallback URL for ${app.name}: ${fallbackUrl}`);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  const handleStopApp = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Show loading toast
+    toast({
+      title: 'Stopping application...',
+      description: `Stopping ${app.display_name || app.name}`,
+      variant: 'default',
+    })
+    
+    try {
+      const result = await clusterApi.stopApplication(app.id)
+      
+      // Show success toast
+      toast({
+        title: 'Application stopped',
+        description: result.message || `${app.display_name || app.name} has been stopped successfully`,
+        variant: 'success',
+      })
+      
+      // Refresh the page after a short delay to show updated status
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (error) {
+      // Show error toast
+      toast({
+        title: 'Error stopping application',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleDeleteApp = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Show loading toast
+    const loadingToast = toast({
+      title: 'Deleting application...',
+      description: `Deleting ${app.display_name || app.name}`,
+      variant: 'default',
+    })
+    
+    try {
+      // Pass the app ID, name, and cluster to provide multiple ways to identify the app
+      const result = await clusterApi.deleteApplication(
+        app.id,           // Primary identifier (now expecting a string)
+        app.name,         // Alternative identifier: app name
+        app.cluster       // Alternative identifier: cluster name
+      )
+      
+      // Show success toast
+      toast({
+        title: 'Application deleted',
+        description: result.message || `${app.display_name || app.name} has been deleted successfully`,
+        variant: 'success',
+      })
+      
+      // Dispatch an event to refresh the UI
+      window.dispatchEvent(new CustomEvent('app-deleted', { 
+        detail: { success: true, appId: app.id, appName: app.name }
+      }));
+      
+      // Reload the page after a short delay to show updated status
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (error) {
+      console.error('Error in handleDeleteApp:', error);
+      
+      // Check if it's a network error that was handled by the API service
+      if (error instanceof Error && 
+          (error.message.includes('client-side fallback') || 
+           error.message.includes('has been removed'))) {
+        // This was actually successful via fallback mechanism
+        toast({
+          title: 'Application deleted',
+          description: `${app.display_name || app.name} has been removed from the dashboard`,
+          variant: 'success',
+        })
+        
+        // Reload the page after a short delay to show updated status
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+        return;
+      }
+      
+      // Show error toast for actual errors
+      toast({
+        title: 'Error deleting application',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  return (
+    <Card className="shadow-sm hover:shadow-md transition-shadow duration-200">
+      <CardContent className="pt-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-lg font-semibold">{app.display_name || app.name}</h3>
+            <p className="text-sm text-muted-foreground">{app.description || `${app.name} application`}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleStopApp}>
+              <Square className="h-4 w-4 mr-1" />
+              Stop
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleDeleteApp}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <div>
+            <p className="text-xs text-muted-foreground">Status</p>
+            <Badge variant={app.status === 'Running' ? 'success' : 'default'}>
+              {app.status}
+            </Badge>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Version</p>
+            <p className="text-sm">{app.version}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Cluster</p>
+            <p className="text-sm">{app.cluster}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Namespace</p>
+            <p className="text-sm">{app.namespace || 'default'}</p>
+          </div>
+        </div>
+
+        {/* Access URLs section */}
+        {(accessUrls.length > 0 || services.some(s => s.type === 'NodePort' || s.type === 'ClusterIP')) && (
+          <div className="mt-4">
+            <h4 className="text-sm font-medium mb-2">Access URLs</h4>
+            <div className="space-y-2">
+              {/* Show URLs with NodePort URLs first */}
+              {accessUrls
+                .sort((a, b) => {
+                  // Sort NodePort URLs first, then by type
+                  if (a.type === 'nodeport' && b.type !== 'nodeport') return -1;
+                  if (a.type !== 'nodeport' && b.type === 'nodeport') return 1;
+                  return 0;
+                })
+                .map((url, index) => (
+                <div key={index} className="flex justify-between items-center p-2 bg-secondary/20 rounded-md">
+                  <div>
+                    <p className="text-xs text-muted-foreground">{url?.type ?? 'N/A'}</p>
+                    <p className="text-sm font-mono">
+                      {url?.url && !url.url.includes('undefined') ? (
+                        <span className="text-green-600">{url.url}</span>
+                      ) : (
+                        // Try to find a NodePort URL if this one has 'undefined'
+                        accessUrls.find(u => u.type === 'nodeport' && u.url && !u.url.includes('undefined'))?.url ? (
+                          <span className="text-green-600">
+                            {accessUrls.find(u => u.type === 'nodeport' && u.url && !u.url.includes('undefined'))?.url}
+                          </span>
+                        ) : (
+                          // Try to find a ClusterIP URL if no NodePort URL is available
+                          accessUrls.find(u => u.type === 'clusterip' && u.url && !u.url.includes('undefined'))?.url ? (
+                            <span className="text-green-600">
+                              {accessUrls.find(u => u.type === 'clusterip' && u.url && !u.url.includes('undefined'))?.url}
+                              <span className="ml-1 text-xs text-amber-600">(ClusterIP fallback)</span>
+                            </span>
+                          ) : (
+                            // If no valid URL found, show a more descriptive message
+                            <span className="text-amber-600 italic">
+                              Waiting for URL to be available...
+                              {services.some(s => s.type === 'NodePort') && (
+                                <span className="ml-1 text-xs">(Click Open to try accessing via NodePort)</span>
+                              )}
+                              {!services.some(s => s.type === 'NodePort') && services.some(s => s.type === 'ClusterIP') && (
+                                <span className="ml-1 text-xs">(Click Open to try accessing via ClusterIP)</span>
+                              )}
+                            </span>
+                          )
+                        )
+                      )}
+                    </p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    // Enable button if there's any valid URL or if there are services with ports
+                    // This allows users to try accessing even if the URL isn't fully ready
+                    disabled={!services.some(s => s.ports && s.ports.some(p => p.node_port || p.port)) && 
+                             !accessUrls.some(u => u.url && !u.url.includes('undefined'))}
+                    className={services.some(s => s.type === 'NodePort') ? "text-blue-600 hover:text-blue-800" : 
+                              accessUrls.some(u => u.type === 'clusterip') ? "text-blue-500 hover:text-blue-700" : ""}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      // Handle different URL formats and protocols
+                      let urlToOpen = url?.url;
+                      
+                      // Check if URL is valid
+                      if (!urlToOpen) {
+                        console.log('No URL provided, attempting to generate one for Kind cluster');
+                        
+                        // First priority: Try to find a NodePort service
+                        const nodePortServices = services.filter(svc => 
+                          svc.type === 'NodePort' && 
+                          svc.ports && 
+                          svc.ports.some(p => p.node_port)
+                        );
+                        
+                        if (nodePortServices.length > 0) {
+                          // Find the first NodePort service with a node_port
+                          const nodePort = nodePortServices[0].ports.find(p => p.node_port)?.node_port;
+                          if (nodePort) {
+                            urlToOpen = `http://localhost:${nodePort}`;
+                            console.log('Generated NodePort URL for Kind cluster:', urlToOpen);
+                            
+                            // Save this URL for future use
+                            if (app.deployment_status && !app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                              app.deployment_status.access_urls.push({
+                                type: 'nodeport',
+                                url: urlToOpen
+                              });
+                            }
+                          }
+                        }
+                        
+                        // Second priority: Try ClusterIP services if no NodePort URL was generated
+                        if (!urlToOpen) {
+                          const clusterIpServices = services.filter(svc => 
+                            svc.type === 'ClusterIP' && 
+                            svc.ports && 
+                            svc.ports.length > 0
+                          );
+                          
+                          if (clusterIpServices.length > 0) {
+                            const port = clusterIpServices[0].ports[0].port;
+                            if (port) {
+                              urlToOpen = `http://localhost:${port}`;
+                              console.log('Generated ClusterIP URL for Kind cluster:', urlToOpen);
+                              
+                              // Save this URL for future use
+                              if (app.deployment_status && app.deployment_status.access_urls) {
+                                const existingClusterIpUrl = app.deployment_status.access_urls.find(u => 
+                                  u.type === 'clusterip' && u.url === urlToOpen
+                                );
+                                
+                                if (!existingClusterIpUrl) {
+                                  app.deployment_status.access_urls.push({
+                                    type: 'clusterip',
+                                    url: urlToOpen
+                                  });
+                                  console.log('Added constructed ClusterIP URL to access_urls');
+                                }
+                              }
+                              
+                              toast({
+                                title: 'Using ClusterIP Port',
+                                description: `No NodePort available. Trying to access via ClusterIP port ${port}`,
+                                variant: 'default',
+                              });
+                            }
+                          }
+                        }
+                        
+                        // If we still don't have a URL, show an error
+                        if (!urlToOpen) {
+                          toast({
+                            title: 'URL Not Available',
+                            description: 'The URL is not yet available. The application may still be deploying.',
+                            variant: 'default',
+                          });
+                          return;
+                        }
+                      }
+                      
+                      // Check for undefined in URL (common in Kind clusters during deployment)
+                      if (!urlToOpen || urlToOpen.includes('undefined')) {
+                        console.log('Invalid URL detected, attempting to find or construct a valid URL');
+                        
+                        // STEP 1: First try to find an existing valid NodePort URL
+                        const nodePortUrl = accessUrls.find(u => 
+                          u.type === 'nodeport' && 
+                          u.url && 
+                          !u.url.includes('undefined') && 
+                          u.url.includes('localhost')
+                        );
+                        
+                        if (nodePortUrl && nodePortUrl.url) {
+                          console.log('Found existing valid NodePort URL:', nodePortUrl.url);
+                          urlToOpen = nodePortUrl.url;
+                        } else {
+                          // STEP 2: If no existing NodePort URL, try to construct one from services
+                          const nodePortServices = services.filter(svc => 
+                            svc.type === 'NodePort' && 
+                            svc.ports && 
+                            svc.ports.some(p => p.node_port)
+                          );
+                          
+                          if (nodePortServices.length > 0) {
+                            // Find all ports with node_port values
+                            const nodePortOptions = [];
+                            nodePortServices.forEach(svc => {
+                              svc.ports.forEach(port => {
+                                if (port.node_port) {
+                                  nodePortOptions.push({
+                                    service: svc.name,
+                                    port: port.port,
+                                    nodePort: port.node_port
+                                  });
+                                }
+                              });
+                            });
+                            
+                            if (nodePortOptions.length > 0) {
+                              // Use the first NodePort by default
+                              const nodePort = nodePortOptions[0].nodePort;
+                              urlToOpen = `http://localhost:${nodePort}`;
+                              console.log('Constructed NodePort URL from service:', urlToOpen);
+                              
+                              // Save this URL to the app's access_urls for future use
+                              if (app.deployment_status && app.deployment_status.access_urls) {
+                                const existingNodePortUrl = app.deployment_status.access_urls.find(u => 
+                                  u.type === 'nodeport' && u.url === urlToOpen
+                                );
+                                
+                                if (!existingNodePortUrl) {
+                                  app.deployment_status.access_urls.push({
+                                    type: 'nodeport',
+                                    url: urlToOpen
+                                  });
+                                  console.log('Added constructed NodePort URL to access_urls');
+                                }
+                              }
+                              
+                              // If there are multiple NodePorts, show a toast with info
+                              if (nodePortOptions.length > 1) {
+                                const otherPorts = nodePortOptions.slice(1).map(opt => opt.nodePort).join(', ');
+                                toast({
+                                  title: 'Multiple Access Points Available',
+                                  description: `Using port ${nodePort}. Other available ports: ${otherPorts}`,
+                                  variant: 'default',
+                                });
+                              }
+                            } else {
+                              // No node_port found in NodePort services, try to use the service port
+                              const anyPort = nodePortServices[0].ports[0]?.port;
+                              if (anyPort) {
+                                urlToOpen = `http://localhost:${anyPort}`;
+                                console.log('Constructed URL using NodePort service port:', urlToOpen);
+                                
+                                // Save this URL for future use
+                                if (app.deployment_status && app.deployment_status.access_urls) {
+                                  if (!app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                                    app.deployment_status.access_urls.push({
+                                      type: 'service-port',
+                                      url: urlToOpen
+                                    });
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          
+                          // STEP 3: If still no URL, check for ClusterIP services as a fallback
+                          if (!urlToOpen) {
+                            // Try to find an existing valid ClusterIP URL first
+                            const clusterIpUrl = accessUrls.find(u => 
+                              u.type === 'clusterip' && 
+                              u.url && 
+                              !u.url.includes('undefined') && 
+                              u.url.includes('localhost')
+                            );
+                            
+                            if (clusterIpUrl && clusterIpUrl.url) {
+                              console.log('Found existing valid ClusterIP URL:', clusterIpUrl.url);
+                              urlToOpen = clusterIpUrl.url;
+                              
+                              toast({
+                                title: 'Using ClusterIP Port',
+                                description: `No NodePort available. Trying ClusterIP access.`,
+                                variant: 'default',
+                              });
+                            } else {
+                              // If no existing ClusterIP URL, try to construct one
+                              const clusterIpServices = services.filter(svc => 
+                                svc.type === 'ClusterIP' && 
+                                svc.ports && 
+                                svc.ports.length > 0
+                              );
+                              
+                              if (clusterIpServices.length > 0) {
+                                // Use the first ClusterIP service port
+                                const port = clusterIpServices[0].ports[0].port;
+                                urlToOpen = `http://localhost:${port}`;
+                                console.log('Constructed ClusterIP fallback URL:', urlToOpen);
+                                
+                                // Save this ClusterIP URL to the app's access_urls for future use
+                                if (app.deployment_status && app.deployment_status.access_urls) {
+                                  const existingClusterIpUrl = app.deployment_status.access_urls.find(u => 
+                                    u.type === 'clusterip' && u.url === urlToOpen
+                                  );
+                                  
+                                  if (!existingClusterIpUrl) {
+                                    app.deployment_status.access_urls.push({
+                                      type: 'clusterip',
+                                      url: urlToOpen
+                                    });
+                                    console.log('Added constructed ClusterIP URL to access_urls');
+                                  }
+                                }
+                                
+                                toast({
+                                  title: 'Using ClusterIP Port',
+                                  description: `No NodePort available. Trying to access via ClusterIP port ${port}`,
+                                  variant: 'default',
+                                });
+                              }
+                            }
+                          }
+                          
+                          // STEP 4: Last resort - try any service port available
+                          if (!urlToOpen) {
+                            // Check if there's any service with ports
+                            if (services.length > 0) {
+                              for (const svc of services) {
+                                if (svc.ports && svc.ports.length > 0) {
+                                  for (const port of svc.ports) {
+                                    if (port.port || port.target_port || port.node_port) {
+                                      const portToUse = port.node_port || port.port || port.target_port;
+                                      urlToOpen = `http://localhost:${portToUse}`;
+                                      console.log('Last resort: constructed URL using available port:', urlToOpen);
+                                      
+                                      // Save this URL for future use
+                                      if (app.deployment_status && app.deployment_status.access_urls) {
+                                        if (!app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                                          app.deployment_status.access_urls.push({
+                                            type: 'fallback',
+                                            url: urlToOpen
+                                          });
+                                        }
+                                      }
+                                      
+                                      toast({
+                                        title: 'Using Fallback Port',
+                                        description: `Attempting to access via port ${portToUse}`,
+                                        variant: 'default',
+                                      });
+                                      break;
+                                    }
+                                  }
+                                  if (urlToOpen) break;
+                                }
+                              }
+                            }
+                            
+                            // If we still don't have a URL, show an error
+                            if (!urlToOpen) {
+                              toast({
+                                title: 'URL Not Ready',
+                                description: 'The application is still being configured. Please try again in a moment.',
+                                variant: 'default',
+                              });
+                              return;
+                            }
+                          }
+                        }
+                      }
+                      
+                      console.log('Attempting to open URL:', urlToOpen);
+                      
+                      // If it's a mysql:// URL, show connection info instead
+                      if (urlToOpen.startsWith('mysql://')) {
+                        console.log('Showing MySQL connection info for:', urlToOpen);
+                        toast({
+                          title: 'MySQL Connection Info',
+                          description: `Connection URL: ${urlToOpen}\nUse this in your database client`,
+                          variant: 'default',
+                        });
+                        return;
+                      }
+                      
+                      // For Kind clusters, ensure we're using localhost
+                      if (urlToOpen.includes('.local') || urlToOpen.includes('.cluster.local')) {
+                        console.log('Converting cluster domain URL to localhost:', urlToOpen);
+                        
+                        // Extract port from URL if possible
+                        const portMatch = urlToOpen.match(/:([0-9]+)/);
+                        const extractedPort = portMatch && portMatch[1] ? portMatch[1] : null;
+                        
+                        // STEP 1: First priority - use NodePort if available
+                        const nodePortServices = services.filter(svc => 
+                          svc.type === 'NodePort' && 
+                          svc.ports && 
+                          svc.ports.some(p => p.node_port)
+                        );
+                        
+                        if (nodePortServices.length > 0) {
+                          // Find all ports with node_port values
+                          const nodePortOptions = [];
+                          nodePortServices.forEach(svc => {
+                            svc.ports.forEach(port => {
+                              if (port.node_port) {
+                                nodePortOptions.push({
+                                  service: svc.name,
+                                  port: port.port,
+                                  nodePort: port.node_port
+                                });
+                              }
+                            });
+                          });
+                          
+                          if (nodePortOptions.length > 0) {
+                            // Use the first NodePort by default
+                            const nodePort = nodePortOptions[0].nodePort;
+                            urlToOpen = `http://localhost:${nodePort}`;
+                            console.log('Converted to NodePort URL for Kind cluster:', urlToOpen);
+                            
+                            // Save this NodePort URL to the app's access_urls for future use
+                            if (app.deployment_status && app.deployment_status.access_urls) {
+                              if (!app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                                app.deployment_status.access_urls.push({
+                                  type: 'nodeport',
+                                  url: urlToOpen
+                                });
+                                console.log('Added converted NodePort URL to access_urls');
+                              }
+                            }
+                            
+                            // If there are multiple NodePorts, show a toast with info
+                            if (nodePortOptions.length > 1) {
+                              const otherPorts = nodePortOptions.slice(1).map(opt => opt.nodePort).join(', ');
+                              toast({
+                                title: 'Multiple Access Points Available',
+                                description: `Using port ${nodePort}. Other available ports: ${otherPorts}`,
+                                variant: 'default',
+                              });
+                            }
+                          }
+                        }
+                        
+                        // STEP 2: If no NodePort available, use the extracted port from URL
+                        if (!urlToOpen.includes('localhost') && extractedPort) {
+                          urlToOpen = `http://localhost:${extractedPort}`;
+                          console.log('Converted cluster.local URL to localhost using extracted port:', urlToOpen);
+                          
+                          // Save this URL to the app's access_urls for future use
+                          if (app.deployment_status && app.deployment_status.access_urls) {
+                            if (!app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                              app.deployment_status.access_urls.push({
+                                type: 'extracted-port',
+                                url: urlToOpen
+                              });
+                            }
+                          }
+                        }
+                        
+                        // STEP 3: If still no valid URL, try ClusterIP services
+                        if (!urlToOpen.includes('localhost')) {
+                          const clusterIpServices = services.filter(svc => 
+                            svc.type === 'ClusterIP' && 
+                            svc.ports && 
+                            svc.ports.length > 0
+                          );
+                          
+                          if (clusterIpServices.length > 0) {
+                            // Use the first ClusterIP service port
+                            const port = clusterIpServices[0].ports[0].port;
+                            if (port) {
+                              urlToOpen = `http://localhost:${port}`;
+                              console.log('Fallback to ClusterIP service port:', urlToOpen);
+                              
+                              // Save this ClusterIP URL to the app's access_urls for future use
+                              if (app.deployment_status && app.deployment_status.access_urls) {
+                                if (!app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                                  app.deployment_status.access_urls.push({
+                                    type: 'clusterip',
+                                    url: urlToOpen
+                                  });
+                                  console.log('Added ClusterIP fallback URL to access_urls');
+                                }
+                              }
+                              
+                              toast({
+                                title: 'Using ClusterIP Port',
+                                description: `No NodePort available. Trying to access via ClusterIP port ${port}`,
+                                variant: 'default',
+                              });
+                            }
+                          }
+                        }
+                        
+                        // STEP 4: Last resort - try any port from any service
+                        if (!urlToOpen.includes('localhost')) {
+                          // Try to find any port from any service
+                          for (const svc of services) {
+                            if (svc.ports && svc.ports.length > 0) {
+                              for (const port of svc.ports) {
+                                const portToUse = port.node_port || port.port || port.target_port;
+                                if (portToUse) {
+                                  urlToOpen = `http://localhost:${portToUse}`;
+                                  console.log('Last resort: using any available port:', urlToOpen);
+                                  
+                                  // Save this URL for future use
+                                  if (app.deployment_status && app.deployment_status.access_urls) {
+                                    if (!app.deployment_status.access_urls.some(u => u.url === urlToOpen)) {
+                                      app.deployment_status.access_urls.push({
+                                        type: 'fallback',
+                                        url: urlToOpen
+                                      });
+                                    }
+                                  }
+                                  
+                                  toast({
+                                    title: 'Using Fallback Port',
+                                    description: `Attempting to access via port ${portToUse}`,
+                                    variant: 'default',
+                                  });
+                                  break;
+                                }
+                              }
+                              if (urlToOpen.includes('localhost')) break;
+                            }
+                          }
+                        }
+                      }
+                      
+                      // Ensure URL has proper protocol
+                      if (!urlToOpen.startsWith('http://') && !urlToOpen.startsWith('https://')) {
+                        urlToOpen = `http://${urlToOpen}`;
+                        console.log('Added http:// prefix to URL:', urlToOpen);
+                      }
+                      
+                      // For HTTP URLs, try to open them directly
+                      try {
+                        // Use simple window.open approach which is more reliable
+                        const newWindow = window.open(urlToOpen, '_blank', 'noopener,noreferrer');
+                        console.log('Opened URL:', urlToOpen);
+                        
+                        if (newWindow) {
+                          // Successfully opened the URL
+                          toast({
+                            title: 'Opening Application',
+                            description: `Accessing ${app.display_name || app.name} at ${urlToOpen}`,
+                            variant: 'default',
+                          });
+                        } else {
+                          // Window.open returned null (likely blocked by popup blocker)
+                          toast({
+                            title: 'Popup Blocked',
+                            description: `Please allow popups for this site or copy this URL manually: ${urlToOpen}`,
+                            variant: 'destructive',
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Error opening URL:', error);
+                        // Show a toast with the URL so user can copy it manually
+                        toast({
+                          title: 'Could not open URL automatically',
+                          description: `Please copy and open manually: ${urlToOpen}`,
+                          variant: 'destructive',
+                        });
+                      }
+                    }}
+                  >
+                    Open
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Expanded details section */}
+        {isExpanded && (
+          <div className="mt-4 space-y-4">
+            {/* Pods section */}
+            {pods.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <Server className="h-4 w-4" /> Pods
+                </h4>
+                <div className="space-y-2">
+                  {pods.map((pod) => (
+                    <div key={pod?.name ?? Math.random()} className="flex items-center justify-between p-2 bg-secondary/30 rounded-md">
+                      <span className="text-sm font-mono flex items-center gap-2">
+                        <Box className="h-3 w-3" /> 
+                        {pod?.name ?? 'N/A'}
+                      </span>
+                      <Badge variant={pod?.ready ? 'success' : 'secondary'}>{pod?.phase ?? 'Unknown'}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Services section */}
+            {services.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <Network className="h-4 w-4" /> Services
+                </h4>
+                <div className="space-y-2">
+                  {services.map((service) => (
+                    <div key={service?.name ?? Math.random()} className="p-2 bg-secondary/30 rounded-md text-sm">
+                      <p className="font-mono font-medium mb-1 flex items-center gap-2">
+                        <PlugZap className="h-3 w-3" /> {service?.name ?? 'N/A'} ({service?.type ?? 'N/A'})
+                      </p>
+                      <p className="ml-5">Cluster IP: {service?.cluster_ip ?? 'N/A'}</p>
+                      {service?.external_ip && <p className="ml-5">External IP: {service.external_ip}</p>}
+                      <p className="ml-5">Ports: {service?.ports?.map(p => `${p?.port ?? '?'}${p?.node_port ? ':' + p.node_port : ''}/${p?.target_port ?? '?'}(${p?.name || 'tcp'})`).join(', ') ?? 'N/A'}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Ingresses */}
+            {ingresses.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <Link className="h-4 w-4" /> Ingresses
+                </h4>
+                <div className="space-y-2">
+                  {ingresses.map((ingress) => (
+                    <div key={ingress?.name ?? Math.random()} className="p-2 bg-secondary/30 rounded-md text-sm">
+                      <p className="font-mono font-medium mb-1 flex items-center gap-2">
+                        <Link className="h-3 w-3" /> {ingress?.name ?? 'N/A'}
+                      </p>
+                      <p className="ml-5">Hosts: {ingress?.hosts?.join(', ') ?? 'N/A'}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Access URLs */}
+            <div>
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <Link className="h-4 w-4" /> Access URLs / Info
+              </h4>
+              <div className="space-y-2">
+                {accessUrls.length > 0 ? (
+                  accessUrls.map((acc, index) => (
+                    <div key={index} className="p-2 bg-secondary/30 rounded-md text-sm">
+                      {acc?.type === 'url' ? (
+                        <a 
+                          href={acc?.url && !acc.url.includes('undefined') ? acc.url : '#'} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-blue-500 hover:underline flex items-center gap-1"
+                          onClick={(e) => {
+                            // If URL contains undefined, prevent default and show toast
+                            if (!acc?.url || acc.url.includes('undefined')) {
+                              e.preventDefault();
+                              toast({
+                                title: 'URL Not Available',
+                                description: 'The URL is not yet available. Please use the Open button in the main view.',
+                                variant: 'default',
+                              });
+                            }
+                          }}
+                        >
+                          {acc?.url && !acc.url.includes('undefined') ? acc.url : 'URL not yet available'} 
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <p className="font-mono">{acc?.type ?? 'N/A'}: {acc?.url ?? 'N/A'}</p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">No access URLs configured.</p>
+                )}
+                
+                {/* App Specific Info (e.g., Airflow creds) */}
+                {Object.keys(appInfo).length > 0 ? (
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Info className="h-4 w-4" /> App Specific Info
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {Object.entries(appInfo).map(([key, value]) => (
+                        <div key={key} className="p-2 bg-secondary/30 rounded-md">
+                          <p className="text-xs text-muted-foreground">{key ?? 'N/A'}</p>
+                          <p className="text-sm">{String(value ?? 'N/A')}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic mt-4">No app-specific info available.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Show pod/service counts if not expanded */}
+        {!isExpanded && (
+          <div className="mt-3 text-xs text-muted-foreground flex space-x-4">
+            <span>Pods: {pods.length}</span>
+            <span>Services: {services.length}</span>
+            <span>URLs: {accessUrls.length}</span>
+          </div>
+        )}
+        
+        {/* App configuration editor button */}
+        {app.deployment_status && (
+          <div className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? 'Hide Details' : 'Show More Details'}
+            </Button>
+            
+            <Button
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Open configuration editor dialog
+                if (typeof window !== 'undefined') {
+                  const event = new CustomEvent('edit-app-config', { detail: { app } });
+                  window.dispatchEvent(event);
+                }
+              }}
+            >
+              <Settings className="h-4 w-4" />
+              <span>Edit Config</span>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Main page component
+export default function ManageApps() {
+  const { toast } = useToast()
+  
+  // State for error handling
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  
+  // Regular state
+  const [selectedCluster, setSelectedCluster] = useState('')
+  const [selectedApp, setSelectedApp] = useState('')
+  const [selectedNamespace, setSelectedNamespace] = useState('')
+  const [selectedDeploymentMethod, setSelectedDeploymentMethod] = useState('kubectl')
+  const [selectedVersion, setSelectedVersion] = useState('latest')
+  const [customValues, setCustomValues] = useState<Record<string, any>>({})
+  
+  // Configuration editor state
+  const [configEditorOpen, setConfigEditorOpen] = useState(false)
+  const [appToEdit, setAppToEdit] = useState<Application | null>(null)
+  const [editedConfig, setEditedConfig] = useState<Record<string, any>>({})
+  
+  const [apps, setApps] = useState<Application[]>([])
+  const [clusters, setClusters] = useState<any[]>([])
+  
+  // Split the fetch function into two separate concerns to avoid circular dependencies
+  const fetchApplications = useCallback(async () => {
+    try {
+      console.log('Fetching applications from API...')
+      const appsData = await clusterApi.getApplications()
+      console.log('✅ Applications received:', appsData)
+
+      // Directly set the apps from the API response
+      if (Array.isArray(appsData)) {
+        setApps(appsData)
+      } else {
+        console.warn('⚠️ API did not return an array for applications. Setting apps to empty array.')
+        setApps([]) // Ensure apps is always an array
+      }
+      return true
+    } catch (err: any) {
+      console.error('Error fetching applications:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch applications')
+      return false
+    }
+  }, [])
+
+  const fetchClusters = useCallback(async () => {
+    try {
+      // Fetch actual running clusters
+      const clusterStatus = await clusterApi.getClusterStatus()
+      console.log('Fetched clusters for dropdown:', clusterStatus)
+      
+      // Extract clusters from the response
+      let clustersList = []
+      if (clusterStatus.clusters && Array.isArray(clusterStatus.clusters)) {
+        clustersList = clusterStatus.clusters
+        // If we have clusters but none are selected yet, select the first one
+        if (clustersList.length > 0 && !selectedCluster) {
+          setSelectedCluster(clustersList[0].name)
+        }
+      }
+      setClusters(clustersList)
+      return true
+    } catch (err: any) {
+      console.error('Error fetching clusters:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch clusters')
+      return false
+    }
+  }, [selectedCluster])
+  
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    
+    // Run both fetches and handle errors
+    await Promise.all([
+      fetchApplications().catch(err => {
+        console.error('Applications fetch error:', err)
+      }),
+      fetchClusters().catch(err => {
+        console.error('Clusters fetch error:', err)
+      })
+    ])
+    
+    setLoading(false)
+  }, [fetchApplications, fetchClusters])
+
+  // Fetch data on mount only, avoid dependency cycle
+  useEffect(() => {
+    // Fetch data initially
+    fetchData()
+    
+    // REMOVED: Interval fetch
+    // const interval = setInterval(fetchData, 10000)
+    // return () => clearInterval(interval)
+  }, []) // Empty dependency array to run only on mount
+
+  useEffect(() => {
+    // Add event listener for edit-app-config event
+    const handleEditConfig = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.app) {
+        setAppToEdit(customEvent.detail.app);
+        // Initialize edited config with current app values or empty object
+        const initialConfig = customEvent.detail.app.deployment_status?.app_info || {};
+        setEditedConfig(initialConfig);
+        setConfigEditorOpen(true);
+      }
+    };
+    
+    window.addEventListener('edit-app-config', handleEditConfig);
+    
+    return () => {
+      window.removeEventListener('edit-app-config', handleEditConfig);
+    };
+  }, [])
+
+  useEffect(() => {
+    // Add event listener for app-deleted event
+    const handleAppDeleted = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      console.log("'app-deleted' event received:", customEvent.detail);
+      
+      // Show success toast if not already shown by the delete handler
+      if (customEvent.detail && customEvent.detail.success) {
+        const appName = customEvent.detail.appName || 'Application';
+        toast({
+          title: "Application deleted",
+          description: `${appName} has been removed successfully.`,
+          variant: "success",
+        });
+      }
+      
+      // Refresh the application list
+      fetchData();
+    };
+    
+    window.addEventListener('app-deleted', handleAppDeleted);
+    
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener('app-deleted', handleAppDeleted);
+    };
+  }, [fetchData, toast]);
+
+  const handleDeploy = async () => {
+    if (!selectedCluster || !selectedApp) {
+      setError('Please select both cluster and application')
+      return
+    }
+
+    try {
+      setLoading(true)
+      // Show deployment toast
+      toast({
+        title: "Deploying application...",
+        description: `Deploying ${selectedApp} to ${selectedCluster}...`,
+        variant: "default",
+      })
+      
+      // Use the enhanced deployment API with namespace and other options
+      const deployResult = await clusterApi.deployApplication(
+        selectedCluster, 
+        selectedApp, 
+        selectedNamespace || `${selectedApp}-dev`, // Use custom namespace or default
+        customValues, // Pass any custom values
+        selectedDeploymentMethod || 'kubectl', // Use selected deployment method or default
+        selectedVersion || 'latest' // Use selected version or default
+      )
+      
+      console.log('Deployment result:', deployResult)
+      
+      // Force refresh the application list immediately after successful deployment
+      await fetchData() 
+      
+      setError(null)
+      toast({
+        title: "Application deployed",
+        description: `${selectedApp} has been deployed successfully to ${selectedCluster}.`,
+        variant: "success",
+      })
+    } catch (err) {
+      console.error('Error deploying application:', err)
+      setError(err instanceof Error ? err.message : 'Failed to deploy application')
+      toast({
+        title: "Deployment failed",
+        description: err instanceof Error ? err.message : 'Failed to deploy application',
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading && apps.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Manage Applications</h1>
+        {/* <p className="text-muted-foreground">Deploy and manage applications on your clusters</p> */}
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium">Cluster:</label>
+          <Select value={selectedCluster} onValueChange={setSelectedCluster}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select a cluster" />
+            </SelectTrigger>
+            <SelectContent>
+              {clusters.map((cluster) => (
+                <SelectItem key={cluster.name} value={cluster.name}>
+                  {cluster.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div> 
+  
+      {/* Error display */}
+      {error && (
+        <div className="mt-4">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
+      {/* Configuration Editor Dialog */}
+      {configEditorOpen && appToEdit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Edit {appToEdit.display_name || appToEdit.name} Configuration</h2>
+              <Button variant="ghost" size="icon" onClick={() => setConfigEditorOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Application</label>
+                  <p className="text-sm">{appToEdit.display_name || appToEdit.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Cluster</label>
+                  <p className="text-sm">{appToEdit.cluster}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Namespace</label>
+                  <p className="text-sm">{appToEdit.namespace || 'default'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Version</label>
+                  <p className="text-sm">{appToEdit.version}</p>
+                </div>
+              </div>
+              
+              <div className="border-t border-border pt-4">
+                <h3 className="text-sm font-medium mb-2">Configuration Values</h3>
+                
+                {/* Configuration Editor */}
+                <div className="space-y-2">
+                  {/* Resource Configuration */}
+                  <div className="p-3 bg-secondary/30 rounded-md">
+                    <h4 className="text-sm font-medium mb-2">Resource Configuration</h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">CPU Limit</label>
+                        <input 
+                          type="text" 
+                          className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                          value={editedConfig.cpu_limit || '1000m'}
+                          onChange={(e) => setEditedConfig({...editedConfig, cpu_limit: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">Memory Limit</label>
+                        <input 
+                          type="text" 
+                          className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                          value={editedConfig.memory_limit || '1Gi'}
+                          onChange={(e) => setEditedConfig({...editedConfig, memory_limit: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">Replicas</label>
+                        <input 
+                          type="number" 
+                          className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                          value={editedConfig.replicas || 1}
+                          onChange={(e) => setEditedConfig({...editedConfig, replicas: parseInt(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Application-specific Configuration */}
+                  <div className="p-3 bg-secondary/30 rounded-md">
+                    <h4 className="text-sm font-medium mb-2">Application Configuration</h4>
+                    
+                    {appToEdit.name === 'airflow' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Admin Username</label>
+                          <input 
+                            type="text" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.admin_user || 'admin'}
+                            onChange={(e) => setEditedConfig({...editedConfig, admin_user: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Admin Password</label>
+                          <input 
+                            type="password" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.admin_password || 'admin'}
+                            onChange={(e) => setEditedConfig({...editedConfig, admin_password: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {appToEdit.name === 'mysql' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Root Password</label>
+                          <input 
+                            type="password" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.root_password || 'password'}
+                            onChange={(e) => setEditedConfig({...editedConfig, root_password: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Database Name</label>
+                          <input 
+                            type="text" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.database || 'mydatabase'}
+                            onChange={(e) => setEditedConfig({...editedConfig, database: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* For other applications, show a generic configuration editor */}
+                    {appToEdit.name !== 'airflow' && appToEdit.name !== 'mysql' && (
+                      <div className="text-sm text-muted-foreground italic">
+                        No specific configuration options available for this application type.
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Advanced Configuration - YAML Editor */}
+                  <div className="p-3 bg-secondary/30 rounded-md">
+                    <h4 className="text-sm font-medium mb-2">Advanced Configuration (YAML)</h4>
+                    <textarea
+                      className="w-full h-32 px-3 py-2 text-xs font-mono border border-border rounded-md"
+                      value={JSON.stringify(editedConfig, null, 2)}
+                      onChange={(e) => {
+                        try {
+                          const parsedConfig = JSON.parse(e.target.value);
+                          setEditedConfig(parsedConfig);
+                        } catch (err) {
+                          // Ignore parsing errors while typing
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Edit as JSON. Changes will be converted to YAML for deployment.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
+                <Button variant="outline" onClick={() => setConfigEditorOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Here we would update the application configuration
+                    // For now, just show a success message and close the dialog
+                    toast({
+                      title: "Configuration updated",
+                      description: `${appToEdit.display_name || appToEdit.name} configuration has been updated successfully.`,
+                      variant: "success",
+                    });
+                    setConfigEditorOpen(false);
+                  }}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AppWindow className="h-5 w-5" />
+            <span>Deploy New Application</span>
+          </CardTitle>
+          <CardDescription>Select a cluster and application to deploy</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Cluster</label>
+              <Select value={selectedCluster} onValueChange={setSelectedCluster}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a cluster" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clusters.map((cluster) => (
+                    <SelectItem key={cluster.name} value={cluster.name}>
+                      {cluster.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Application</label>
+              <Select value={selectedApp} onValueChange={setSelectedApp}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an application" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="airflow">Apache Airflow</SelectItem>
+                  <SelectItem value="mysql">MySQL Database</SelectItem>
+                  <SelectItem value="nginx">Nginx Web Server</SelectItem>
+                  <SelectItem value="prometheus">Prometheus Monitoring</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Namespace</label>
+              <Input 
+                placeholder="e.g. airflow-dev" 
+                value={selectedNamespace} 
+                onChange={(e) => setSelectedNamespace(e.target.value)} 
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Deployment Method</label>
+              <Select value={selectedDeploymentMethod} onValueChange={setSelectedDeploymentMethod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="kubectl">kubectl</SelectItem>
+                  <SelectItem value="helm">Helm</SelectItem>
+                  <SelectItem value="kustomize">Kustomize</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <Button onClick={handleDeploy} disabled={loading}>
+              {loading ? (
+                <>
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
+                  Deploying...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Deploy Application
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Deployed Applications</h2>
+        
+        {apps.length === 0 ? (
+          <div className="text-center py-12 border border-dashed rounded-lg">
+            <p className="text-muted-foreground">No applications deployed yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Deploy your first application using the form above</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {apps.map((app) => (
+              <AppDetailsCard key={app.id} app={app} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div> 
+  );
+}

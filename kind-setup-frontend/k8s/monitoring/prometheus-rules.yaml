@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kind-setup-frontend-alerts
+  labels:
+    app: kind-setup-frontend
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+  - name: kind-setup-frontend.rules
+    rules:
+    - alert: HighErrorRate
+      expr: sum(rate(http_requests_total{app="kind-setup-frontend",status_code=~"5.."}[5m])) / sum(rate(http_requests_total{app="kind-setup-frontend"}[5m])) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High error rate on frontend"
+        description: "Error rate is above 5% for the last 5 minutes (current value: {{ $value }})"
+    
+    - alert: SlowResponseTime
+      expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app="kind-setup-frontend"}[5m])) by (le)) > 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Slow response time on frontend"
+        description: "95th percentile of response time is above 2 seconds for the last 5 minutes (current value: {{ $value }}s)"
+    
+    - alert: HighCPUUsage
+      expr: sum(rate(container_cpu_usage_seconds_total{container="frontend"}[5m])) / sum(kube_pod_container_resource_limits_cpu_cores{container="frontend"}) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage on frontend"
+        description: "CPU usage is above 80% of the limit for the last 5 minutes (current value: {{ $value }})"
+    
+    - alert: HighMemoryUsage
+      expr: sum(container_memory_usage_bytes{container="frontend"}) / sum(kube_pod_container_resource_limits_memory_bytes{container="frontend"}) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage on frontend"
+        description: "Memory usage is above 80% of the limit for the last 5 minutes (current value: {{ $value }})"

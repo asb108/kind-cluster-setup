@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:{{ version }}
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ root_password }}
+        - name: MYSQL_DATABASE
+          value: {{ database_name }}
+        resources:
+          requests:
+            memory: "{{ memory_request }}"
+            cpu: "{{ cpu_request }}"
+          limits:
+            memory: "{{ memory_limit }}"
+            cpu: "{{ cpu_limit }}"
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-data
+        emptyDir: {}

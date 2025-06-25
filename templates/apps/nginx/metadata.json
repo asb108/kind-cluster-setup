@@ -1,0 +1,224 @@
+{
+  "display_name": "Nginx Web Server",
+  "description": "Deploy an Nginx web server with customizable configuration, SSL support, and resource management",
+  "version": "1.25",
+  "icon": "https://www.nginx.com/wp-content/uploads/2018/08/NGINX-logo-rgb-large.png",
+  "category": "Web Servers",
+  "tags": ["web", "server", "nginx", "proxy"],
+  "deployment_methods": ["kubectl", "helm"],
+  "min_kubernetes_version": "1.20.0",
+  "parameters": {
+    "app_name": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Application Name",
+      "description": "Name for the Nginx instance",
+      "default": "nginx",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-]+$",
+        "min": 3,
+        "max": 50
+      },
+      "group": "basic"
+    },
+    "nginx_version": {
+      "type": "enum",
+      "ui_control": "select",
+      "label": "Nginx Version",
+      "description": "Nginx version to deploy",
+      "default": "1.25",
+      "validation": {
+        "options": ["1.21", "1.23", "1.25", "alpine"]
+      },
+      "group": "basic"
+    },
+    "replicas": {
+      "type": "number",
+      "ui_control": "slider",
+      "label": "Replica Count",
+      "description": "Number of Nginx replicas",
+      "default": 1,
+      "validation": {
+        "min": 1,
+        "max": 10
+      },
+      "group": "scaling"
+    },
+    "cpu_request": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "CPU Request",
+      "description": "CPU resource request (e.g., 100m, 0.5)",
+      "default": "100m",
+      "validation": {
+        "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+      },
+      "group": "resources"
+    },
+    "memory_request": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Memory Request",
+      "description": "Memory resource request (e.g., 64Mi, 128Mi)",
+      "default": "64Mi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi)$"
+      },
+      "group": "resources"
+    },
+    "cpu_limit": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "CPU Limit",
+      "description": "CPU resource limit (e.g., 200m, 1)",
+      "default": "200m",
+      "validation": {
+        "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+      },
+      "group": "resources"
+    },
+    "memory_limit": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Memory Limit",
+      "description": "Memory resource limit (e.g., 128Mi, 256Mi)",
+      "default": "128Mi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi)$"
+      },
+      "group": "resources"
+    },
+    "service_type": {
+      "type": "enum",
+      "ui_control": "select",
+      "label": "Service Type",
+      "description": "Kubernetes service type for web server access",
+      "default": "ClusterIP",
+      "validation": {
+        "options": ["ClusterIP", "NodePort", "LoadBalancer"]
+      },
+      "group": "networking"
+    },
+    "port": {
+      "type": "number",
+      "ui_control": "number",
+      "label": "HTTP Port",
+      "description": "Port for HTTP connections",
+      "default": 80,
+      "validation": {
+        "min": 1024,
+        "max": 65535
+      },
+      "group": "networking"
+    },
+    "enable_ssl": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable SSL/HTTPS",
+      "description": "Enable HTTPS with SSL certificate",
+      "default": false,
+      "group": "ssl"
+    },
+    "ssl_port": {
+      "type": "number",
+      "ui_control": "number",
+      "label": "HTTPS Port",
+      "description": "Port for HTTPS connections",
+      "default": 443,
+      "validation": {
+        "min": 1024,
+        "max": 65535
+      },
+      "dependencies": {
+        "show_when": {"enable_ssl": true}
+      },
+      "group": "ssl"
+    },
+    "custom_config": {
+      "type": "string",
+      "ui_control": "textarea",
+      "label": "Custom Nginx Configuration",
+      "description": "Additional Nginx configuration directives",
+      "default": "",
+      "group": "advanced"
+    },
+    "enable_gzip": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Gzip Compression",
+      "description": "Enable gzip compression for responses",
+      "default": true,
+      "group": "advanced"
+    },
+    "client_max_body_size": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Max Body Size",
+      "description": "Maximum allowed size of client request body (e.g., 1m, 10m)",
+      "default": "1m",
+      "validation": {
+        "pattern": "^[0-9]+(k|m|g)$"
+      },
+      "group": "advanced"
+    }
+  },
+  "parameter_groups": {
+    "basic": {
+      "label": "Basic Configuration",
+      "description": "Essential Nginx settings",
+      "order": 1,
+      "collapsible": false
+    },
+    "scaling": {
+      "label": "Scaling",
+      "description": "Replica configuration",
+      "order": 2,
+      "collapsible": true,
+      "collapsed": false
+    },
+    "resources": {
+      "label": "Resource Limits",
+      "description": "CPU and memory resource configuration",
+      "order": 3,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "networking": {
+      "label": "Networking",
+      "description": "Network and service configuration",
+      "order": 4,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "ssl": {
+      "label": "SSL/HTTPS Configuration",
+      "description": "SSL certificate and HTTPS settings",
+      "order": 5,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "advanced": {
+      "label": "Advanced Settings",
+      "description": "Advanced Nginx configuration options",
+      "order": 6,
+      "collapsible": true,
+      "collapsed": true
+    }
+  },
+  "resources": {
+    "cpu_request": "100m",
+    "memory_request": "64Mi",
+    "cpu_limit": "200m",
+    "memory_limit": "128Mi"
+  },
+  "networking": {
+    "ports": [
+      {
+        "name": "http",
+        "port": 80,
+        "protocol": "TCP"
+      }
+    ]
+  }
+}

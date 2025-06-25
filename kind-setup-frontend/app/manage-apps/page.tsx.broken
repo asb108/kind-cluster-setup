@@ -1,0 +1,250 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+
+// Simple interface for applications
+interface Application {
+  id: string;
+  name: string;
+  display_name?: string;
+  description?: string;
+  status?: string;
+}
+
+// Main page component
+export default function ManageApps() {
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [apps, setApps] = useState<Application[]>([])
+
+  useEffect(() => {
+    async function loadApps() {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const mockApps = [
+          {
+            id: '1',
+            name: 'airflow',
+            display_name: 'Apache Airflow',
+            description: 'Workflow management platform',
+            status: 'Running'
+          },
+          {
+            id: '2',
+            name: 'jupyter',
+            display_name: 'Jupyter Notebook',
+            description: 'Interactive computing',
+            status: 'Running'
+          }
+        ];
+
+        setApps(mockApps);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading apps:', err);
+        setError('Failed to load applications');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadApps();
+  }, [])
+
+  if (loading && apps.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold tracking-tight">Manage Applications</h1>
+
+      {error && (
+        <div className="mt-4">
+          <div>
+            <h2>Error</h2>
+            <p>{error}</p>
+              </div>
+              
+              <div className="border-t border-border pt-4">
+                <h3 className="text-sm font-medium mb-2">Configuration Values</h3>
+                
+                {/* Configuration Editor */}
+                <div className="space-y-2">
+                  {/* Resource Configuration */}
+                  <div className="p-3 bg-secondary/30 rounded-md">
+                    <h4 className="text-sm font-medium mb-2">Resource Configuration</h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">CPU Limit</label>
+                        <input 
+                          type="text" 
+                          className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                          value={editedConfig.cpu_limit || '1000m'}
+                          onChange={(e) => setEditedConfig({...editedConfig, cpu_limit: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">Memory Limit</label>
+                        <input 
+                          type="text" 
+                          className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                          value={editedConfig.memory_limit || '1Gi'}
+                          onChange={(e) => setEditedConfig({...editedConfig, memory_limit: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">Replicas</label>
+                        <input 
+                          type="number" 
+                          className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                          value={editedConfig.replicas || 1}
+                          onChange={(e) => setEditedConfig({...editedConfig, replicas: parseInt(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Application-specific Configuration */}
+                  <div className="p-3 bg-secondary/30 rounded-md">
+                    <h4 className="text-sm font-medium mb-2">Application Configuration</h4>
+                    
+                    {appToEdit.name === 'airflow' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Admin Username</label>
+                          <input 
+                            type="text" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.admin_user || 'admin'}
+                            onChange={(e) => setEditedConfig({...editedConfig, admin_user: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Admin Password</label>
+                          <input 
+                            type="password" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.admin_password || 'admin'}
+                            onChange={(e) => setEditedConfig({...editedConfig, admin_password: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {appToEdit.name === 'mysql' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Root Password</label>
+                          <input 
+                            type="password" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.root_password || 'password'}
+                            onChange={(e) => setEditedConfig({...editedConfig, root_password: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium">Database Name</label>
+                          <input 
+                            type="text" 
+                            className="w-full px-3 py-1 text-sm border border-border rounded-md"
+                            value={editedConfig.database || 'mydatabase'}
+                            onChange={(e) => setEditedConfig({...editedConfig, database: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* For other applications, show a generic configuration editor */}
+                    {appToEdit.name !== 'airflow' && appToEdit.name !== 'mysql' && (
+                      <div className="text-sm text-muted-foreground italic">
+                        No specific configuration options available for this application type.
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Advanced Configuration - YAML Editor */}
+                  <div className="p-3 bg-secondary/30 rounded-md">
+                    <h4 className="text-sm font-medium mb-2">Advanced Configuration (YAML)</h4>
+                    <textarea
+                      className="w-full h-32 px-3 py-2 text-xs font-mono border border-border rounded-md"
+                      value={JSON.stringify(editedConfig, null, 2)}
+                      onChange={(e) => {
+                        try {
+                          const parsedConfig = JSON.parse(e.target.value);
+                          setEditedConfig(parsedConfig);
+                        } catch (err) {
+                          // Ignore parsing errors while typing
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Edit as JSON. Changes will be converted to YAML for deployment.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
+                <Button variant="outline" onClick={() => setConfigEditorOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Here we would update the application configuration
+                    // For now, just show a success message and close the dialog
+                    toast({
+                      title: "Configuration updated",
+                      description: `${appToEdit.display_name || appToEdit.name} configuration has been updated successfully.`,
+                      variant: "success",
+                    });
+                    setConfigEditorOpen(false);
+                  }}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AppWindow className="h-5 w-5" />
+            <span>Deploy New Application</span>
+          </CardTitle>
+          <CardDescription>Select a cluster and application to deploy</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Cluster</label>
+              <Select value={selectedCluster} onValueChange={setSelectedCluster}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a cluster" />
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Deployed Applications</h2>
+
+        {apps.length === 0 ? (
+          <div className="text-center py-12 border border-dashed rounded-lg">
+            <p className="text-muted-foreground">No applications deployed yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Deploy your first application using the form above</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {apps.map((app) => (
+              <AppDetailsCard key={app.id} app={app} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div> 
+  );
+}

@@ -1,0 +1,49 @@
+# Backend Dockerfile for Kind Cluster Setup
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin/
+
+# Install Kind
+RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 \
+    && chmod +x ./kind \
+    && mv ./kind /usr/local/bin/kind
+
+# Install Helm
+RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# Copy requirements and install Python dependencies
+COPY pyproject.toml setup.cfg ./
+COPY src/ ./src/
+
+# Install the package
+RUN pip install -e .
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Copy application files
+COPY templates/ ./templates/
+COPY config/ ./config/
+COPY scripts/ ./scripts/
+
+# Expose port
+EXPOSE 8020
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8020/health || exit 1
+
+# Run the application
+CMD ["python", "-m", "kind_cluster_setup.api.server"]

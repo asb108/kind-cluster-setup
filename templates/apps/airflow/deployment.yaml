@@ -1,0 +1,249 @@
+---
+# PostgreSQL StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: airflow-postgres
+  labels:
+    app: airflow
+    component: postgres
+spec:
+  serviceName: airflow-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: postgres
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:{{ postgres_version }}
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: airflow
+        - name: POSTGRES_PASSWORD
+          value: {{ postgres_password }}
+        - name: POSTGRES_DB
+          value: airflow
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-redis
+  labels:
+    app: airflow
+    component: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: redis
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:6-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+---
+# Airflow Webserver Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: airflow
+      component: webserver
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: webserver
+    spec:
+      containers:
+      - name: webserver
+        image: apache/airflow:{{ version }}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: CeleryExecutor
+        - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+          value: postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__CELERY__BROKER_URL
+          value: redis://airflow-redis:6379/0
+        - name: AIRFLOW__CELERY__RESULT_BACKEND
+          value: db+postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          value: admin
+        - name: AIRFLOW__CORE__LOAD_EXAMPLES
+          value: "{{ enable_dag_examples }}"
+        # Simple Auth Manager configuration for Airflow 3.0 with fixed admin/admin credentials
+        - name: AIRFLOW__CORE__AUTH_MANAGER
+          value: airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+        - name: AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE
+          value: /tmp/fixed_passwords.json
+        - name: AIRFLOW_ADMIN_USERNAME
+          value: admin
+        - name: AIRFLOW_ADMIN_PASSWORD
+          value: admin
+        command:
+        - bash
+        - -c
+        - |
+          echo "🚀 Starting Airflow 3.0 API Server Setup..."
+
+          # Create Simple Auth Manager passwords file with admin/admin credentials
+          echo "🔐 Creating Simple Auth Manager passwords file..."
+          echo '{"admin": "admin"}' > /tmp/fixed_passwords.json
+          echo "✅ Created passwords file with admin/admin credentials"
+
+          # Initialize the database
+          echo "📊 Migrating database..."
+          airflow db migrate
+
+          echo "✅ Setup complete! Starting API server..."
+          echo "📝 Login credentials: admin/admin"
+
+          # Start the API server (replaces webserver in 3.0)
+          airflow api-server --port 8080
+        resources:
+          requests:
+            memory: "{{ memory_request }}"
+            cpu: "{{ cpu_request }}"
+          limits:
+            memory: "{{ memory_limit }}"
+            cpu: "{{ cpu_limit }}"
+---
+# Airflow Scheduler Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  labels:
+    app: airflow
+    component: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      containers:
+      - name: scheduler
+        image: apache/airflow:{{ version }}
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: CeleryExecutor
+        - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+          value: postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__CELERY__BROKER_URL
+          value: redis://airflow-redis:6379/0
+        - name: AIRFLOW__CELERY__RESULT_BACKEND
+          value: db+postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__CORE__LOAD_EXAMPLES
+          value: "{{ enable_dag_examples }}"
+        command:
+        - airflow
+        - scheduler
+        resources:
+          requests:
+            memory: "{{ memory_request }}"
+            cpu: "{{ cpu_request }}"
+          limits:
+            memory: "{{ memory_limit }}"
+            cpu: "{{ cpu_limit }}"
+---
+# Airflow Worker Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-worker
+  labels:
+    app: airflow
+    component: worker
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: airflow
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: worker
+    spec:
+      containers:
+      - name: worker
+        image: apache/airflow:{{ version }}
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: CeleryExecutor
+        - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+          value: postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__CELERY__BROKER_URL
+          value: redis://airflow-redis:6379/0
+        - name: AIRFLOW__CELERY__RESULT_BACKEND
+          value: db+postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        command:
+        - airflow
+        - celery
+        - worker
+        resources:
+          requests:
+            memory: "{{ memory_request }}"
+            cpu: "{{ cpu_request }}"
+          limits:
+            memory: "{{ memory_limit }}"
+            cpu: "{{ cpu_limit }}"

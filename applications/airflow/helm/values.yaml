@@ -1,0 +1,30 @@
+airflow:
+  executor: CeleryExecutor
+  image:
+    repository: apache/airflow
+    tag: 2.7.1
+  config:
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@airflow-postgres:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "true"
+    AIRFLOW__CELERY__BROKER_URL: redis://:@airflow-redis:6379/0
+
+webserver:
+  service:
+    type: NodePort
+
+redis:
+  enabled: true
+
+postgres:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 8Gi
+  auth:
+    username: postgres
+    password: postgres
+    database: airflow
+
+ingress:
+  enabled: false

@@ -1,0 +1,358 @@
+{
+  "display_name": "Jenkins CI/CD",
+  "description": "Deploy Jenkins automation server with customizable plugins, security, and storage configuration",
+  "version": "2.414",
+  "icon": "https://www.jenkins.io/images/logos/jenkins/jenkins.svg",
+  "category": "Development",
+  "tags": ["ci", "cd", "jenkins", "automation", "devops"],
+  "deployment_methods": ["kubectl", "helm"],
+  "min_kubernetes_version": "1.20.0",
+  "parameters": {
+    "app_name": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Application Name",
+      "description": "Name for the Jenkins instance",
+      "default": "jenkins",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-]+$",
+        "min": 3,
+        "max": 50
+      },
+      "group": "basic"
+    },
+    "jenkins_version": {
+      "type": "enum",
+      "ui_control": "select",
+      "label": "Jenkins Version",
+      "description": "Jenkins version to deploy",
+      "default": "2.414-jdk11",
+      "validation": {
+        "options": ["2.401-jdk11", "2.414-jdk11", "2.414-jdk17", "lts-jdk11", "lts-jdk17"]
+      },
+      "group": "basic"
+    },
+    "admin_username": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Admin Username",
+      "description": "Username for Jenkins admin user",
+      "default": "admin",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+        "min": 3,
+        "max": 50
+      },
+      "group": "basic"
+    },
+    "admin_password": {
+      "type": "string",
+      "ui_control": "password",
+      "label": "Admin Password",
+      "description": "Password for Jenkins admin user",
+      "default": "jenkins123",
+      "required": true,
+      "validation": {
+        "min": 8,
+        "max": 128
+      },
+      "group": "basic"
+    },
+    "cpu_request": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "CPU Request",
+      "description": "CPU resource request (e.g., 1, 2)",
+      "default": "1",
+      "validation": {
+        "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+      },
+      "group": "resources"
+    },
+    "memory_request": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Memory Request",
+      "description": "Memory resource request (e.g., 2Gi, 4Gi)",
+      "default": "2Gi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi)$"
+      },
+      "group": "resources"
+    },
+    "cpu_limit": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "CPU Limit",
+      "description": "CPU resource limit (e.g., 2, 4)",
+      "default": "2",
+      "validation": {
+        "pattern": "^[0-9]+(m|\\.[0-9]+)?$"
+      },
+      "group": "resources"
+    },
+    "memory_limit": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Memory Limit",
+      "description": "Memory resource limit (e.g., 4Gi, 8Gi)",
+      "default": "4Gi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi)$"
+      },
+      "group": "resources"
+    },
+    "storage_size": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Storage Size",
+      "description": "Size of persistent storage for Jenkins data",
+      "default": "20Gi",
+      "validation": {
+        "pattern": "^[0-9]+(Mi|Gi|Ti)$"
+      },
+      "group": "storage"
+    },
+    "storage_class": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Storage Class",
+      "description": "Kubernetes storage class for persistent volume (leave empty for default)",
+      "default": "",
+      "group": "storage"
+    },
+    "service_type": {
+      "type": "enum",
+      "ui_control": "select",
+      "label": "Service Type",
+      "description": "Kubernetes service type for Jenkins access",
+      "default": "ClusterIP",
+      "validation": {
+        "options": ["ClusterIP", "NodePort", "LoadBalancer"]
+      },
+      "group": "networking"
+    },
+    "web_port": {
+      "type": "number",
+      "ui_control": "number",
+      "label": "Web Port",
+      "description": "Port for Jenkins web interface",
+      "default": 8080,
+      "validation": {
+        "min": 1024,
+        "max": 65535
+      },
+      "group": "networking"
+    },
+    "agent_port": {
+      "type": "number",
+      "ui_control": "number",
+      "label": "Agent Port",
+      "description": "Port for Jenkins agent connections",
+      "default": 50000,
+      "validation": {
+        "min": 1024,
+        "max": 65535
+      },
+      "group": "networking"
+    },
+    "enable_csrf_protection": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable CSRF Protection",
+      "description": "Enable Cross-Site Request Forgery protection",
+      "default": true,
+      "group": "security"
+    },
+    "enable_agent_to_master_security": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Agent-to-Master Security",
+      "description": "Enable security for agent-to-master communications",
+      "default": true,
+      "group": "security"
+    },
+    "install_plugins": {
+      "type": "string",
+      "ui_control": "textarea",
+      "label": "Install Plugins",
+      "description": "List of plugins to install (one per line)",
+      "default": "git\npipeline-stage-view\nworkflow-aggregator\nkubernetes\ndocker-workflow\nblueocean",
+      "group": "plugins"
+    },
+    "jvm_opts": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "JVM Options",
+      "description": "Additional JVM options for Jenkins",
+      "default": "-Xmx2g -Xms1g",
+      "group": "advanced"
+    },
+    "jenkins_opts": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Jenkins Options",
+      "description": "Additional Jenkins options",
+      "default": "",
+      "group": "advanced"
+    },
+    "enable_backup": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Backup",
+      "description": "Enable automated Jenkins configuration backup",
+      "default": false,
+      "group": "backup"
+    },
+    "backup_schedule": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Backup Schedule",
+      "description": "Cron schedule for backups (e.g., '0 2 * * *' for daily at 2 AM)",
+      "default": "0 2 * * *",
+      "validation": {
+        "pattern": "^[0-9*,-/\\s]+$"
+      },
+      "dependencies": {
+        "show_when": {"enable_backup": true},
+        "required_when": {"enable_backup": true}
+      },
+      "group": "backup"
+    },
+    "backup_retention": {
+      "type": "number",
+      "ui_control": "number",
+      "label": "Backup Retention (days)",
+      "description": "Number of days to retain backups",
+      "default": 7,
+      "validation": {
+        "min": 1,
+        "max": 365
+      },
+      "dependencies": {
+        "show_when": {"enable_backup": true}
+      },
+      "group": "backup"
+    },
+    "enable_kubernetes_agents": {
+      "type": "boolean",
+      "ui_control": "checkbox",
+      "label": "Enable Kubernetes Agents",
+      "description": "Enable dynamic Kubernetes agent provisioning",
+      "default": true,
+      "group": "agents"
+    },
+    "agent_namespace": {
+      "type": "string",
+      "ui_control": "text",
+      "label": "Agent Namespace",
+      "description": "Kubernetes namespace for Jenkins agents",
+      "default": "jenkins-agents",
+      "dependencies": {
+        "show_when": {"enable_kubernetes_agents": true}
+      },
+      "group": "agents"
+    },
+    "max_agents": {
+      "type": "number",
+      "ui_control": "slider",
+      "label": "Max Concurrent Agents",
+      "description": "Maximum number of concurrent Kubernetes agents",
+      "default": 10,
+      "validation": {
+        "min": 1,
+        "max": 50
+      },
+      "dependencies": {
+        "show_when": {"enable_kubernetes_agents": true}
+      },
+      "group": "agents"
+    }
+  },
+  "parameter_groups": {
+    "basic": {
+      "label": "Basic Configuration",
+      "description": "Essential Jenkins settings",
+      "order": 1,
+      "collapsible": false
+    },
+    "resources": {
+      "label": "Resource Limits",
+      "description": "CPU and memory resource configuration",
+      "order": 2,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "storage": {
+      "label": "Storage Configuration",
+      "description": "Persistent storage settings for Jenkins data",
+      "order": 3,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "networking": {
+      "label": "Networking",
+      "description": "Network and service configuration",
+      "order": 4,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "security": {
+      "label": "Security Settings",
+      "description": "Jenkins security configuration",
+      "order": 5,
+      "collapsible": true,
+      "collapsed": false
+    },
+    "plugins": {
+      "label": "Plugin Configuration",
+      "description": "Jenkins plugins to install",
+      "order": 6,
+      "collapsible": true,
+      "collapsed": false
+    },
+    "agents": {
+      "label": "Agent Configuration",
+      "description": "Jenkins agent settings",
+      "order": 7,
+      "collapsible": true,
+      "collapsed": false
+    },
+    "backup": {
+      "label": "Backup Settings",
+      "description": "Jenkins backup configuration",
+      "order": 8,
+      "collapsible": true,
+      "collapsed": true
+    },
+    "advanced": {
+      "label": "Advanced Settings",
+      "description": "Advanced Jenkins configuration",
+      "order": 9,
+      "collapsible": true,
+      "collapsed": true
+    }
+  },
+  "resources": {
+    "cpu_request": "1",
+    "memory_request": "2Gi",
+    "cpu_limit": "2",
+    "memory_limit": "4Gi"
+  },
+  "networking": {
+    "ports": [
+      {
+        "name": "web",
+        "port": 8080,
+        "protocol": "TCP"
+      },
+      {
+        "name": "agent",
+        "port": 50000,
+        "protocol": "TCP"
+      }
+    ]
+  }
+}

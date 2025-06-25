@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .app_name }}-service
+  labels:
+    app: {{ .app_name }}
+    component: database
+spec:
+  type: {{ .service_type }}
+  ports:
+  - port: {{ .port }}
+    targetPort: postgresql
+    protocol: TCP
+    name: postgresql
+  {{- if .enable_monitoring }}
+  - port: {{ .monitoring_port }}
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  {{- end }}
+  selector:
+    app: {{ .app_name }}
+---
+{{- if .enable_monitoring }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .app_name }}-metrics
+  labels:
+    app: {{ .app_name }}
+    component: metrics
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .monitoring_port }}"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .monitoring_port }}
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app: {{ .app_name }}
+{{- end }}
+---
+{{- if .enable_backup }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .app_name }}-backup
+  labels:
+    app: {{ .app_name }}
+    component: backup
+spec:
+  schedule: "{{ .backup_schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:{{ .postgres_version }}
+            command:
+            - /bin/bash
+            - -c
+            - |
+              BACKUP_FILE="/backup/{{ .app_name }}-$(date +%Y%m%d_%H%M%S).sql"
+              pg_dump -h {{ .app_name }}-service -U {{ .username }} -d {{ .database_name }} > $BACKUP_FILE
+              echo "Backup completed: $BACKUP_FILE"
+              
+              # Clean up old backups
+              find /backup -name "{{ .app_name }}-*.sql" -mtime +{{ .backup_retention }} -delete
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .app_name }}-secret
+                  key: password
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: {{ .app_name }}-backup-pvc
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .app_name }}-backup-pvc
+  labels:
+    app: {{ .app_name }}
+    component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .storage_size }}
+  {{- if .storage_class }}
+  storageClassName: {{ .storage_class }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,79 @@
+# Example Kind cluster configuration
+# Copy this file to kind_config.yaml and customize as needed
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+
+# Cluster name (will be prefixed with 'kind-')
+name: example-cluster
+
+# Networking configuration
+networking:
+  # API server port (optional)
+  apiServerPort: 6443
+  # Pod subnet (optional)
+  podSubnet: "10.244.0.0/16"
+  # Service subnet (optional)
+  serviceSubnet: "10.96.0.0/12"
+
+# Node configuration
+nodes:
+  # Control plane node
+  - role: control-plane
+    # Kubernetes version (optional)
+    image: kindest/node:v1.28.0
+    # Port mappings for accessing services
+    extraPortMappings:
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+      - containerPort: 30001
+        hostPort: 30001
+        protocol: TCP
+    # Resource limits (optional)
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+            
+  # Worker nodes
+  - role: worker
+    image: kindest/node:v1.28.0
+    # Resource limits can be set via Docker
+    
+  - role: worker
+    image: kindest/node:v1.28.0
+
+# Feature gates (optional)
+featureGates:
+  # Enable specific Kubernetes features
+  # Example: "SomeFeature": true
+
+# Runtime configuration (optional)
+runtimeConfig:
+  # Enable specific API versions
+  # Example: "api/all": "true"
+
+# Kubeadm configuration patches (optional)
+kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    metadata:
+      name: config
+    apiServer:
+      extraArgs:
+        # Enable audit logging
+        audit-log-path: /var/log/audit.log
+        audit-policy-file: /etc/kubernetes/audit-policy.yaml
+    controllerManager:
+      extraArgs:
+        # Enable specific controllers
+        enable-hostpath-provisioner: "true"
+
+# Container runtime (optional)
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
+      endpoint = ["http://localhost:5000"]

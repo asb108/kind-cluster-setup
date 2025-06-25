@@ -1,0 +1,13 @@
+{
+  "display_name": "Apache Airflow",
+  "description": "Apache Airflow is an open-source platform for developing, scheduling, and monitoring batch-oriented workflows.",
+  "version": "2.6.0",
+  "icon": "https://airflow.apache.org/docs/apache-airflow/stable/_images/pin_large.png",
+  "category": "Workflow",
+  "default_values": {
+    "webserver_port": 8080,
+    "node_port": 30081,
+    "admin_user": "admin",
+    "admin_password": "admin"
+  }
+}

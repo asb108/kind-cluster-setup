@@ -1,0 +1,19 @@
+{
+  "display_name": "MySQL Database",
+  "description": "Deploy a MySQL database server with customizable resources",
+  "version": "8.0",
+  "icon": "https://www.mysql.com/common/logos/logo-mysql-170x115.png",
+  "deployment_methods": ["kubectl", "helm"],
+  "category": "Databases",
+  "default_values": {
+    "replicas": 1,
+    "version": "8.0",
+    "service_type": "ClusterIP",
+    "memory_request": "256Mi",
+    "cpu_request": "200m",
+    "memory_limit": "512Mi",
+    "cpu_limit": "500m",
+    "root_password": "password",
+    "database_name": "mydb"
+  }
+}

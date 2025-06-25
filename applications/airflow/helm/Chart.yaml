@@ -1,0 +1,5 @@
+apiVersion: v2
+name: airflow
+description: A Helm chart for Apache Airflow
+version: 0.1.0
+appVersion: 2.2.3

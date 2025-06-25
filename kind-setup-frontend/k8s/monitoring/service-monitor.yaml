@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kind-setup-frontend
+  labels:
+    app: kind-setup-frontend
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: kind-setup-frontend
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
+    scrapeTimeout: 10s

@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: airflow-init
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z airflow-postgres 5432; do echo waiting for postgres; sleep 2; done;']
+      containers:
+      - name: airflow-init
+        image: apache/airflow:2.7.1
+        command: ["airflow", "db", "init"]
+        env:
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: "postgresql+psycopg2://postgres:postgres@airflow-postgres:5432/airflow"
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "LocalExecutor"
+        - name: AIRFLOW__CORE__LOAD_EXAMPLES
+          value: "true"
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+      restartPolicy: Never
+  backoffLimit: 4

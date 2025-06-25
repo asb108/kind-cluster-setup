@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .app_name }}
+  labels:
+    app: {{ .app_name }}
+    component: database
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: {{ .app_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .app_name }}
+        component: database
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:{{ .postgres_version }}
+        ports:
+        - containerPort: {{ .port }}
+          name: postgresql
+        {{- if .enable_monitoring }}
+        - containerPort: {{ .monitoring_port }}
+          name: metrics
+        {{- end }}
+        env:
+        - name: POSTGRES_DB
+          value: {{ .database_name }}
+        - name: POSTGRES_USER
+          value: {{ .username }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .app_name }}-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        {{- if .enable_monitoring }}
+        - name: POSTGRES_EXPORTER_ENABLED
+          value: "true"
+        {{- end }}
+        resources:
+          requests:
+            cpu: {{ .cpu_request }}
+            memory: {{ .memory_request }}
+          limits:
+            cpu: {{ .cpu_limit }}
+            memory: {{ .memory_limit }}
+        volumeMounts:
+        - name: postgresql-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgresql-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - exec pg_isready -U {{ .username }} -d {{ .database_name }} -h 127.0.0.1 -p {{ .port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - exec pg_isready -U {{ .username }} -d {{ .database_name }} -h 127.0.0.1 -p {{ .port }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+      {{- if .enable_monitoring }}
+      - name: postgres-exporter
+        image: prometheuscommunity/postgres-exporter:latest
+        ports:
+        - containerPort: {{ .monitoring_port }}
+          name: metrics
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "postgresql://{{ .username }}:$(POSTGRES_PASSWORD)@localhost:{{ .port }}/{{ .database_name }}?sslmode=disable"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .app_name }}-secret
+              key: password
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+      {{- end }}
+      volumes:
+      - name: postgresql-data
+        persistentVolumeClaim:
+          claimName: {{ .app_name }}-pvc
+      - name: postgresql-config
+        configMap:
+          name: {{ .app_name }}-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .app_name }}-pvc
+  labels:
+    app: {{ .app_name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .storage_size }}
+  {{- if .storage_class }}
+  storageClassName: {{ .storage_class }}
+  {{- end }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .app_name }}-secret
+  labels:
+    app: {{ .app_name }}
+type: Opaque
+data:
+  password: {{ .password | b64enc }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .app_name }}-config
+  labels:
+    app: {{ .app_name }}
+data:
+  postgresql.conf: |
+    # PostgreSQL configuration
+    listen_addresses = '*'
+    port = {{ .port }}
+    max_connections = 100
+    shared_buffers = 128MB
+    effective_cache_size = 512MB
+    maintenance_work_mem = 64MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    work_mem = 4MB
+    min_wal_size = 1GB
+    max_wal_size = 4GB
+    
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = 'log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_statement = 'error'
+    log_min_duration_statement = 1000
+    
+    # Security
+    ssl = off
+    password_encryption = scram-sha-256

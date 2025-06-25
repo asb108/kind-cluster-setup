@@ -1,0 +1,210 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.infoAlert {
+  background-color: var(--info-bg);
+  border-left: 4px solid var(--info-border);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+}
+
+.themeSelector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.tabNavigation {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.themeButton {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.themeButton:hover {
+  background-color: var(--button-hover-bg);
+}
+
+.themeButtonActive {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.tabButton {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  color: var(--primary-color);
+}
+
+.tabButtonActive {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.tabContent {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.subsectionTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+/* Content styles */
+.tabContent ul {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.tabContent ol {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.tabContent p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.codeBlock {
+  background-color: var(--code-bg);
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  color: var(--code-text);
+  border-left: 3px solid var(--primary-color);
+}
+
+/* Light theme (default) */
+.lightTheme {
+  --primary-color: #0d6efd;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --bg-color: #f8f9fa;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --info-bg: #cfe2ff;
+  --info-border: #0d6efd;
+  --code-bg: #f8f9fa;
+  --code-text: #333333;
+  --button-bg: #f8f9fa;
+  --button-text: #212529;
+  --button-hover-bg: #e9ecef;
+}
+
+/* Dark theme */
+.darkTheme {
+  --primary-color: #3b82f6;
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --bg-color: #212529;
+  --card-bg: #343a40;
+  --border-color: #495057;
+  --info-bg: #1e3a8a;
+  --info-border: #3b82f6;
+  --code-bg: #2b3035;
+  --code-text: #e9ecef;
+  --button-bg: #343a40;
+  --button-text: #f8f9fa;
+  --button-hover-bg: #495057;
+}
+
+/* Nord theme */
+.nordTheme {
+  --primary-color: #88c0d0;
+  --text-primary: #eceff4;
+  --text-secondary: #d8dee9;
+  --bg-color: #2e3440;
+  --card-bg: #3b4252;
+  --border-color: #4c566a;
+  --info-bg: #5e81ac;
+  --info-border: #88c0d0;
+  --code-bg: #434c5e;
+  --code-text: #eceff4;
+  --button-bg: #4c566a;
+  --button-text: #eceff4;
+  --button-hover-bg: #5e81ac;
+}
+
+/* Solarized theme */
+.solarizedTheme {
+  --primary-color: #268bd2;
+  --text-primary: #073642;
+  --text-secondary: #586e75;
+  --bg-color: #fdf6e3;
+  --card-bg: #eee8d5;
+  --border-color: #93a1a1;
+  --info-bg: #eee8d5;
+  --info-border: #268bd2;
+  --code-bg: #fdf6e3;
+  --code-text: #073642;
+  --button-bg: #eee8d5;
+  --button-text: #073642;
+  --button-hover-bg: #93a1a1;
+}
+
+/* Dracula theme */
+.draculaTheme {
+  --primary-color: #bd93f9;
+  --text-primary: #f8f8f2;
+  --text-secondary: #6272a4;
+  --bg-color: #282a36;
+  --card-bg: #44475a;
+  --border-color: #6272a4;
+  --info-bg: #44475a;
+  --info-border: #bd93f9;
+  --code-bg: #282a36;
+  --code-text: #f8f8f2;
+  --button-bg: #44475a;
+  --button-text: #f8f8f2;
+  --button-hover-bg: #6272a4;
+}
