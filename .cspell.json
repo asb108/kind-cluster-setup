@@ -122,7 +122,20 @@
     "skopeo",
     "crun",
     "youki",
-    "sysbox"
+    "sysbox",
+    "staticmethod",
+    "dataclass",
+    "venv",
+    "isort",
+    "abstractmethod",
+    "returncode",
+    "kubeconfig",
+    "Liskov",
+    "configmap",
+    "sonarqube",
+    "rabbitmq",
+    "Prerendering",
+    "pyproject"
   ],
   "ignorePaths": [
     "node_modules/**",
