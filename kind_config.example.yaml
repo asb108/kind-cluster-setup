@@ -21,7 +21,7 @@ nodes:
   # Control plane node
   - role: control-plane
     # Kubernetes version (optional)
-    image: kindest/node:v1.28.0
+    image: kindest/node:v1.33.1
     # Port mappings for accessing services
     extraPortMappings:
       - containerPort: 30000
@@ -40,11 +40,11 @@ nodes:
             
   # Worker nodes
   - role: worker
-    image: kindest/node:v1.28.0
+    image: kindest/node:v1.33.1
     # Resource limits can be set via Docker
     
   - role: worker
-    image: kindest/node:v1.28.0
+    image: kindest/node:v1.33.1
 
 # Feature gates (optional)
 featureGates:
