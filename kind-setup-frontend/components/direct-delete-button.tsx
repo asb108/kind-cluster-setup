@@ -10,7 +10,13 @@ import { promisify } from 'util';
 interface DirectDeleteButtonProps {
   clusterName: string;
   onSuccess: () => void;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  variant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   showText?: boolean;
 }
@@ -24,13 +30,17 @@ export function DirectDeleteButton({
   onSuccess,
   variant = 'destructive',
   size = 'sm',
-  showText = true
+  showText = true,
 }: DirectDeleteButtonProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete cluster '${clusterName}'? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete cluster '${clusterName}'? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -52,7 +62,7 @@ export function DirectDeleteButton({
         const result = await fetch(url, {
           method: 'DELETE',
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
         });
 
@@ -84,7 +94,7 @@ export function DirectDeleteButton({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
           body: JSON.stringify({ cluster_name: clusterName }),
         });
@@ -117,11 +127,11 @@ export function DirectDeleteButton({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
           body: JSON.stringify({
             command: 'kind',
-            args: ['delete', 'cluster', '--name', clusterName]
+            args: ['delete', 'cluster', '--name', clusterName],
           }),
         });
 
@@ -164,8 +174,8 @@ export function DirectDeleteButton({
       disabled={loading}
       onClick={handleDelete}
     >
-      <Trash2 className="h-4 w-4" />
-      {loading ? 'Deleting...' : (showText ? 'Delete' : '')}
+      <Trash2 className='h-4 w-4' />
+      {loading ? 'Deleting...' : showText ? 'Delete' : ''}
     </Button>
   );
 }

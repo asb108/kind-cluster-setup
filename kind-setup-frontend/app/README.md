@@ -9,6 +9,7 @@ This directory contains the pages and routes for the Kind Setup frontend applica
 ### Dashboard (`/app/page.tsx`)
 
 The dashboard provides an overview of all clusters and their status. It displays metrics like:
+
 - Total number of clusters
 - Total number of nodes
 - CPU usage
@@ -19,6 +20,7 @@ This page uses the `getClusterStatus` method from the API service to fetch data.
 ### Manage Apps (`/app/manage-apps/page.tsx`)
 
 This page allows users to view and manage applications deployed on clusters. Features include:
+
 - List of all applications
 - Application status indicators
 - Deployment actions (start, stop, delete)
@@ -29,6 +31,7 @@ It uses the `getApplications` method from the API service to fetch application d
 ### Create Cluster (`/app/create-cluster/page.tsx`)
 
 Allows users to create new Kind clusters with custom configurations. Features include:
+
 - Configurable number of nodes
 - Advanced configuration options
 - Port mapping settings
@@ -37,6 +40,7 @@ Allows users to create new Kind clusters with custom configurations. Features in
 ### Cluster Status (`/app/cluster-status/page.tsx`)
 
 Displays detailed information about a specific cluster. Features include:
+
 - Node information
 - Resource usage metrics
 - Health indicators
@@ -80,9 +84,9 @@ useEffect(() => {
       setIsLoading(false);
     }
   }
-  
+
   fetchData();
-  
+
   // Optional polling
   const interval = setInterval(fetchData, 30000);
   return () => clearInterval(interval);

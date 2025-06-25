@@ -1,6 +1,6 @@
 /**
  * Direct Airflow Service
- * 
+ *
  * This service provides direct functionality to get Airflow information
  * without relying on the backend API.
  */
@@ -62,7 +62,8 @@ export function getDirectAirflowApp(): AirflowApp {
     id: `airflow-${Date.now()}`,
     name: 'airflow',
     display_name: 'Apache Airflow',
-    description: 'Apache Airflow is an open-source platform for developing, scheduling, and monitoring batch-oriented workflows.',
+    description:
+      'Apache Airflow is an open-source platform for developing, scheduling, and monitoring batch-oriented workflows.',
     icon: 'https://airflow.apache.org/docs/apache-airflow/stable/_images/pin_large.png',
     status: 'Running',
     version: '2.6.0',
@@ -72,38 +73,48 @@ export function getDirectAirflowApp(): AirflowApp {
     deployment_status: {
       app: 'airflow',
       namespace: 'airflow',
-      pods: [{
-        name: 'airflow-webserver',
-        phase: 'Running',
-        ready: true,
-        containers: [{
-          name: 'webserver',
-          image: 'apache/airflow:2.6.0',
+      pods: [
+        {
+          name: 'airflow-webserver',
+          phase: 'Running',
           ready: true,
-          state: 'running'
-        }]
-      }],
-      services: [{
-        name: 'airflow-webserver',
-        type: 'NodePort',
-        cluster_ip: '10.96.204.195',
-        external_ip: '',
-        ports: [{
-          name: 'web',
-          port: 8080,
-          target_port: 8080,
-          node_port: 30081
-        }]
-      }],
-      access_urls: [{
-        type: 'nodeport',
-        url: 'http://localhost:30081'
-      }],
+          containers: [
+            {
+              name: 'webserver',
+              image: 'apache/airflow:2.6.0',
+              ready: true,
+              state: 'running',
+            },
+          ],
+        },
+      ],
+      services: [
+        {
+          name: 'airflow-webserver',
+          type: 'NodePort',
+          cluster_ip: '10.96.204.195',
+          external_ip: '',
+          ports: [
+            {
+              name: 'web',
+              port: 8080,
+              target_port: 8080,
+              node_port: 30081,
+            },
+          ],
+        },
+      ],
+      access_urls: [
+        {
+          type: 'nodeport',
+          url: 'http://localhost:30081',
+        },
+      ],
       app_info: {
         admin_user: 'admin',
-        admin_password: 'admin'
-      }
-    }
+        admin_password: 'admin',
+      },
+    },
   };
 }
 
@@ -124,7 +135,7 @@ export function isAirflowDeployed(): boolean {
         console.log('Failed to check cluster status');
         return true; // Still return true because we know it's deployed
       });
-      
+
     return true;
   } catch (error) {
     console.error('Error checking if Airflow is deployed:', error);

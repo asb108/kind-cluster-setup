@@ -61,34 +61,34 @@ interface StatusCardProps {
   onRefresh?: () => void;
 }
 
-export function StatusCard({ 
-  title, 
-  value, 
-  icon, 
+export function StatusCard({
+  title,
+  value,
+  icon,
   loading = false,
-  onRefresh 
+  onRefresh,
 }: StatusCardProps) {
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-muted-foreground">
+      <CardHeader className='pb-2'>
+        <CardTitle className='flex items-center gap-2 text-muted-foreground'>
           {icon}
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col">
+        <div className='flex flex-col'>
           {loading ? (
-            <p className="text-3xl font-bold text-foreground">Loading...</p>
+            <p className='text-3xl font-bold text-foreground'>Loading...</p>
           ) : (
-            <p className="text-3xl font-bold text-foreground">{value}</p>
+            <p className='text-3xl font-bold text-foreground'>{value}</p>
           )}
           {onRefresh && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onRefresh} 
-              className="mt-2 self-end"
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={onRefresh}
+              className='mt-2 self-end'
             >
               Refresh
             </Button>
@@ -110,15 +110,15 @@ import { Server } from 'lucide-react';
 
 export default function Dashboard() {
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <StatusCard 
-        title="Clusters" 
-        value={5} 
-        icon={<Server className="h-5 w-5" />} 
+    <div className='grid grid-cols-3 gap-4'>
+      <StatusCard
+        title='Clusters'
+        value={5}
+        icon={<Server className='h-5 w-5' />}
       />
-      <StatusCard 
-        title="Applications" 
-        value={12} 
+      <StatusCard
+        title='Applications'
+        value={12}
         loading={isLoading}
         onRefresh={handleRefresh}
       />

@@ -66,9 +66,7 @@ export function OptimizedImage({
         {...props}
       />
 
-      {!loaded && (
-        <div className="absolute inset-0 bg-muted animate-pulse" />
-      )}
+      {!loaded && <div className='absolute inset-0 bg-muted animate-pulse' />}
     </div>
   );
 }

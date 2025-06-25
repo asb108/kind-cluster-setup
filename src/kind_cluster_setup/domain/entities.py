@@ -7,13 +7,14 @@ such as Cluster, Task, and Application.
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
 class Entity:
     """Base class for all domain entities."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
@@ -32,6 +33,7 @@ class Cluster(Entity):
         nodes: List of nodes in the cluster
         created_by: User who created the cluster
     """
+
     name: str = ""
     config: Dict[str, Any] = field(default_factory=dict)
     environment: str = "dev"
@@ -42,6 +44,7 @@ class Cluster(Entity):
     def copy(self):
         """Create a copy of the cluster."""
         import copy
+
         return copy.deepcopy(self)
 
 
@@ -60,6 +63,7 @@ class Task(Entity):
         result: Result of the task execution
         created_by: User who created the task
     """
+
     name: str = ""
     description: str = ""
     status: str = "pending"
@@ -84,6 +88,7 @@ class Application(Entity):
         deployment_method: Method used to deploy the application
         created_by: User who created the application
     """
+
     name: str = ""
     description: str = ""
     cluster_id: str = ""
@@ -105,6 +110,7 @@ class User(Entity):
         role: Role of the user
         is_active: Whether the user is active
     """
+
     username: str = ""
     email: str = ""
     password_hash: str = ""

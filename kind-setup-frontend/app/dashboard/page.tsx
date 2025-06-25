@@ -1,12 +1,27 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
-import { DashboardLayout, DashboardGrid, StatsCard } from '@/components/ui/dashboard-layout';
+import {
+  DashboardLayout,
+  DashboardGrid,
+  StatsCard,
+} from '@/components/ui/dashboard-layout';
 import { EnhancedCard } from '@/components/ui/enhanced-card';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { DataTable } from '@/components/ui/data-table';
-import { StatusIndicator, StatusTimeline } from '@/components/ui/status-indicator';
-import { Plus, Server, Cpu, Database, Activity, Clock, RefreshCw } from 'lucide-react';
+import {
+  StatusIndicator,
+  StatusTimeline,
+} from '@/components/ui/status-indicator';
+import {
+  Plus,
+  Server,
+  Cpu,
+  Database,
+  Activity,
+  Clock,
+  RefreshCw,
+} from 'lucide-react';
 import { clusterApi } from '@/services/api';
 import { DirectDeleteButton } from '@/components/direct-delete-button';
 
@@ -53,10 +68,13 @@ export default function DashboardPage() {
           ...cluster,
           environment: cluster.environment || 'production',
           // Ensure created_at field exists for the data table
-          created_at: cluster.created
+          created_at: cluster.created,
         }));
 
-        console.log('Using clusters from cluster status:', clustersWithEnvironment);
+        console.log(
+          'Using clusters from cluster status:',
+          clustersWithEnvironment
+        );
         setClusters(clustersWithEnvironment);
       } else {
         // Fallback to listClusters method
@@ -69,10 +87,13 @@ export default function DashboardPage() {
             ...cluster,
             environment: cluster.environment || 'production',
             // Ensure created_at field exists for the data table
-            created_at: cluster.created
+            created_at: cluster.created,
           }));
 
-          console.log('Using clusters from listClusters:', clustersWithEnvironment);
+          console.log(
+            'Using clusters from listClusters:',
+            clustersWithEnvironment
+          );
           setClusters(clustersWithEnvironment);
         } else {
           console.log('No clusters found from API');
@@ -87,17 +108,13 @@ export default function DashboardPage() {
     }
   };
 
-
-
   const clusterColumns = [
     {
       key: 'name',
       header: 'Cluster Name',
       sortable: true,
       searchable: true,
-      cell: (cluster: any) => (
-        <div className="font-medium">{cluster.name}</div>
-      ),
+      cell: (cluster: any) => <div className='font-medium'>{cluster.name}</div>,
     },
     {
       key: 'environment',
@@ -105,7 +122,7 @@ export default function DashboardPage() {
       sortable: true,
       searchable: true,
       cell: (cluster: any) => (
-        <div className="capitalize">{cluster.environment}</div>
+        <div className='capitalize'>{cluster.environment}</div>
       ),
     },
     {
@@ -114,7 +131,13 @@ export default function DashboardPage() {
       sortable: true,
       cell: (cluster: any) => (
         <StatusIndicator
-          status={cluster.status === 'running' ? 'success' : cluster.status === 'pending' ? 'pending' : 'inactive'}
+          status={
+            cluster.status === 'running'
+              ? 'success'
+              : cluster.status === 'pending'
+                ? 'pending'
+                : 'inactive'
+          }
           text={cluster.status}
         />
       ),
@@ -142,11 +165,8 @@ export default function DashboardPage() {
       key: 'actions',
       header: 'Actions',
       cell: (cluster: any) => (
-        <div className="flex space-x-2">
-          <EnhancedButton
-            size="sm"
-            variant="outline"
-          >
+        <div className='flex space-x-2'>
+          <EnhancedButton size='sm' variant='outline'>
             Manage
           </EnhancedButton>
           <DirectDeleteButton
@@ -160,28 +180,43 @@ export default function DashboardPage() {
   ];
 
   const recentActivities = [
-    { label: 'Cluster dev-cluster created', status: 'success' as const, timestamp: '2 hours ago', description: 'Successfully created with 3 nodes' },
-    { label: 'Deployed Nginx to dev-cluster', status: 'success' as const, timestamp: '1 hour ago', description: 'Deployed using kubectl strategy' },
-    { label: 'Scaling staging-cluster', status: 'pending' as const, timestamp: 'Just now', description: 'Adding 2 additional worker nodes' },
+    {
+      label: 'Cluster dev-cluster created',
+      status: 'success' as const,
+      timestamp: '2 hours ago',
+      description: 'Successfully created with 3 nodes',
+    },
+    {
+      label: 'Deployed Nginx to dev-cluster',
+      status: 'success' as const,
+      timestamp: '1 hour ago',
+      description: 'Deployed using kubectl strategy',
+    },
+    {
+      label: 'Scaling staging-cluster',
+      status: 'pending' as const,
+      timestamp: 'Just now',
+      description: 'Adding 2 additional worker nodes',
+    },
   ];
 
   return (
     <DashboardLayout
-      title="Dashboard"
-      description="Overview of your Kubernetes clusters and recent activities"
+      title='Dashboard'
+      description='Overview of your Kubernetes clusters and recent activities'
       actions={
-        <div className="flex gap-3">
+        <div className='flex gap-3'>
           <EnhancedButton
-            variant="outline"
-            icon={<RefreshCw className="w-4 h-4" />}
+            variant='outline'
+            icon={<RefreshCw className='w-4 h-4' />}
             onClick={fetchClusters}
             loading={refreshing}
           >
             Refresh
           </EnhancedButton>
           <EnhancedButton
-            icon={<Plus className="w-4 h-4" />}
-            onClick={() => window.location.href = '/create-cluster'}
+            icon={<Plus className='w-4 h-4' />}
+            onClick={() => (window.location.href = '/create-cluster')}
           >
             Create Cluster
           </EnhancedButton>
@@ -191,50 +226,54 @@ export default function DashboardPage() {
       {/* Increased gap between cards for better visibility */}
       <DashboardGrid columns={4}>
         <StatsCard
-          title="Total Clusters"
+          title='Total Clusters'
           value={clusters.length}
-          description="Active Kubernetes clusters"
-          icon={<Server className="w-7 h-7" />}
-          className="dashboard-card dashboard-card-primary"
+          description='Active Kubernetes clusters'
+          icon={<Server className='w-7 h-7' />}
+          className='dashboard-card dashboard-card-primary'
         />
         <StatsCard
-          title="Total Nodes"
+          title='Total Nodes'
           value={clusters.reduce((acc, cluster) => acc + cluster.nodes, 0)}
-          description="Worker and control plane nodes"
-          icon={<Cpu className="w-7 h-7" />}
-          className="dashboard-card dashboard-card-secondary"
+          description='Worker and control plane nodes'
+          icon={<Cpu className='w-7 h-7' />}
+          className='dashboard-card dashboard-card-secondary'
         />
         <StatsCard
-          title="Applications"
-          value="12"
-          description="Deployed applications"
-          icon={<Database className="w-7 h-7" />}
-          trend={{ value: 20, label: "increase this month", positive: true }}
-          className="dashboard-card dashboard-card-tertiary"
+          title='Applications'
+          value='12'
+          description='Deployed applications'
+          icon={<Database className='w-7 h-7' />}
+          trend={{ value: 20, label: 'increase this month', positive: true }}
+          className='dashboard-card dashboard-card-tertiary'
         />
         <StatsCard
-          title="Uptime"
-          value="99.9%"
-          description="Average cluster uptime"
-          icon={<Activity className="w-7 h-7" />}
-          className="dashboard-card dashboard-card-success"
+          title='Uptime'
+          value='99.9%'
+          description='Average cluster uptime'
+          icon={<Activity className='w-7 h-7' />}
+          className='dashboard-card dashboard-card-success'
         />
       </DashboardGrid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-        <div className="lg:col-span-2">
-          <EnhancedCard title="Clusters" className="h-full">
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8'>
+        <div className='lg:col-span-2'>
+          <EnhancedCard title='Clusters' className='h-full'>
             <DataTable
               data={clusters}
               columns={clusterColumns}
               emptyState={
-                <div className="py-8 flex flex-col items-center">
-                  <Server className="w-12 h-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No clusters found</h3>
-                  <p className="text-muted-foreground mb-4">Create your first Kubernetes cluster to get started</p>
+                <div className='py-8 flex flex-col items-center'>
+                  <Server className='w-12 h-12 text-muted-foreground mb-4' />
+                  <h3 className='text-lg font-medium mb-2'>
+                    No clusters found
+                  </h3>
+                  <p className='text-muted-foreground mb-4'>
+                    Create your first Kubernetes cluster to get started
+                  </p>
                   <EnhancedButton
-                    icon={<Plus className="w-4 h-4" />}
-                    onClick={() => window.location.href = '/create-cluster'}
+                    icon={<Plus className='w-4 h-4' />}
+                    onClick={() => (window.location.href = '/create-cluster')}
                   >
                     Create Cluster
                   </EnhancedButton>
@@ -245,10 +284,14 @@ export default function DashboardPage() {
         </div>
 
         <div>
-          <EnhancedCard title="Recent Activity" icon={<Clock className="w-5 h-5" />} className="h-full">
+          <EnhancedCard
+            title='Recent Activity'
+            icon={<Clock className='w-5 h-5' />}
+            className='h-full'
+          >
             <StatusTimeline steps={recentActivities} />
-            <div className="mt-4 pt-4 border-t border-border text-center">
-              <EnhancedButton variant="link" size="sm">
+            <div className='mt-4 pt-4 border-t border-border text-center'>
+              <EnhancedButton variant='link' size='sm'>
                 View all activity
               </EnhancedButton>
             </div>

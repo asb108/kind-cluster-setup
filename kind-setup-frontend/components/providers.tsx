@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import React, { useReducer, createContext, useState } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import React, { useReducer, createContext, useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Simple reducer for React context
 type State = { theme: 'light' | 'dark' };
@@ -12,9 +12,9 @@ const initialState: State = { theme: 'light' };
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'TOGGLE_THEME':
-      return { 
-        ...state, 
-        theme: state.theme === 'light' ? 'dark' : 'light' 
+      return {
+        ...state,
+        theme: state.theme === 'light' ? 'dark' : 'light',
       };
     default:
       return state;
@@ -31,23 +31,24 @@ export const ThemeContext = createContext<{
 // QueryClient is initialized inside the component to avoid SSR issues
 export default function Providers({ children }: { children: React.ReactNode }) {
   // Create the query client instance inside the component
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: 1,
-        staleTime: 5000,
-      },
-    },
-  }));
-  
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+            retry: 1,
+            staleTime: 5000,
+          },
+        },
+      })
+  );
+
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
     <ThemeContext.Provider value={{ state, dispatch }}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </ThemeContext.Provider>
-  )
-} 
+  );
+}

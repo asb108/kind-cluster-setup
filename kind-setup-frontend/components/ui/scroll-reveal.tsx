@@ -59,8 +59,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'slide-up':
         return {
@@ -72,8 +72,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'slide-down':
         return {
@@ -85,8 +85,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'slide-left':
         return {
@@ -98,8 +98,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'slide-right':
         return {
@@ -111,8 +111,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'scale-up':
         return {
@@ -124,8 +124,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'scale-down':
         return {
@@ -137,8 +137,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'rotate':
         return {
@@ -150,8 +150,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'flip-x':
         return {
@@ -163,8 +163,8 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'flip-y':
         return {
@@ -176,14 +176,14 @@ export function ScrollReveal({
               duration,
               delay,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'none':
       default:
         return {
           hidden: {},
-          visible: {}
+          visible: {},
         };
     }
   }, [animation, distance, duration, delay]);
@@ -192,13 +192,11 @@ export function ScrollReveal({
     <motion.div
       ref={ref}
       className={className}
-      initial="hidden"
+      initial='hidden'
       animate={isInView ? 'visible' : 'hidden'}
       variants={variants}
     >
-      <Component>
-        {children}
-      </Component>
+      <Component>{children}</Component>
     </motion.div>
   );
 }
@@ -234,15 +232,18 @@ export function StaggeredReveal({
   const isInView = useInView(ref, { once, amount: threshold });
 
   // Define animation variants for container - memoized to prevent recalculation
-  const containerVariants = useMemo(() => ({
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: staggerDelay,
-        delayChildren: initialDelay,
-      }
-    }
-  }), [staggerDelay, initialDelay]);
+  const containerVariants = useMemo(
+    () => ({
+      hidden: {},
+      visible: {
+        transition: {
+          staggerChildren: staggerDelay,
+          delayChildren: initialDelay,
+        },
+      },
+    }),
+    [staggerDelay, initialDelay]
+  );
 
   // Define animation variants for items - memoized to prevent recalculation
   const itemVariants = useMemo((): Variants => {
@@ -252,8 +253,8 @@ export function StaggeredReveal({
           hidden: { opacity: 0 },
           visible: {
             opacity: 1,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'slide-up':
         return {
@@ -261,8 +262,8 @@ export function StaggeredReveal({
           visible: {
             opacity: 1,
             y: 0,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'slide-down':
         return {
@@ -270,8 +271,8 @@ export function StaggeredReveal({
           visible: {
             opacity: 1,
             y: 0,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'slide-left':
         return {
@@ -279,8 +280,8 @@ export function StaggeredReveal({
           visible: {
             opacity: 1,
             x: 0,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'slide-right':
         return {
@@ -288,8 +289,8 @@ export function StaggeredReveal({
           visible: {
             opacity: 1,
             x: 0,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'scale-up':
         return {
@@ -297,8 +298,8 @@ export function StaggeredReveal({
           visible: {
             opacity: 1,
             scale: 1,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'scale-down':
         return {
@@ -306,28 +307,25 @@ export function StaggeredReveal({
           visible: {
             opacity: 1,
             scale: 1,
-            transition: { duration, ease: 'easeOut' }
-          }
+            transition: { duration, ease: 'easeOut' },
+          },
         };
       case 'none':
       default:
         return {
           hidden: {},
-          visible: {}
+          visible: {},
         };
     }
   }, [animation, distance, duration]);
 
   // Wrap children with motion.div and apply animation - memoized to prevent recreation on each render
   const renderedChildren = useMemo(() => {
-    return React.Children.map(children, (child) => {
+    return React.Children.map(children, child => {
       if (!React.isValidElement(child)) return child;
 
       return (
-        <motion.div
-          className={itemClassName}
-          variants={itemVariants}
-        >
+        <motion.div className={itemClassName} variants={itemVariants}>
           {child}
         </motion.div>
       );
@@ -338,13 +336,11 @@ export function StaggeredReveal({
     <motion.div
       ref={ref}
       className={className}
-      initial="hidden"
+      initial='hidden'
       animate={isInView ? 'visible' : 'hidden'}
       variants={containerVariants}
     >
-      <Component>
-        {renderedChildren}
-      </Component>
+      <Component>{renderedChildren}</Component>
     </motion.div>
   );
 }

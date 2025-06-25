@@ -5,15 +5,16 @@ This module initializes the application, sets up the repositories,
 and provides the main function for running the application.
 """
 
+import argparse
 import os
 import sys
-import argparse
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from kind_cluster_setup.cli.parser import create_parser
-from kind_cluster_setup.utils.logging import setup_logging, get_logger
+from kind_cluster_setup.infrastructure.repositories.factory import \
+    init_repository_factory
 from kind_cluster_setup.utils.constants import PROJECT_ROOT
-from kind_cluster_setup.infrastructure.repositories.factory import init_repository_factory
+from kind_cluster_setup.utils.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -54,14 +55,14 @@ def main() -> int:
         args = parser.parse_args()
 
         # Log the action
-        if hasattr(args, 'action'):
+        if hasattr(args, "action"):
             logger.info(f"Starting Action: {args.action}")
             logger.debug(f"Parsed arguments: {vars(args)}")
 
         # Execute the command
-        if hasattr(args, 'func'):
+        if hasattr(args, "func"):
             args.func(args)
-        elif hasattr(args, 'command'):
+        elif hasattr(args, "command"):
             args.command.execute(args)
         else:
             parser.print_help()

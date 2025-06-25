@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Info, AlertCircle } from 'lucide-react';
@@ -7,7 +7,16 @@ import { ParameterControl } from './parameter-controls';
 // Type definitions for template parameters
 export interface ParameterDefinition {
   type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'enum';
-  ui_control: 'text' | 'textarea' | 'number' | 'slider' | 'checkbox' | 'select' | 'multiselect' | 'file' | 'password';
+  ui_control:
+    | 'text'
+    | 'textarea'
+    | 'number'
+    | 'slider'
+    | 'checkbox'
+    | 'select'
+    | 'multiselect'
+    | 'file'
+    | 'password';
   label: string;
   description?: string;
   default?: any;
@@ -49,12 +58,24 @@ interface DynamicFormProps {
   template: TemplateMetadata;
   values: Record<string, any>;
   onChange: (values: Record<string, any>) => void;
-  onValidationChange?: (isValid: boolean, errors: Record<string, string>) => void;
+  onValidationChange?: (
+    isValid: boolean,
+    errors: Record<string, string>
+  ) => void;
 }
 
-export function DynamicForm({ template, values, onChange, onValidationChange }: DynamicFormProps) {
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+export function DynamicForm({
+  template,
+  values,
+  onChange,
+  onValidationChange,
+}: DynamicFormProps) {
+  const [collapsedGroups, setCollapsedGroups] = useState<
+    Record<string, boolean>
+  >({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   // Initialize collapsed state for groups
   useEffect(() => {
@@ -80,8 +101,12 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
       }
 
       // Required validation
-      const isRequired = param.required || shouldRequireParameter(paramId, param, values);
-      if (isRequired && (value === undefined || value === null || value === '')) {
+      const isRequired =
+        param.required || shouldRequireParameter(paramId, param, values);
+      if (
+        isRequired &&
+        (value === undefined || value === null || value === '')
+      ) {
         errors[paramId] = `${param.label} is required`;
         return;
       }
@@ -94,28 +119,36 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
       // Type-specific validation
       if (param.type === 'string' && typeof value === 'string') {
         if (param.validation?.min && value.length < param.validation.min) {
-          errors[paramId] = `${param.label} must be at least ${param.validation.min} characters`;
+          errors[paramId] =
+            `${param.label} must be at least ${param.validation.min} characters`;
         }
         if (param.validation?.max && value.length > param.validation.max) {
-          errors[paramId] = `${param.label} must be at most ${param.validation.max} characters`;
+          errors[paramId] =
+            `${param.label} must be at most ${param.validation.max} characters`;
         }
-        if (param.validation?.pattern && !new RegExp(param.validation.pattern).test(value)) {
+        if (
+          param.validation?.pattern &&
+          !new RegExp(param.validation.pattern).test(value)
+        ) {
           errors[paramId] = `${param.label} format is invalid`;
         }
       }
 
       if (param.type === 'number' && typeof value === 'number') {
         if (param.validation?.min && value < param.validation.min) {
-          errors[paramId] = `${param.label} must be at least ${param.validation.min}`;
+          errors[paramId] =
+            `${param.label} must be at least ${param.validation.min}`;
         }
         if (param.validation?.max && value > param.validation.max) {
-          errors[paramId] = `${param.label} must be at most ${param.validation.max}`;
+          errors[paramId] =
+            `${param.label} must be at most ${param.validation.max}`;
         }
       }
 
       if (param.type === 'enum' && param.validation?.options) {
         if (!param.validation.options.includes(value)) {
-          errors[paramId] = `${param.label} must be one of: ${param.validation.options.join(', ')}`;
+          errors[paramId] =
+            `${param.label} must be one of: ${param.validation.options.join(', ')}`;
         }
       }
     });
@@ -126,44 +159,65 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
   // Notify parent of validation changes
   useEffect(() => {
     if (onValidationChange) {
-      onValidationChange(Object.keys(validationErrors).length === 0, validationErrors);
+      onValidationChange(
+        Object.keys(validationErrors).length === 0,
+        validationErrors
+      );
     }
   }, [validationErrors]);
 
-  const shouldShowParameter = (paramId: string, param: ParameterDefinition, currentValues: Record<string, any>): boolean => {
+  const shouldShowParameter = (
+    paramId: string,
+    param: ParameterDefinition,
+    currentValues: Record<string, any>
+  ): boolean => {
     if (!param.dependencies?.show_when) return true;
-    
-    return Object.entries(param.dependencies.show_when).every(([depParam, depValue]) => {
-      const currentValue = currentValues[depParam];
-      if (Array.isArray(depValue)) {
-        return depValue.includes(currentValue);
+
+    return Object.entries(param.dependencies.show_when).every(
+      ([depParam, depValue]) => {
+        const currentValue = currentValues[depParam];
+        if (Array.isArray(depValue)) {
+          return depValue.includes(currentValue);
+        }
+        return currentValue === depValue;
       }
-      return currentValue === depValue;
-    });
+    );
   };
 
-  const shouldRequireParameter = (paramId: string, param: ParameterDefinition, currentValues: Record<string, any>): boolean => {
+  const shouldRequireParameter = (
+    paramId: string,
+    param: ParameterDefinition,
+    currentValues: Record<string, any>
+  ): boolean => {
     if (!param.dependencies?.required_when) return false;
-    
-    return Object.entries(param.dependencies.required_when).every(([depParam, depValue]) => {
-      const currentValue = currentValues[depParam];
-      if (Array.isArray(depValue)) {
-        return depValue.includes(currentValue);
+
+    return Object.entries(param.dependencies.required_when).every(
+      ([depParam, depValue]) => {
+        const currentValue = currentValues[depParam];
+        if (Array.isArray(depValue)) {
+          return depValue.includes(currentValue);
+        }
+        return currentValue === depValue;
       }
-      return currentValue === depValue;
-    });
+    );
   };
 
-  const shouldDisableParameter = (paramId: string, param: ParameterDefinition, currentValues: Record<string, any>): boolean => {
+  const shouldDisableParameter = (
+    paramId: string,
+    param: ParameterDefinition,
+    currentValues: Record<string, any>
+  ): boolean => {
     if (!param.dependencies?.disabled_when) return false;
-    
-    return Object.entries(param.dependencies.disabled_when).every(([depParam, depValue]) => {
-      const currentValue = currentValues[depParam];
-      if (Array.isArray(depValue)) {
-        return depValue.includes(currentValue);
+
+    return Object.entries(param.dependencies.disabled_when).every(
+      ([depParam, depValue]) => {
+        const currentValue = currentValues[depParam];
+        if (Array.isArray(depValue)) {
+          return depValue.includes(currentValue);
+        }
+        return currentValue === depValue;
       }
-      return currentValue === depValue;
-    });
+    );
   };
 
   const handleParameterChange = (paramId: string, value: any) => {
@@ -174,7 +228,7 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups(prev => ({
       ...prev,
-      [groupId]: !prev[groupId]
+      [groupId]: !prev[groupId],
     }));
   };
 
@@ -182,7 +236,7 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
   const groupedParameters = React.useMemo(() => {
     const groups: Record<string, string[]> = {};
     const ungrouped: string[] = [];
-    
+
     Object.entries(template.parameters).forEach(([paramId, param]) => {
       if (param.group) {
         if (!groups[param.group]) {
@@ -193,14 +247,15 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
         ungrouped.push(paramId);
       }
     });
-    
+
     return { groups, ungrouped };
   }, [template.parameters]);
 
   // Sort groups by order
   const sortedGroups = React.useMemo(() => {
-    if (!template.parameter_groups) return Object.keys(groupedParameters.groups);
-    
+    if (!template.parameter_groups)
+      return Object.keys(groupedParameters.groups);
+
     return Object.keys(groupedParameters.groups).sort((a, b) => {
       const orderA = template.parameter_groups?.[a]?.order ?? 999;
       const orderB = template.parameter_groups?.[b]?.order ?? 999;
@@ -214,37 +269,38 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
     }
 
     const isDisabled = shouldDisableParameter(paramId, param, values);
-    const isRequired = param.required || shouldRequireParameter(paramId, param, values);
+    const isRequired =
+      param.required || shouldRequireParameter(paramId, param, values);
     const error = validationErrors[paramId];
 
     return (
-      <div key={paramId} className="space-y-2">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">
+      <div key={paramId} className='space-y-2'>
+        <div className='flex items-center gap-2'>
+          <label className='text-sm font-medium text-gray-700'>
             {param.label}
-            {isRequired && <span className="text-red-500 ml-1">*</span>}
+            {isRequired && <span className='text-red-500 ml-1'>*</span>}
           </label>
           {param.description && (
-            <div className="group relative">
-              <Info className="h-4 w-4 text-gray-400 cursor-help" />
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+            <div className='group relative'>
+              <Info className='h-4 w-4 text-gray-400 cursor-help' />
+              <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10'>
                 {param.description}
               </div>
             </div>
           )}
         </div>
-        
+
         <ParameterControl
           parameter={param}
           value={values[paramId]}
-          onChange={(value) => handleParameterChange(paramId, value)}
+          onChange={value => handleParameterChange(paramId, value)}
           disabled={isDisabled}
           error={error}
         />
-        
+
         {error && (
-          <div className="flex items-center gap-1 text-red-600 text-sm">
-            <AlertCircle className="h-4 w-4" />
+          <div className='flex items-center gap-1 text-red-600 text-sm'>
+            <AlertCircle className='h-4 w-4' />
             {error}
           </div>
         )}
@@ -253,11 +309,11 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Ungrouped parameters */}
       {groupedParameters.ungrouped.length > 0 && (
-        <div className="space-y-4">
-          {groupedParameters.ungrouped.map(paramId => 
+        <div className='space-y-4'>
+          {groupedParameters.ungrouped.map(paramId =>
             renderParameter(paramId, template.parameters[paramId])
           )}
         </div>
@@ -268,37 +324,43 @@ export function DynamicForm({ template, values, onChange, onValidationChange }: 
         const group = template.parameter_groups?.[groupId];
         const isCollapsed = collapsedGroups[groupId];
         const groupParams = groupedParameters.groups[groupId] || [];
-        
+
         if (groupParams.length === 0) return null;
 
         return (
-          <div key={groupId} className="border border-gray-200 rounded-lg">
+          <div key={groupId} className='border border-gray-200 rounded-lg'>
             <div
               className={`px-4 py-3 bg-gray-50 border-b border-gray-200 cursor-pointer flex items-center justify-between ${
                 group?.collapsible !== false ? 'hover:bg-gray-100' : ''
               }`}
-              onClick={() => group?.collapsible !== false && toggleGroup(groupId)}
+              onClick={() =>
+                group?.collapsible !== false && toggleGroup(groupId)
+              }
             >
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{group?.label || groupId}</h3>
+                <h3 className='text-lg font-medium text-gray-900'>
+                  {group?.label || groupId}
+                </h3>
                 {group?.description && (
-                  <p className="text-sm text-gray-600 mt-1">{group.description}</p>
+                  <p className='text-sm text-gray-600 mt-1'>
+                    {group.description}
+                  </p>
                 )}
               </div>
               {group?.collapsible !== false && (
-                <div className="ml-2">
+                <div className='ml-2'>
                   {isCollapsed ? (
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                    <ChevronRight className='h-5 w-5 text-gray-400' />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                    <ChevronDown className='h-5 w-5 text-gray-400' />
                   )}
                 </div>
               )}
             </div>
-            
+
             {(!isCollapsed || group?.collapsible === false) && (
-              <div className="p-4 space-y-4">
-                {groupParams.map(paramId => 
+              <div className='p-4 space-y-4'>
+                {groupParams.map(paramId =>
                   renderParameter(paramId, template.parameters[paramId])
                 )}
               </div>

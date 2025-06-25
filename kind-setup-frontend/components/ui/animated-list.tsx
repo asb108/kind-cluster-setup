@@ -92,14 +92,17 @@ export function AnimatedList({
   }, [animation, staggerDelay, duration]);
 
   // Memoize container variants
-  const containerVariants = useMemo(() => ({
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: staggerDelay,
+  const containerVariants = useMemo(
+    () => ({
+      hidden: {},
+      visible: {
+        transition: {
+          staggerChildren: staggerDelay,
+        },
       },
-    },
-  }), [staggerDelay]);
+    }),
+    [staggerDelay]
+  );
 
   // Wrap children with motion.div and apply animation - memoized to prevent recreation on each render
   const renderedChildren = useMemo(() => {
@@ -111,9 +114,9 @@ export function AnimatedList({
           className={itemClassName}
           custom={index}
           variants={itemVariants}
-          initial="hidden"
+          initial='hidden'
           animate={isInView ? 'visible' : 'hidden'}
-          exit="hidden"
+          exit='hidden'
         >
           {child}
         </motion.li>
@@ -126,13 +129,11 @@ export function AnimatedList({
       ref={ref}
       className={className}
       variants={containerVariants}
-      initial="hidden"
+      initial='hidden'
       animate={isInView ? 'visible' : 'hidden'}
-      exit="hidden"
+      exit='hidden'
     >
-      <Component>
-        {renderedChildren}
-      </Component>
+      <Component>{renderedChildren}</Component>
     </motion.div>
   );
 }
@@ -227,9 +228,9 @@ export function AnimatedListItem({
       ref={ref}
       className={className}
       variants={variants}
-      initial="hidden"
+      initial='hidden'
       animate={isInView ? 'visible' : 'hidden'}
-      exit="hidden"
+      exit='hidden'
     >
       {children}
     </motion.div>

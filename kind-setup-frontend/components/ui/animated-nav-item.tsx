@@ -75,12 +75,12 @@ export function AnimatedNavItem({
   const containerVariants = {
     hover: {
       x: 4,
-      transition: { duration: 0.2 }
+      transition: { duration: 0.2 },
     },
     tap: {
       scale: 0.98,
-      transition: { duration: 0.1 }
-    }
+      transition: { duration: 0.1 },
+    },
   };
 
   const iconVariants = {
@@ -88,8 +88,8 @@ export function AnimatedNavItem({
     hover: {
       scale: 1.15,
       rotate: [0, -5, 5, 0],
-      transition: { duration: 0.3 }
-    }
+      transition: { duration: 0.3 },
+    },
   };
 
   // Indicator position
@@ -109,16 +109,12 @@ export function AnimatedNavItem({
   };
 
   return (
-    <motion.div
-      whileHover="hover"
-      whileTap="tap"
-      variants={containerVariants}
-    >
+    <motion.div whileHover='hover' whileTap='tap' variants={containerVariants}>
       <Link
         href={href}
         onClick={onClick}
         className={cn(
-          "group relative flex items-center rounded-md font-medium transition-all",
+          'group relative flex items-center rounded-md font-medium transition-all',
           sizeClasses[size],
           variantClasses[variant],
           className
@@ -128,27 +124,24 @@ export function AnimatedNavItem({
           <motion.div
             variants={iconVariants}
             className={cn(
-              "transition-colors flex items-center justify-center p-1 rounded-md",
+              'transition-colors flex items-center justify-center p-1 rounded-md',
               iconClasses[variant]
             )}
           >
             {icon}
           </motion.div>
         )}
-        
+
         {children || <span>{label}</span>}
-        
+
         {/* Active indicator with animation */}
         {activeIndicator && isActive && (
           <motion.div
             layoutId={`nav-indicator-${indicatorPosition}`}
-            className={cn(
-              "absolute bg-primary",
-              getIndicatorClass()
-            )}
+            className={cn('absolute bg-primary', getIndicatorClass())}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
           />
         )}
       </Link>

@@ -1,45 +1,45 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}"
+    './app/**/*.{js,ts,jsx,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     screens: {
-      'xs': '480px',
-      'sm': '640px',
-      'md': '768px',
-      'lg': '1024px',
-      'xl': '1280px',
+      xs: '480px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
       '2xl': '1536px',
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        card: "hsl(var(--card))",
-        'card-foreground': "hsl(var(--card-foreground))",
-        popover: "hsl(var(--popover))",
-        'popover-foreground': "hsl(var(--popover-foreground))",
-        primary: "hsl(var(--primary))",
-        'primary-foreground': "hsl(var(--primary-foreground))",
-        secondary: "hsl(var(--secondary))",
-        'secondary-foreground': "hsl(var(--secondary-foreground))",
-        muted: "hsl(var(--muted))",
-        'muted-foreground': "hsl(var(--muted-foreground))",
-        accent: "hsl(var(--accent))",
-        'accent-foreground': "hsl(var(--accent-foreground))",
-        destructive: "hsl(var(--destructive))",
-        'destructive-foreground': "hsl(var(--destructive-foreground))",
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: 'hsl(var(--card))',
+        'card-foreground': 'hsl(var(--card-foreground))',
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+        primary: 'hsl(var(--primary))',
+        'primary-foreground': 'hsl(var(--primary-foreground))',
+        secondary: 'hsl(var(--secondary))',
+        'secondary-foreground': 'hsl(var(--secondary-foreground))',
+        muted: 'hsl(var(--muted))',
+        'muted-foreground': 'hsl(var(--muted-foreground))',
+        accent: 'hsl(var(--accent))',
+        'accent-foreground': 'hsl(var(--accent-foreground))',
+        destructive: 'hsl(var(--destructive))',
+        'destructive-foreground': 'hsl(var(--destructive-foreground))',
       },
       fontSize: {
-        'small': '0.875rem',
-        'display': '2.25rem',
+        small: '0.875rem',
+        display: '2.25rem',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -79,12 +79,12 @@ module.exports = {
     'bg-vibrant-gradient',
   ],
   plugins: [
-    require("tailwindcss-animate"),
+    require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
-    function({ addBase, theme }) {
+    function ({ addBase, theme }) {
       addBase({
         // Optimize font loading
-        'html': { fontDisplay: 'optional' },
+        html: { fontDisplay: 'optional' },
       });
     },
   ],

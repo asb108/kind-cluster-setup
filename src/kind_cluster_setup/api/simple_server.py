@@ -1,8 +1,9 @@
+import logging
+from typing import Any, Dict, List
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import logging
-from typing import List, Dict, Any
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -17,10 +18,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class ClusterCreate(BaseModel):
     name: str
     environment: str
     worker_nodes: int
+
 
 class Application(BaseModel):
     id: int
@@ -28,6 +31,7 @@ class Application(BaseModel):
     status: str
     version: str
     cluster: str
+
 
 class ClusterNode(BaseModel):
     name: str
@@ -38,14 +42,17 @@ class ClusterNode(BaseModel):
     disk: float
     version: str
 
+
 class ClusterOverall(BaseModel):
     cpu: float
     memory: float
     storage: float
 
+
 class ClusterStatus(BaseModel):
     nodes: List[ClusterNode]
     overall: ClusterOverall
+
 
 @app.post("/api/cluster/create")
 async def create_cluster(cluster: ClusterCreate):
@@ -54,11 +61,12 @@ async def create_cluster(cluster: ClusterCreate):
         return {
             "status": "success",
             "message": "Cluster created successfully",
-            "data": cluster.dict()
+            "data": cluster.dict(),
         }
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/api/apps/list")
 async def list_applications():
@@ -86,6 +94,7 @@ async def list_applications():
         logger.error(f"Error getting applications: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/api/cluster/status")
 async def get_cluster_status():
     try:
@@ -107,18 +116,21 @@ async def get_cluster_status():
                 "cpu": 42.5,
                 "memory": 52.5,
                 "storage": 26.25,
-            }
+            },
         }
         return status
     except Exception as e:
         logger.error(f"Error getting cluster status: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     logger.info("Starting server on port 8020...")
     uvicorn.run(app, host="0.0.0.0", port=8020, log_level="debug")

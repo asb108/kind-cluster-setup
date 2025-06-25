@@ -7,18 +7,17 @@ Basic CRUD operations are tested in test_repository_persistence.py.
 """
 
 import os
-import unittest
-import tempfile
 import shutil
+import tempfile
+import unittest
 from datetime import datetime
 
-from kind_cluster_setup.domain.entities import Cluster, Task, Application, User
-from kind_cluster_setup.infrastructure.repositories.json_repositories import (
-    JsonClusterRepository, JsonTaskRepository, JsonApplicationRepository, JsonUserRepository
-)
+from kind_cluster_setup.domain.entities import Application, Cluster, Task, User
 from kind_cluster_setup.infrastructure.repositories.factory import (
-    RepositoryFactory, init_repository_factory, get_repository_factory
-)
+    RepositoryFactory, get_repository_factory, init_repository_factory)
+from kind_cluster_setup.infrastructure.repositories.json_repositories import (
+    JsonApplicationRepository, JsonClusterRepository, JsonTaskRepository,
+    JsonUserRepository)
 
 
 class TestJsonClusterRepository(unittest.TestCase):
@@ -28,7 +27,7 @@ class TestJsonClusterRepository(unittest.TestCase):
         """Set up the test environment."""
         # Create a temporary directory for test files
         self.test_dir = tempfile.mkdtemp()
-        self.repo_file = os.path.join(self.test_dir, 'clusters.json')
+        self.repo_file = os.path.join(self.test_dir, "clusters.json")
         self.repo = JsonClusterRepository(self.repo_file)
 
     def tearDown(self):
@@ -40,44 +39,34 @@ class TestJsonClusterRepository(unittest.TestCase):
         """Test finding a cluster by name."""
         # Create and save clusters
         cluster1 = Cluster(
-            name='cluster1',
-            config={'worker_nodes': 1},
-            environment='dev'
+            name="cluster1", config={"worker_nodes": 1}, environment="dev"
         )
         cluster2 = Cluster(
-            name='cluster2',
-            config={'worker_nodes': 2},
-            environment='test'
+            name="cluster2", config={"worker_nodes": 2}, environment="test"
         )
 
         self.repo.save(cluster1)
         self.repo.save(cluster2)
 
         # Find cluster by name
-        found_cluster = self.repo.find_by_name('cluster2')
+        found_cluster = self.repo.find_by_name("cluster2")
 
         # Verify the cluster was found
         self.assertIsNotNone(found_cluster)
-        self.assertEqual(found_cluster.name, 'cluster2')
-        self.assertEqual(found_cluster.environment, 'test')
+        self.assertEqual(found_cluster.name, "cluster2")
+        self.assertEqual(found_cluster.environment, "test")
 
     def test_find_by_environment(self):
         """Test finding clusters by environment."""
         # Create and save clusters
         cluster1 = Cluster(
-            name='cluster1',
-            config={'worker_nodes': 1},
-            environment='dev'
+            name="cluster1", config={"worker_nodes": 1}, environment="dev"
         )
         cluster2 = Cluster(
-            name='cluster2',
-            config={'worker_nodes': 2},
-            environment='test'
+            name="cluster2", config={"worker_nodes": 2}, environment="test"
         )
         cluster3 = Cluster(
-            name='cluster3',
-            config={'worker_nodes': 3},
-            environment='dev'
+            name="cluster3", config={"worker_nodes": 3}, environment="dev"
         )
 
         self.repo.save(cluster1)
@@ -85,33 +74,33 @@ class TestJsonClusterRepository(unittest.TestCase):
         self.repo.save(cluster3)
 
         # Find clusters by environment
-        dev_clusters = self.repo.find_by_environment('dev')
+        dev_clusters = self.repo.find_by_environment("dev")
 
         # Verify the clusters were found
         self.assertEqual(len(dev_clusters), 2)
-        self.assertTrue(any(c.name == 'cluster1' for c in dev_clusters))
-        self.assertTrue(any(c.name == 'cluster3' for c in dev_clusters))
+        self.assertTrue(any(c.name == "cluster1" for c in dev_clusters))
+        self.assertTrue(any(c.name == "cluster3" for c in dev_clusters))
 
     def test_find_by_status(self):
         """Test finding clusters by status."""
         # Create and save clusters
         cluster1 = Cluster(
-            name='cluster1',
-            config={'worker_nodes': 1},
-            environment='dev',
-            status='running'
+            name="cluster1",
+            config={"worker_nodes": 1},
+            environment="dev",
+            status="running",
         )
         cluster2 = Cluster(
-            name='cluster2',
-            config={'worker_nodes': 2},
-            environment='test',
-            status='stopped'
+            name="cluster2",
+            config={"worker_nodes": 2},
+            environment="test",
+            status="stopped",
         )
         cluster3 = Cluster(
-            name='cluster3',
-            config={'worker_nodes': 3},
-            environment='dev',
-            status='running'
+            name="cluster3",
+            config={"worker_nodes": 3},
+            environment="dev",
+            status="running",
         )
 
         self.repo.save(cluster1)
@@ -119,12 +108,12 @@ class TestJsonClusterRepository(unittest.TestCase):
         self.repo.save(cluster3)
 
         # Find clusters by status
-        running_clusters = self.repo.find_by_status('running')
+        running_clusters = self.repo.find_by_status("running")
 
         # Verify the clusters were found
         self.assertEqual(len(running_clusters), 2)
-        self.assertTrue(any(c.name == 'cluster1' for c in running_clusters))
-        self.assertTrue(any(c.name == 'cluster3' for c in running_clusters))
+        self.assertTrue(any(c.name == "cluster1" for c in running_clusters))
+        self.assertTrue(any(c.name == "cluster3" for c in running_clusters))
 
 
 class TestJsonTaskRepository(unittest.TestCase):
@@ -134,7 +123,7 @@ class TestJsonTaskRepository(unittest.TestCase):
         """Set up the test environment."""
         # Create a temporary directory for test files
         self.test_dir = tempfile.mkdtemp()
-        self.repo_file = os.path.join(self.test_dir, 'tasks.json')
+        self.repo_file = os.path.join(self.test_dir, "tasks.json")
         self.repo = JsonTaskRepository(self.repo_file)
 
     def tearDown(self):
@@ -146,19 +135,13 @@ class TestJsonTaskRepository(unittest.TestCase):
         """Test finding tasks by cluster ID."""
         # Create and save tasks
         task1 = Task(
-            name='task1',
-            description='Task 1 description',
-            cluster_id='cluster-123'
+            name="task1", description="Task 1 description", cluster_id="cluster-123"
         )
         task2 = Task(
-            name='task2',
-            description='Task 2 description',
-            cluster_id='cluster-456'
+            name="task2", description="Task 2 description", cluster_id="cluster-456"
         )
         task3 = Task(
-            name='task3',
-            description='Task 3 description',
-            cluster_id='cluster-123'
+            name="task3", description="Task 3 description", cluster_id="cluster-123"
         )
 
         self.repo.save(task1)
@@ -166,62 +149,38 @@ class TestJsonTaskRepository(unittest.TestCase):
         self.repo.save(task3)
 
         # Find tasks by cluster ID
-        cluster_tasks = self.repo.find_by_cluster_id('cluster-123')
+        cluster_tasks = self.repo.find_by_cluster_id("cluster-123")
 
         # Verify the tasks were found
         self.assertEqual(len(cluster_tasks), 2)
-        self.assertTrue(any(t.name == 'task1' for t in cluster_tasks))
-        self.assertTrue(any(t.name == 'task3' for t in cluster_tasks))
+        self.assertTrue(any(t.name == "task1" for t in cluster_tasks))
+        self.assertTrue(any(t.name == "task3" for t in cluster_tasks))
 
     def test_find_by_status(self):
         """Test finding tasks by status."""
         # Create and save tasks
-        task1 = Task(
-            name='task1',
-            description='Task 1 description',
-            status='pending'
-        )
-        task2 = Task(
-            name='task2',
-            description='Task 2 description',
-            status='completed'
-        )
-        task3 = Task(
-            name='task3',
-            description='Task 3 description',
-            status='pending'
-        )
+        task1 = Task(name="task1", description="Task 1 description", status="pending")
+        task2 = Task(name="task2", description="Task 2 description", status="completed")
+        task3 = Task(name="task3", description="Task 3 description", status="pending")
 
         self.repo.save(task1)
         self.repo.save(task2)
         self.repo.save(task3)
 
         # Find tasks by status
-        pending_tasks = self.repo.find_by_status('pending')
+        pending_tasks = self.repo.find_by_status("pending")
 
         # Verify the tasks were found
         self.assertEqual(len(pending_tasks), 2)
-        self.assertTrue(any(t.name == 'task1' for t in pending_tasks))
-        self.assertTrue(any(t.name == 'task3' for t in pending_tasks))
+        self.assertTrue(any(t.name == "task1" for t in pending_tasks))
+        self.assertTrue(any(t.name == "task3" for t in pending_tasks))
 
     def test_find_pending_tasks(self):
         """Test finding pending tasks."""
         # Create and save tasks
-        task1 = Task(
-            name='task1',
-            description='Task 1 description',
-            status='pending'
-        )
-        task2 = Task(
-            name='task2',
-            description='Task 2 description',
-            status='completed'
-        )
-        task3 = Task(
-            name='task3',
-            description='Task 3 description',
-            status='pending'
-        )
+        task1 = Task(name="task1", description="Task 1 description", status="pending")
+        task2 = Task(name="task2", description="Task 2 description", status="completed")
+        task3 = Task(name="task3", description="Task 3 description", status="pending")
 
         self.repo.save(task1)
         self.repo.save(task2)
@@ -232,8 +191,8 @@ class TestJsonTaskRepository(unittest.TestCase):
 
         # Verify the tasks were found
         self.assertEqual(len(pending_tasks), 2)
-        self.assertTrue(any(t.name == 'task1' for t in pending_tasks))
-        self.assertTrue(any(t.name == 'task3' for t in pending_tasks))
+        self.assertTrue(any(t.name == "task1" for t in pending_tasks))
+        self.assertTrue(any(t.name == "task3" for t in pending_tasks))
 
 
 class TestRepositoryFactory(unittest.TestCase):

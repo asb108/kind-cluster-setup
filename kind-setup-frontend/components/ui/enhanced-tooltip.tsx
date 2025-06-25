@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface EnhancedTooltipProps {
@@ -32,10 +32,14 @@ export function EnhancedTooltip({
   interactive = false,
 }: EnhancedTooltipProps) {
   // Map our position to Shadcn UI side
-  const mappedSide = position === 'left' ? 'left' :
-                     position === 'right' ? 'right' :
-                     position === 'bottom' ? 'bottom' :
-                     'top';
+  const mappedSide =
+    position === 'left'
+      ? 'left'
+      : position === 'right'
+        ? 'right'
+        : position === 'bottom'
+          ? 'bottom'
+          : 'top';
 
   // Animation variants
   const tooltipVariants = {
@@ -71,7 +75,7 @@ export function EnhancedTooltip({
   if (interactive) {
     return (
       <div
-        className={cn("relative inline-block", className)}
+        className={cn('relative inline-block', className)}
         onMouseEnter={() => {}}
         onMouseLeave={() => {}}
       >
@@ -79,20 +83,22 @@ export function EnhancedTooltip({
         <AnimatePresence>
           <motion.div
             className={cn(
-              "absolute z-50",
-              position === 'top' && 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-              position === 'bottom' && 'top-full left-1/2 -translate-x-1/2 mt-2',
+              'absolute z-50',
+              position === 'top' &&
+                'bottom-full left-1/2 -translate-x-1/2 mb-2',
+              position === 'bottom' &&
+                'top-full left-1/2 -translate-x-1/2 mt-2',
               position === 'left' && 'right-full top-1/2 -translate-y-1/2 mr-2',
               position === 'right' && 'left-full top-1/2 -translate-y-1/2 ml-2'
             )}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
             variants={tooltipVariants}
           >
             <div
               className={cn(
-                "bg-popover text-popover-foreground rounded-md py-2 px-3 text-sm shadow-md border border-border",
+                'bg-popover text-popover-foreground rounded-md py-2 px-3 text-sm shadow-md border border-border',
                 contentClassName
               )}
               style={{ maxWidth }}
@@ -103,11 +109,15 @@ export function EnhancedTooltip({
             {showArrow && (
               <div
                 className={cn(
-                  "absolute w-0 h-0 border-4",
-                  position === 'top' && 'top-full left-1/2 -translate-x-1/2 border-t-popover border-l-transparent border-r-transparent border-b-transparent',
-                  position === 'bottom' && 'bottom-full left-1/2 -translate-x-1/2 border-b-popover border-l-transparent border-r-transparent border-t-transparent',
-                  position === 'left' && 'left-full top-1/2 -translate-y-1/2 border-l-popover border-t-transparent border-b-transparent border-r-transparent',
-                  position === 'right' && 'right-full top-1/2 -translate-y-1/2 border-r-popover border-t-transparent border-b-transparent border-l-transparent'
+                  'absolute w-0 h-0 border-4',
+                  position === 'top' &&
+                    'top-full left-1/2 -translate-x-1/2 border-t-popover border-l-transparent border-r-transparent border-b-transparent',
+                  position === 'bottom' &&
+                    'bottom-full left-1/2 -translate-x-1/2 border-b-popover border-l-transparent border-r-transparent border-t-transparent',
+                  position === 'left' &&
+                    'left-full top-1/2 -translate-y-1/2 border-l-popover border-t-transparent border-b-transparent border-r-transparent',
+                  position === 'right' &&
+                    'right-full top-1/2 -translate-y-1/2 border-r-popover border-t-transparent border-b-transparent border-l-transparent'
                 )}
               />
             )}

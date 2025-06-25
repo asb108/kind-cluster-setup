@@ -6,12 +6,12 @@ deleting an application from a Kind cluster without deleting the cluster itself.
 """
 
 import os
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from kind_cluster_setup.commands.base import Command
-from kind_cluster_setup.utils.logging import get_logger
 from kind_cluster_setup.domain.entities import Application, Task
+from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -26,20 +26,22 @@ class DeleteAppCommand(Command):
         Args:
             args: Command-line arguments
         """
-        logger.info(f"Deleting application {args.app} from {args.environment} environment")
+        logger.info(
+            f"Deleting application {args.app} from {args.environment} environment"
+        )
 
         # Create a task to track the deletion
         # Convert args to a serializable dict
         args_dict = {}
         for key, value in vars(args).items():
-            if not key.startswith('_') and not callable(value):
+            if not key.startswith("_") and not callable(value):
                 args_dict[key] = value
 
         task = Task(
             name=f"delete-app-{args.app}",
             description=f"Delete application {args.app} from {args.environment} environment",
             command="delete-app",
-            args=args_dict
+            args=args_dict,
         )
         self._task_repo.save(task)
 
@@ -70,7 +72,9 @@ class DeleteAppCommand(Command):
             # Delete the application from the cluster
             if cluster.status == "running":
                 try:
-                    self._delete_from_cluster(application, cluster.name, args.environment)
+                    self._delete_from_cluster(
+                        application, cluster.name, args.environment
+                    )
                 except Exception as e:
                     if not args.force:
                         error_msg = f"Failed to delete application {args.app} from cluster: {str(e)}. Use --force to delete anyway."
@@ -78,7 +82,9 @@ class DeleteAppCommand(Command):
                         self._update_task_status(task, "failed", {"error": error_msg})
                         return
                     else:
-                        logger.warning(f"Failed to delete application {args.app} from cluster: {str(e)}. Continuing with force delete.")
+                        logger.warning(
+                            f"Failed to delete application {args.app} from cluster: {str(e)}. Continuing with force delete."
+                        )
 
             # Update the application status
             application.status = "deleted"
@@ -90,7 +96,9 @@ class DeleteAppCommand(Command):
                 try:
                     self._delete_config_files(args.app, args.environment)
                 except Exception as e:
-                    logger.warning(f"Failed to delete configuration files for {args.app}: {str(e)}")
+                    logger.warning(
+                        f"Failed to delete configuration files for {args.app}: {str(e)}"
+                    )
 
             logger.info(f"Successfully deleted application {args.app}")
             self._update_task_status(task, "completed", {"result": "success"})
@@ -100,7 +108,9 @@ class DeleteAppCommand(Command):
             logger.error(error_msg)
             self._update_task_status(task, "failed", {"error": error_msg})
 
-    def _delete_from_cluster(self, application: Application, cluster_name: str, environment: str) -> None:
+    def _delete_from_cluster(
+        self, application: Application, cluster_name: str, environment: str
+    ) -> None:
         """
         Delete the application from the Kubernetes cluster.
 
@@ -113,9 +123,13 @@ class DeleteAppCommand(Command):
         from kind_cluster_setup.core.kubernetes import KubectlClient
 
         # Get namespace from application config or use default format
-        namespace = application.config.get('namespace', f"{application.name}-{environment}")
-        if isinstance(application.config, dict) and 'metadata' in application.config:
-            namespace = application.config.get('metadata', {}).get('namespace', namespace)
+        namespace = application.config.get(
+            "namespace", f"{application.name}-{environment}"
+        )
+        if isinstance(application.config, dict) and "metadata" in application.config:
+            namespace = application.config.get("metadata", {}).get(
+                "namespace", namespace
+            )
 
         # Set up kubectl client
         executor = SubprocessCommandExecutor()
@@ -129,7 +143,9 @@ class DeleteAppCommand(Command):
         # Delete resources based on deployment method
         if application.deployment_method == "kubernetes":
             # Delete all resources with the app label
-            logger.info(f"Deleting Kubernetes resources for {application.name} in namespace {namespace}")
+            logger.info(
+                f"Deleting Kubernetes resources for {application.name} in namespace {namespace}"
+            )
 
             # Try to delete deployment
             try:
@@ -137,14 +153,18 @@ class DeleteAppCommand(Command):
                     ["delete", "deployment", application.name],
                     context=context,
                     namespace=namespace,
-                    check=False
+                    check=False,
                 )
                 if result.success:
                     logger.info(f"Deleted deployment {application.name}")
                 else:
-                    logger.warning(f"Failed to delete deployment {application.name}: {result.stderr}")
+                    logger.warning(
+                        f"Failed to delete deployment {application.name}: {result.stderr}"
+                    )
             except Exception as e:
-                logger.warning(f"Error deleting deployment {application.name}: {str(e)}")
+                logger.warning(
+                    f"Error deleting deployment {application.name}: {str(e)}"
+                )
 
             # Try to delete service
             try:
@@ -152,12 +172,14 @@ class DeleteAppCommand(Command):
                     ["delete", "service", application.name],
                     context=context,
                     namespace=namespace,
-                    check=False
+                    check=False,
                 )
                 if result.success:
                     logger.info(f"Deleted service {application.name}")
                 else:
-                    logger.warning(f"Failed to delete service {application.name}: {result.stderr}")
+                    logger.warning(
+                        f"Failed to delete service {application.name}: {result.stderr}"
+                    )
             except Exception as e:
                 logger.warning(f"Error deleting service {application.name}: {str(e)}")
 
@@ -167,7 +189,7 @@ class DeleteAppCommand(Command):
                     ["delete", "ingress", application.name],
                     context=context,
                     namespace=namespace,
-                    check=False
+                    check=False,
                 )
                 if result.success:
                     logger.info(f"Deleted ingress {application.name}")
@@ -181,26 +203,32 @@ class DeleteAppCommand(Command):
                     ["delete", "all", "-l", f"app={application.name}"],
                     context=context,
                     namespace=namespace,
-                    check=False
+                    check=False,
                 )
                 if result.success:
-                    logger.info(f"Deleted all resources with label app={application.name}")
+                    logger.info(
+                        f"Deleted all resources with label app={application.name}"
+                    )
             except Exception as e:
-                logger.warning(f"Error deleting resources with label app={application.name}: {str(e)}")
+                logger.warning(
+                    f"Error deleting resources with label app={application.name}: {str(e)}"
+                )
 
         elif application.deployment_method == "helm":
             # Delete Helm release
             from kind_cluster_setup.core.helm import HelmClient
 
             helm_client = HelmClient(executor)
-            release_name = application.config.get('release_name', f"{application.name}-release")
+            release_name = application.config.get(
+                "release_name", f"{application.name}-release"
+            )
 
-            logger.info(f"Deleting Helm release {release_name} in namespace {namespace}")
+            logger.info(
+                f"Deleting Helm release {release_name} in namespace {namespace}"
+            )
             try:
                 result = helm_client.uninstall(
-                    release_name=release_name,
-                    namespace=namespace,
-                    context=context
+                    release_name=release_name, namespace=namespace, context=context
                 )
                 logger.info(f"Deleted Helm release {release_name}")
             except Exception as e:
@@ -219,7 +247,7 @@ class DeleteAppCommand(Command):
         paths = [
             f"applications/{app}/config/{environment}.yaml",
             f"config/apps/{environment}/{app}.yaml",
-            f"applications/{app}/kubernetes/{environment}.yaml"
+            f"applications/{app}/kubernetes/{environment}.yaml",
         ]
 
         deleted = False
@@ -230,12 +258,18 @@ class DeleteAppCommand(Command):
                     logger.info(f"Deleted configuration file: {path}")
                     deleted = True
                 except Exception as e:
-                    logger.warning(f"Failed to delete configuration file {path}: {str(e)}")
+                    logger.warning(
+                        f"Failed to delete configuration file {path}: {str(e)}"
+                    )
 
         if not deleted:
-            logger.warning(f"No configuration files found for {app} in {environment} environment")
+            logger.warning(
+                f"No configuration files found for {app} in {environment} environment"
+            )
 
-    def _update_task_status(self, task: Task, status: str, result: Dict[str, Any] = None) -> None:
+    def _update_task_status(
+        self, task: Task, status: str, result: Dict[str, Any] = None
+    ) -> None:
         """
         Update the status and result of a task.
 

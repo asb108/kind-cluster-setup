@@ -2,7 +2,13 @@
 import React from 'react';
 
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface EnhancedCardProps {
@@ -31,13 +37,16 @@ export function EnhancedCard({
   // Variant-specific classes
   const variantClasses = {
     default: 'bg-card border border-border shadow-sm',
-    glass: 'bg-white/80 dark:bg-card/80 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-sm',
+    glass:
+      'bg-white/80 dark:bg-card/80 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-sm',
     gradient: 'gradient-border bg-card shadow-sm',
     outline: 'bg-transparent border border-primary/20 hover:border-primary/40',
   };
 
   // Hover classes
-  const hoverClasses = hover ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30' : '';
+  const hoverClasses = hover
+    ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30'
+    : '';
 
   // Combine all classes
   const cardClasses = cn(
@@ -55,24 +64,24 @@ export function EnhancedCard({
       y: 0,
       transition: {
         duration: 0.3,
-        ease: "easeOut"
-      }
-    }
+        ease: 'easeOut',
+      },
+    },
   };
 
   // Content to render
   const content = (
     <Card className={cardClasses}>
       {(title || icon || headerAction) && (
-        <CardHeader className="flex flex-row items-center justify-between p-5 space-y-0 border-b border-border/50">
-          <div className="flex items-center gap-3">
+        <CardHeader className='flex flex-row items-center justify-between p-5 space-y-0 border-b border-border/50'>
+          <div className='flex items-center gap-3'>
             {icon && (
-              <div className="p-2.5 rounded-md bg-primary/15 text-primary">
+              <div className='p-2.5 rounded-md bg-primary/15 text-primary'>
                 {icon}
               </div>
             )}
             {title && (
-              <CardTitle className="text-xl font-bold text-foreground">
+              <CardTitle className='text-xl font-bold text-foreground'>
                 {title}
               </CardTitle>
             )}
@@ -80,11 +89,9 @@ export function EnhancedCard({
           {headerAction && <div>{headerAction}</div>}
         </CardHeader>
       )}
-      <CardContent className="p-6 space-y-4">
-        {children}
-      </CardContent>
+      <CardContent className='p-6 space-y-4'>{children}</CardContent>
       {footer && (
-        <CardFooter className="p-5 border-t border-border/50 bg-muted/30">
+        <CardFooter className='p-5 border-t border-border/50 bg-muted/30'>
           {footer}
         </CardFooter>
       )}
@@ -94,11 +101,7 @@ export function EnhancedCard({
   // If animate is true, wrap the Card in motion.div
   if (animate) {
     return (
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={cardVariants}
-      >
+      <motion.div initial='hidden' animate='visible' variants={cardVariants}>
         {content}
       </motion.div>
     );

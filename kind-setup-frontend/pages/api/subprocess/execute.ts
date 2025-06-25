@@ -15,12 +15,15 @@ const execPromise = promisify(exec);
  * 3. Sanitize all inputs
  * 4. Add rate limiting
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      message: 'Method not allowed. Use POST.'
+      message: 'Method not allowed. Use POST.',
     });
   }
 
@@ -31,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!command) {
       return res.status(400).json({
         success: false,
-        message: 'Missing command in request body'
+        message: 'Missing command in request body',
       });
     }
 
@@ -40,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!allowedCommands.includes(command)) {
       return res.status(403).json({
         success: false,
-        message: `Command not allowed. Allowed commands: ${allowedCommands.join(', ')}`
+        message: `Command not allowed. Allowed commands: ${allowedCommands.join(', ')}`,
       });
     }
 
@@ -48,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!Array.isArray(args)) {
       return res.status(400).json({
         success: false,
-        message: 'Args must be an array'
+        message: 'Args must be an array',
       });
     }
 
@@ -73,14 +76,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: true,
       command: commandString,
       stdout,
-      stderr
+      stderr,
     });
   } catch (error) {
     console.error('Error in subprocess execute API:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }

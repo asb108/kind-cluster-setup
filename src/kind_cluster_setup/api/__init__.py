@@ -25,5 +25,6 @@ Usage:
 """
 
 # For convenient imports
-from .server import start_api_server, app as api_app
+from .server import app as api_app
+from .server import start_api_server
 from .simple_server import app as simple_app

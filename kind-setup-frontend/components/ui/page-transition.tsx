@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
-type TransitionVariant = 
-  | 'fade' 
-  | 'slide-up' 
-  | 'slide-down' 
-  | 'slide-left' 
-  | 'slide-right' 
-  | 'scale' 
-  | 'rotate' 
+type TransitionVariant =
+  | 'fade'
+  | 'slide-up'
+  | 'slide-down'
+  | 'slide-left'
+  | 'slide-right'
+  | 'scale'
+  | 'rotate'
   | 'flip';
 
 interface PageTransitionProps {
@@ -29,11 +29,11 @@ export function PageTransition({
 }: PageTransitionProps) {
   const pathname = usePathname();
   const [renderKey, setRenderKey] = useState(pathname);
-  
+
   useEffect(() => {
     setRenderKey(pathname);
   }, [pathname]);
-  
+
   // Define animation variants
   const getVariants = () => {
     switch (variant) {
@@ -93,20 +93,20 @@ export function PageTransition({
         };
     }
   };
-  
+
   const variants = getVariants();
-  
+
   return (
     <AnimatePresence mode={exitBeforeEnter ? 'wait' : 'sync'}>
       <motion.div
         key={renderKey}
-        initial="initial"
-        animate="animate"
-        exit="exit"
+        initial='initial'
+        animate='animate'
+        exit='exit'
         variants={variants}
-        transition={{ 
-          duration, 
-          ease: [0.22, 1, 0.36, 1] // Custom cubic-bezier for smooth transitions
+        transition={{
+          duration,
+          ease: [0.22, 1, 0.36, 1], // Custom cubic-bezier for smooth transitions
         }}
         className={className}
       >

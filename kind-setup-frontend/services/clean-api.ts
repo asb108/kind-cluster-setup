@@ -217,11 +217,14 @@ export interface ClusterWorkloads {
     strategy: string;
     age: string;
   }>;
-  namespace_workloads: Record<string, {
-    pods: any[];
-    running_pods: number;
-    failed_pods: number;
-  }>;
+  namespace_workloads: Record<
+    string,
+    {
+      pods: any[];
+      running_pods: number;
+      failed_pods: number;
+    }
+  >;
   summary: {
     total_pods: number;
     running_pods: number;
@@ -310,13 +313,14 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache',
-    'Accept': 'application/json'
+    Pragma: 'no-cache',
+    Accept: 'application/json',
   },
   timeout: 60000, // 1 minute timeout for regular operations (reduced from 2 minutes)
   withCredentials: false, // Must match backend CORS setting (both false)
-  timeoutErrorMessage: 'Request timed out - the operation is taking longer than expected',
-  validateStatus: (status) => status >= 200 && status < 500
+  timeoutErrorMessage:
+    'Request timed out - the operation is taking longer than expected',
+  validateStatus: status => status >= 200 && status < 500,
 });
 
 // Create a special Axios instance for cluster operations with longer timeout
@@ -325,33 +329,42 @@ const clusterApi_axios = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache',
-    'Accept': 'application/json'
+    Pragma: 'no-cache',
+    Accept: 'application/json',
   },
   timeout: 180000, // 3 minutes timeout for cluster operations (reduced from 5 minutes)
   withCredentials: false,
-  timeoutErrorMessage: 'Cluster operation timed out - this may take several minutes',
-  validateStatus: (status) => status >= 200 && status < 500
+  timeoutErrorMessage:
+    'Cluster operation timed out - this may take several minutes',
+  validateStatus: status => status >= 200 && status < 500,
 });
 
 // Add request debug interceptor
 api.interceptors.request.use(config => {
-  console.log(`🔄 Sending ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
+  console.log(
+    `🔄 Sending ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`
+  );
   return config;
 });
 
 // Add response debug interceptor with improved timeout handling
 api.interceptors.response.use(
   response => {
-    console.log(`✅ Response from ${response.config.url}: Status ${response.status}`);
+    console.log(
+      `✅ Response from ${response.config.url}: Status ${response.status}`
+    );
     return response;
   },
   error => {
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      console.error(`⏰ Request timeout: ${error.config?.url} - Consider checking backend server status`);
+      console.error(
+        `⏰ Request timeout: ${error.config?.url} - Consider checking backend server status`
+      );
       // For task polling timeouts, return a special error that can be handled gracefully
       if (error.config?.url?.includes('/api/tasks/')) {
-        const taskTimeoutError = new Error('Task polling timeout - please check if the operation completed successfully');
+        const taskTimeoutError = new Error(
+          'Task polling timeout - please check if the operation completed successfully'
+        );
         taskTimeoutError.name = 'TaskPollingTimeout';
         // Add additional properties to help with error detection
         (taskTimeoutError as any).isTaskTimeout = true;
@@ -359,9 +372,13 @@ api.interceptors.response.use(
         return Promise.reject(taskTimeoutError);
       }
     } else if (error.response) {
-      console.error(`❌ Error response from API: ${error.response.status} - ${error.response.data?.message || error.message}`);
+      console.error(
+        `❌ Error response from API: ${error.response.status} - ${error.response.data?.message || error.message}`
+      );
     } else if (error.request) {
-      console.error(`❌ No response received from API: ${error.message} - Backend may be unavailable`);
+      console.error(
+        `❌ No response received from API: ${error.message} - Backend may be unavailable`
+      );
     } else {
       console.error(`❌ Error setting up request: ${error.message}`);
     }
@@ -371,22 +388,32 @@ api.interceptors.response.use(
 
 // Add interceptors to cluster API instance as well
 clusterApi_axios.interceptors.request.use(config => {
-  console.log(`🔄 [CLUSTER] Sending ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
+  console.log(
+    `🔄 [CLUSTER] Sending ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`
+  );
   return config;
 });
 
 clusterApi_axios.interceptors.response.use(
   response => {
-    console.log(`✅ [CLUSTER] Response from ${response.config.url}: Status ${response.status}`);
+    console.log(
+      `✅ [CLUSTER] Response from ${response.config.url}: Status ${response.status}`
+    );
     return response;
   },
   error => {
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      console.error(`⏰ [CLUSTER] Request timeout: ${error.config?.url} - Cluster operations may take longer`);
+      console.error(
+        `⏰ [CLUSTER] Request timeout: ${error.config?.url} - Cluster operations may take longer`
+      );
     } else if (error.response) {
-      console.error(`❌ [CLUSTER] Error response from API: ${error.response.status} - ${error.response.data?.message || error.message}`);
+      console.error(
+        `❌ [CLUSTER] Error response from API: ${error.response.status} - ${error.response.data?.message || error.message}`
+      );
     } else if (error.request) {
-      console.error(`❌ [CLUSTER] No response received from API: ${error.message} - Backend may be unavailable`);
+      console.error(
+        `❌ [CLUSTER] No response received from API: ${error.message} - Backend may be unavailable`
+      );
     } else {
       console.error(`❌ [CLUSTER] Error setting up request: ${error.message}`);
     }
@@ -407,81 +434,125 @@ const isServerOnline = async (): Promise<boolean> => {
       }
     }, 10000); // 10 second timeout for health check (increased from 5s)
 
-    console.log(`🔍 [isServerOnline] Checking if backend server is online at ${API_BASE_URL}/health...`);
+    console.log(
+      `🔍 [isServerOnline] Checking if backend server is online at ${API_BASE_URL}/health...`
+    );
 
     const response = await fetch(`${API_BASE_URL}/health`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       // Don't use credentials for the health check
       credentials: 'omit',
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
-    console.log(`🔍 [isServerOnline] Health check response status: ${response.status}`);
+    console.log(
+      `🔍 [isServerOnline] Health check response status: ${response.status}`
+    );
 
     if (response.ok) {
       // Try to parse the response to check if mock data is being used
       try {
         const data = await response.json();
-        console.log('🔍 [isServerOnline] HEALTH CHECK RESPONSE:', JSON.stringify(data, null, 2));
+        console.log(
+          '🔍 [isServerOnline] HEALTH CHECK RESPONSE:',
+          JSON.stringify(data, null, 2)
+        );
 
         if (data.data && data.data.mock_data === true) {
-          console.log('⚠️ [isServerOnline] Backend server is online but using MOCK DATA');
-          console.log('To use real data, restart the backend without the --mock flag');
+          console.log(
+            '⚠️ [isServerOnline] Backend server is online but using MOCK DATA'
+          );
+          console.log(
+            'To use real data, restart the backend without the --mock flag'
+          );
         } else {
-          console.log('✅ [isServerOnline] Backend server is online and using REAL DATA');
+          console.log(
+            '✅ [isServerOnline] Backend server is online and using REAL DATA'
+          );
         }
       } catch (parseError) {
-        console.log('✅ [isServerOnline] Backend server is online (could not parse response)');
-        console.log('Parse error:', parseError instanceof Error ? parseError.message : 'Unknown error');
+        console.log(
+          '✅ [isServerOnline] Backend server is online (could not parse response)'
+        );
+        console.log(
+          'Parse error:',
+          parseError instanceof Error ? parseError.message : 'Unknown error'
+        );
       }
 
       // Try a direct call to the cluster status endpoint to verify it works
       try {
-        console.log(`🔍 Testing cluster status endpoint at ${API_BASE_URL}/api/cluster/status...`);
-        const statusResponse = await fetch(`${API_BASE_URL}/api/cluster/status`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'omit'
-        });
+        console.log(
+          `🔍 Testing cluster status endpoint at ${API_BASE_URL}/api/cluster/status...`
+        );
+        const statusResponse = await fetch(
+          `${API_BASE_URL}/api/cluster/status`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'omit',
+          }
+        );
 
         if (statusResponse.ok) {
           const statusData = await statusResponse.json();
-          console.log('CLUSTER STATUS TEST RESPONSE:', JSON.stringify(statusData, null, 2));
+          console.log(
+            'CLUSTER STATUS TEST RESPONSE:',
+            JSON.stringify(statusData, null, 2)
+          );
           console.log('✅ Cluster status endpoint is working!');
 
           // Force return true if we can get real cluster data
-          if (statusData.data && statusData.data.clusters && statusData.data.clusters.length > 0) {
-            console.log('✅ Found real clusters in API response, server is definitely online');
+          if (
+            statusData.data &&
+            statusData.data.clusters &&
+            statusData.data.clusters.length > 0
+          ) {
+            console.log(
+              '✅ Found real clusters in API response, server is definitely online'
+            );
             return true;
           }
         } else {
-          console.log(`⚠️ Cluster status endpoint returned status ${statusResponse.status}`);
+          console.log(
+            `⚠️ Cluster status endpoint returned status ${statusResponse.status}`
+          );
         }
       } catch (statusError) {
-        console.log('⚠️ Error testing cluster status endpoint:',
-          statusError instanceof Error ? statusError.message : 'Unknown error');
+        console.log(
+          '⚠️ Error testing cluster status endpoint:',
+          statusError instanceof Error ? statusError.message : 'Unknown error'
+        );
       }
 
-      console.log('✅ [isServerOnline] Health check successful, returning true');
+      console.log(
+        '✅ [isServerOnline] Health check successful, returning true'
+      );
       return true;
     } else {
-      console.log(`⚠️ [isServerOnline] Backend server returned status ${response.status}`);
+      console.log(
+        `⚠️ [isServerOnline] Backend server returned status ${response.status}`
+      );
       return false;
     }
   } catch (error) {
-    console.log(`⚠️ [isServerOnline] Server health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.log(
+      `⚠️ [isServerOnline] Server health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
     console.log(`⚠️ [isServerOnline] Error details:`, error);
 
     // If the first attempt failed, try one more time with a different endpoint
     try {
-      console.log(`🔍 [isServerOnline] Trying alternative endpoint ${API_BASE_URL}/api/cluster/status...`);
+      console.log(
+        `🔍 [isServerOnline] Trying alternative endpoint ${API_BASE_URL}/api/cluster/status...`
+      );
 
       const response = await fetch(`${API_BASE_URL}/api/cluster/status`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'omit'
+        credentials: 'omit',
       });
 
       if (response.ok) {
@@ -491,7 +562,9 @@ const isServerOnline = async (): Promise<boolean> => {
 
         // Force return true if we can get real cluster data
         if (data.data && data.data.clusters && data.data.clusters.length > 0) {
-          console.log('✅ Found real clusters in API response, server is definitely online');
+          console.log(
+            '✅ Found real clusters in API response, server is definitely online'
+          );
           return true;
         }
 
@@ -500,17 +573,23 @@ const isServerOnline = async (): Promise<boolean> => {
         console.log(`⚠️ Second attempt failed with status ${response.status}`);
       }
     } catch (secondError) {
-      console.log('❌ Second server health check also failed:',
-        secondError instanceof Error ? secondError.message : 'Unknown error');
+      console.log(
+        '❌ Second server health check also failed:',
+        secondError instanceof Error ? secondError.message : 'Unknown error'
+      );
     }
 
     // Log helpful debugging information
     console.log('\n🔧 Troubleshooting tips:');
     console.log('1. Make sure the backend server is running');
-    console.log(`2. Check if the server is running on the correct port (${API_BASE_URL})`);
+    console.log(
+      `2. Check if the server is running on the correct port (${API_BASE_URL})`
+    );
     console.log('3. Verify there are no firewall or network issues');
     console.log('4. If using a custom API URL, ensure it is correct');
-    console.log('5. Run the check-backend.js script for more detailed diagnostics\n');
+    console.log(
+      '5. Run the check-backend.js script for more detailed diagnostics\n'
+    );
 
     return false;
   }
@@ -561,10 +640,10 @@ const mockApplications = [
               name: 'airflow-webserver',
               image: 'apache/airflow:2.6.0',
               ready: true,
-              state: 'running'
-            }
-          ]
-        }
+              state: 'running',
+            },
+          ],
+        },
       ],
       services: [
         {
@@ -576,22 +655,22 @@ const mockApplications = [
             {
               name: 'http',
               port: 8080,
-              target_port: 8080
-            }
-          ]
-        }
+              target_port: 8080,
+            },
+          ],
+        },
       ],
       ingresses: [
         {
           name: 'airflow-ingress',
-          hosts: ['airflow.local']
-        }
+          hosts: ['airflow.local'],
+        },
       ],
       access_urls: [
         {
           type: 'web',
-          url: 'http://airflow.local'
-        }
+          url: 'http://airflow.local',
+        },
       ],
       app_info: {
         admin_user: 'admin',
@@ -602,10 +681,10 @@ const mockApplications = [
           port: 5432,
           database: 'airflow',
           username: 'airflow',
-          password: 'airflow'
-        }
-      }
-    }
+          password: 'airflow',
+        },
+      },
+    },
   },
   {
     id: 'app-2',
@@ -631,10 +710,10 @@ const mockApplications = [
               name: 'mysql',
               image: 'mysql:8.0',
               ready: true,
-              state: 'running'
-            }
-          ]
-        }
+              state: 'running',
+            },
+          ],
+        },
       ],
       services: [
         {
@@ -646,19 +725,19 @@ const mockApplications = [
             {
               name: 'mysql',
               port: 3306,
-              target_port: 3306
-            }
-          ]
-        }
+              target_port: 3306,
+            },
+          ],
+        },
       ],
       ingresses: [],
       access_urls: [],
       app_info: {
         root_password: 'password',
-        database: 'mydatabase'
-      }
-    }
-  }
+        database: 'mydatabase',
+      },
+    },
+  },
 ];
 
 const mockClusterStatus = {
@@ -670,9 +749,9 @@ const mockClusterStatus = {
       name: 'test-1',
       status: 'Running',
       nodes: 2,
-      created: '2023-01-01T00:00:00Z'
-    }
-  ]
+      created: '2023-01-01T00:00:00Z',
+    },
+  ],
 };
 
 // Ensure we log the mock data when it's used
@@ -681,13 +760,25 @@ console.log('Mock cluster status:', mockClusterStatus);
 // Define the API service with all the methods
 export const clusterApi = {
   // Deploy an application
-  deployApplication: async (cluster: string, name: string, namespace?: string, values?: any, method?: string, version?: string) => {
+  deployApplication: async (
+    cluster: string,
+    name: string,
+    namespace?: string,
+    values?: any,
+    method?: string,
+    version?: string
+  ) => {
     try {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock success response');
-        return { success: true, message: 'Application deployed successfully (mock)' };
+        console.log(
+          'Backend server is not available, returning mock success response'
+        );
+        return {
+          success: true,
+          message: 'Application deployed successfully (mock)',
+        };
       }
 
       // Construct the deployment parameters object
@@ -697,7 +788,7 @@ export const clusterApi = {
         namespace: namespace || 'default',
         values: values || {},
         method: method || 'kubectl',
-        version: version || 'latest'
+        version: version || 'latest',
       };
 
       console.log('✅ Deploying application with params:', deploymentParams);
@@ -710,10 +801,15 @@ export const clusterApi = {
         return response.data;
       } else {
         console.error('Failed to deploy application:', response.data);
-        throw new Error(`Failed to deploy application: ${response.data.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to deploy application: ${response.data.message || 'Unknown error'}`
+        );
       }
     } catch (error: unknown) {
-      console.error('Error deploying application:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Error deploying application:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   },
@@ -724,8 +820,13 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock success response');
-        return { success: true, message: `Application ${appId} stopped successfully (mock)` };
+        console.log(
+          'Backend server is not available, returning mock success response'
+        );
+        return {
+          success: true,
+          message: `Application ${appId} stopped successfully (mock)`,
+        };
       }
 
       console.log(`Attempting to stop application with ID: ${appId}`);
@@ -736,33 +837,51 @@ export const clusterApi = {
         console.log(`Application ${appId} stopped successfully`);
         return response.data;
       } else {
-        throw new Error(`Failed to stop application: ${response.data.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to stop application: ${response.data.message || 'Unknown error'}`
+        );
       }
     } catch (error: unknown) {
-      console.error(`Error stopping application ${appId}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        `Error stopping application ${appId}:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error; // Re-throw error to be handled by caller
     }
   },
 
   // Delete an application
-  deleteApplication: async (appId: string, appName?: string, clusterName?: string) => {
+  deleteApplication: async (
+    appId: string,
+    appName?: string,
+    clusterName?: string
+  ) => {
     try {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock success response');
+        console.log(
+          'Backend server is not available, returning mock success response'
+        );
         // Dispatch event to notify other components that an app was deleted (mock)
-        window.dispatchEvent(new CustomEvent('app-deleted', {
-          detail: { success: true, appId, appName, clusterName }
-        }));
-        return { success: true, message: `Application ${appName || appId} deleted successfully (mock)` };
+        window.dispatchEvent(
+          new CustomEvent('app-deleted', {
+            detail: { success: true, appId, appName, clusterName },
+          })
+        );
+        return {
+          success: true,
+          message: `Application ${appName || appId} deleted successfully (mock)`,
+        };
       }
 
       // Ensure we have valid values for logging and display
       const displayAppId = appId || 'unknown';
       const displayAppName = appName || 'unknown';
 
-      console.log(`Deleting application: ${displayAppName} (${displayAppId}) from cluster: ${clusterName || 'unknown'}`);
+      console.log(
+        `Deleting application: ${displayAppName} (${displayAppId}) from cluster: ${clusterName || 'unknown'}`
+      );
 
       // API path can use the ID or name/cluster combination
       let apiPath = `/api/apps/${appId}`;
@@ -773,24 +892,43 @@ export const clusterApi = {
       const response = await api.delete(apiPath);
 
       if (response.status >= 200 && response.status < 300) {
-        console.log(`Application ${displayAppName} deleted successfully:`, response.data);
+        console.log(
+          `Application ${displayAppName} deleted successfully:`,
+          response.data
+        );
 
         // Dispatch event to notify other components that an app was deleted
-        window.dispatchEvent(new CustomEvent('app-deleted', {
-          detail: { success: true, appId, appName, clusterName }
-        }));
+        window.dispatchEvent(
+          new CustomEvent('app-deleted', {
+            detail: { success: true, appId, appName, clusterName },
+          })
+        );
 
         return response.data;
       } else {
-        console.error(`Failed to delete application ${displayAppName}:`, response.data);
-        throw new Error(`Failed to delete application: ${response.data.message || 'Unknown error'}`);
+        console.error(
+          `Failed to delete application ${displayAppName}:`,
+          response.data
+        );
+        throw new Error(
+          `Failed to delete application: ${response.data.message || 'Unknown error'}`
+        );
       }
-
     } catch (error: unknown) {
-      console.error(`Error deleting application ${appName || appId || 'unknown'}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        `Error deleting application ${appName || appId || 'unknown'}:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
 
       // For UX, handle other errors gracefully
-      window.dispatchEvent(new CustomEvent('app-deleted', { detail: { success: false, error: error instanceof Error ? error.message : 'Unknown error' }}));
+      window.dispatchEvent(
+        new CustomEvent('app-deleted', {
+          detail: {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        })
+      );
       throw error;
     }
   },
@@ -798,50 +936,74 @@ export const clusterApi = {
   getClusterStatus: async () => {
     try {
       console.log('🔍 [getClusterStatus] Starting cluster status fetch...');
-      console.log('🔍 [getClusterStatus] Checking if backend server is online...');
+      console.log(
+        '🔍 [getClusterStatus] Checking if backend server is online...'
+      );
       const online = await isServerOnline();
       console.log(`🔍 [getClusterStatus] isServerOnline result: ${online}`);
 
       if (!online) {
-        console.log('❌ [getClusterStatus] Backend server is not available, returning empty status (no mock data)');
+        console.log(
+          '❌ [getClusterStatus] Backend server is not available, returning empty status (no mock data)'
+        );
         return {
           cluster_count: 0,
           node_count: 0,
           cpu_usage: 0,
-          clusters: []
+          clusters: [],
         };
       }
 
-      console.log('✅ Backend server is online, fetching real cluster status...');
+      console.log(
+        '✅ Backend server is online, fetching real cluster status...'
+      );
 
       // Direct fetch approach for more reliable results
       try {
-        console.log(`Making direct fetch to ${API_BASE_URL}/api/cluster/status`);
-        const directResponse = await fetch(`${API_BASE_URL}/api/cluster/status?_=${Date.now()}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
+        console.log(
+          `Making direct fetch to ${API_BASE_URL}/api/cluster/status`
+        );
+        const directResponse = await fetch(
+          `${API_BASE_URL}/api/cluster/status?_=${Date.now()}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
 
         if (directResponse.ok) {
           const directData = await directResponse.json();
-          console.log('DIRECT FETCH RESPONSE:', JSON.stringify(directData, null, 2));
+          console.log(
+            'DIRECT FETCH RESPONSE:',
+            JSON.stringify(directData, null, 2)
+          );
 
           // Ensure consistent data format
           const formattedData = {
             cluster_count: directData.data?.cluster_count || 0,
             node_count: directData.data?.node_count || 0,
             cpu_usage: directData.data?.cpu_usage || 0,
-            clusters: directData.data?.clusters || []
+            clusters: directData.data?.clusters || [],
           };
 
-          console.log('FORMATTED CLUSTER STATUS (DIRECT):', JSON.stringify(formattedData, null, 2));
+          console.log(
+            'FORMATTED CLUSTER STATUS (DIRECT):',
+            JSON.stringify(formattedData, null, 2)
+          );
 
           // ALWAYS return real data, even if clusters array is empty
           // This ensures we don't fall back to mock data when the backend is working
-          console.log('✅ Returning REAL cluster data with', formattedData.clusters.length, 'clusters');
+          console.log(
+            '✅ Returning REAL cluster data with',
+            formattedData.clusters.length,
+            'clusters'
+          );
           return formattedData;
         } else {
-          console.log('❌ Direct fetch failed with status:', directResponse.status);
+          console.log(
+            '❌ Direct fetch failed with status:',
+            directResponse.status
+          );
           // Try to read the error response
           try {
             const errorText = await directResponse.text();
@@ -851,7 +1013,10 @@ export const clusterApi = {
           }
         }
       } catch (directError) {
-        console.error('❌ Error with direct fetch:', directError instanceof Error ? directError.message : 'Unknown error');
+        console.error(
+          '❌ Error with direct fetch:',
+          directError instanceof Error ? directError.message : 'Unknown error'
+        );
       }
 
       // Fallback to axios approach
@@ -859,38 +1024,65 @@ export const clusterApi = {
         console.log('Trying axios approach as fallback');
         const response = await api.get('/api/cluster/status', {
           params: {
-            _: Date.now() // Add cache busting parameter
-          }
+            _: Date.now(), // Add cache busting parameter
+          },
         });
 
         // Debug: Log the raw response data
-        console.log('RAW API RESPONSE (AXIOS):', JSON.stringify(response.data, null, 2));
+        console.log(
+          'RAW API RESPONSE (AXIOS):',
+          JSON.stringify(response.data, null, 2)
+        );
 
         if (response.data) {
           console.log('✅ Successfully fetched cluster status from API');
           // Ensure consistent data format
           const formattedData = {
-            cluster_count: response.data.data?.cluster_count || response.data.cluster_count || 0,
-            node_count: response.data.data?.node_count || response.data.node_count || 0,
-            cpu_usage: response.data.data?.cpu_usage || response.data.cpu_usage || 0,
-            clusters: response.data.data?.clusters || response.data.clusters || []
+            cluster_count:
+              response.data.data?.cluster_count ||
+              response.data.cluster_count ||
+              0,
+            node_count:
+              response.data.data?.node_count || response.data.node_count || 0,
+            cpu_usage:
+              response.data.data?.cpu_usage || response.data.cpu_usage || 0,
+            clusters:
+              response.data.data?.clusters || response.data.clusters || [],
           };
-          console.log('FORMATTED CLUSTER STATUS (AXIOS):', JSON.stringify(formattedData, null, 2));
+          console.log(
+            'FORMATTED CLUSTER STATUS (AXIOS):',
+            JSON.stringify(formattedData, null, 2)
+          );
 
           // ALWAYS return real data from the backend
-          console.log('✅ Returning REAL cluster data with', formattedData.clusters.length, 'clusters');
+          console.log(
+            '✅ Returning REAL cluster data with',
+            formattedData.clusters.length,
+            'clusters'
+          );
           return formattedData;
         }
       } catch (apiError) {
-        console.error('❌ Error fetching cluster status from API:', apiError instanceof Error ? apiError.message : 'Unknown error');
-        console.error('Stack trace:', apiError instanceof Error ? apiError.stack : 'No stack trace available');
+        console.error(
+          '❌ Error fetching cluster status from API:',
+          apiError instanceof Error ? apiError.message : 'Unknown error'
+        );
+        console.error(
+          'Stack trace:',
+          apiError instanceof Error
+            ? apiError.stack
+            : 'No stack trace available'
+        );
       }
 
       // Only fall back to mock data if all API calls fail
       console.log('⚠️ All API calls failed, falling back to mock data');
       return mockClusterStatus;
     } catch (error: unknown) {
-      console.error('Error in getClusterStatus:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Error in getClusterStatus:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       // Return mock data on error for better UX
       console.log('Returning mock data due to error');
       return mockClusterStatus;
@@ -903,7 +1095,9 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning empty clusters (no mock data)');
+        console.log(
+          'Backend server is not available, returning empty clusters (no mock data)'
+        );
         return [];
       }
 
@@ -916,7 +1110,10 @@ export const clusterApi = {
 
       throw new Error('Invalid data received from clusters list API');
     } catch (error: unknown) {
-      console.error('Error listing clusters:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Error listing clusters:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       // Return empty array
       return [];
     }
@@ -928,7 +1125,9 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning empty array (no mock data)');
+        console.log(
+          'Backend server is not available, returning empty array (no mock data)'
+        );
         return [];
       }
 
@@ -959,7 +1158,10 @@ export const clusterApi = {
         throw new Error('API did not return a valid array of applications');
       }
     } catch (error: unknown) {
-      console.error('Error in getApplications:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Error in getApplications:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       // Return empty array if there's an error
       return [];
     }
@@ -971,15 +1173,14 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock cluster config');
+        console.log(
+          'Backend server is not available, returning mock cluster config'
+        );
         return {
           kind: 'Cluster',
           apiVersion: 'kind.x-k8s.io/v1alpha4',
           name: clusterName,
-          nodes: [
-            { role: 'control-plane' },
-            { role: 'worker' }
-          ]
+          nodes: [{ role: 'control-plane' }, { role: 'worker' }],
         };
       }
 
@@ -987,25 +1188,35 @@ export const clusterApi = {
 
       // Try direct fetch first for more reliable results
       try {
-        const directResponse = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/config`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
+        const directResponse = await fetch(
+          `${API_BASE_URL}/api/cluster/${clusterName}/config`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
 
         if (directResponse.ok) {
           const directData = await directResponse.json();
-          console.log('DIRECT CONFIG RESPONSE:', JSON.stringify(directData, null, 2));
+          console.log(
+            'DIRECT CONFIG RESPONSE:',
+            JSON.stringify(directData, null, 2)
+          );
 
           if (directData.data) {
             console.log('✅ Successfully fetched cluster config directly');
             return directData.data;
           }
         } else {
-          console.log(`❌ Direct config fetch failed with status: ${directResponse.status}`);
+          console.log(
+            `❌ Direct config fetch failed with status: ${directResponse.status}`
+          );
         }
       } catch (directError) {
-        console.error('❌ Error with direct config fetch:',
-          directError instanceof Error ? directError.message : 'Unknown error');
+        console.error(
+          '❌ Error with direct config fetch:',
+          directError instanceof Error ? directError.message : 'Unknown error'
+        );
       }
 
       // Fallback to axios
@@ -1019,20 +1230,22 @@ export const clusterApi = {
         }
         return response.data;
       } else {
-        throw new Error(`Failed to get cluster config: ${response.data?.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to get cluster config: ${response.data?.message || 'Unknown error'}`
+        );
       }
     } catch (error: unknown) {
-      console.error(`Error getting cluster config for ${clusterName}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        `Error getting cluster config for ${clusterName}:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       // Return basic cluster config
       console.log('⚠️ Error fetching config, returning mock config');
       return {
         kind: 'Cluster',
         apiVersion: 'kind.x-k8s.io/v1alpha4',
         name: clusterName,
-        nodes: [
-          { role: 'control-plane' },
-          { role: 'worker' }
-        ]
+        nodes: [{ role: 'control-plane' }, { role: 'worker' }],
       };
     }
   },
@@ -1046,7 +1259,9 @@ export const clusterApi = {
     config: any = {}
   ): Promise<any> {
     try {
-      console.log(`🚀 Creating cluster "${clusterName}" with ${workerNodes} worker nodes and ${controlPlaneNodes} control plane nodes`);
+      console.log(
+        `🚀 Creating cluster "${clusterName}" with ${workerNodes} worker nodes and ${controlPlaneNodes} control plane nodes`
+      );
       console.log('Advanced config:', JSON.stringify(config, null, 2));
 
       // Check if server is online
@@ -1061,8 +1276,8 @@ export const clusterApi = {
             name: clusterName,
             status: 'Running',
             nodes: workerNodes + controlPlaneNodes,
-            created: new Date().toISOString()
-          }
+            created: new Date().toISOString(),
+          },
         };
       }
 
@@ -1070,7 +1285,9 @@ export const clusterApi = {
       console.log(`Checking if cluster "${clusterName}" already exists...`);
       const clusterExists = await this.checkClusterExists(clusterName);
       if (clusterExists) {
-        console.log(`Cluster "${clusterName}" already exists, returning success`);
+        console.log(
+          `Cluster "${clusterName}" already exists, returning success`
+        );
         return {
           success: true,
           status: 'completed',
@@ -1079,8 +1296,8 @@ export const clusterApi = {
             name: clusterName,
             status: 'Running',
             nodes: workerNodes + controlPlaneNodes,
-            created: new Date().toISOString()
-          }
+            created: new Date().toISOString(),
+          },
         };
       }
 
@@ -1089,14 +1306,14 @@ export const clusterApi = {
         name: clusterName,
         environment,
         worker_nodes: workerNodes,
-        apply_resource_limits: true
+        apply_resource_limits: true,
       };
 
       // Add worker_config if provided
       if (config && config.worker_config) {
         payload.worker_config = {
           cpu: config.worker_config.cpu,
-          memory: config.worker_config.memory
+          memory: config.worker_config.memory,
         };
       }
 
@@ -1104,7 +1321,7 @@ export const clusterApi = {
       if (config && config.control_plane_config) {
         payload.control_plane_config = {
           cpu: config.control_plane_config.cpu,
-          memory: config.control_plane_config.memory
+          memory: config.control_plane_config.memory,
         };
       }
 
@@ -1113,27 +1330,38 @@ export const clusterApi = {
         payload.apply_resource_limits = config.apply_resource_limits;
       }
 
-      console.log('📤 Sending cluster creation request with payload:', JSON.stringify(payload, null, 2));
+      console.log(
+        '📤 Sending cluster creation request with payload:',
+        JSON.stringify(payload, null, 2)
+      );
 
       // Try with fetch first for more reliable results
       let taskId: string | null = null;
       let responseData: any = null;
 
       try {
-        console.log(`📡 Making direct fetch POST to ${API_BASE_URL}/api/cluster/create`);
+        console.log(
+          `📡 Making direct fetch POST to ${API_BASE_URL}/api/cluster/create`
+        );
 
-        const directResponse = await fetch(`${API_BASE_URL}/api/cluster/create`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
+        const directResponse = await fetch(
+          `${API_BASE_URL}/api/cluster/create`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
         if (directResponse.ok) {
           responseData = await directResponse.json();
-          console.log('✅ CREATE RESPONSE (FETCH):', JSON.stringify(responseData, null, 2));
+          console.log(
+            '✅ CREATE RESPONSE (FETCH):',
+            JSON.stringify(responseData, null, 2)
+          );
 
           // Try different possible locations for the task_id in the response
           if (responseData && responseData.data && responseData.data.task_id) {
@@ -1142,33 +1370,51 @@ export const clusterApi = {
             taskId = responseData.task_id;
           }
         } else {
-          console.log(`❌ Direct POST failed with status: ${directResponse.status}`);
+          console.log(
+            `❌ Direct POST failed with status: ${directResponse.status}`
+          );
           const errorText = await directResponse.text();
           console.error('Error response:', errorText);
         }
       } catch (directError) {
-        console.error('❌ Error with direct fetch POST:',
-          directError instanceof Error ? directError.message : 'Unknown error');
+        console.error(
+          '❌ Error with direct fetch POST:',
+          directError instanceof Error ? directError.message : 'Unknown error'
+        );
       }
 
       // Fallback to axios if fetch fails or doesn't return a task ID
       if (!taskId) {
         try {
-          console.log('📡 Trying axios POST as fallback (using cluster API with longer timeout)');
-          const response = await clusterApi_axios.post('/api/cluster/create', payload);
+          console.log(
+            '📡 Trying axios POST as fallback (using cluster API with longer timeout)'
+          );
+          const response = await clusterApi_axios.post(
+            '/api/cluster/create',
+            payload
+          );
 
           if (response.status >= 200 && response.status < 300) {
-            console.log('✅ Cluster creation initiated successfully (AXIOS):', response.data);
+            console.log(
+              '✅ Cluster creation initiated successfully (AXIOS):',
+              response.data
+            );
             responseData = response.data;
 
             // Try different possible locations for the task_id in the response
-            if (response.data && response.data.data && response.data.data.task_id) {
+            if (
+              response.data &&
+              response.data.data &&
+              response.data.data.task_id
+            ) {
               taskId = response.data.data.task_id;
             } else if (response.data && response.data.task_id) {
               taskId = response.data.task_id;
             }
           } else {
-            throw new Error(`Failed to create cluster: ${response.data?.message || 'Unknown error'}`);
+            throw new Error(
+              `Failed to create cluster: ${response.data?.message || 'Unknown error'}`
+            );
           }
         } catch (axiosError: any) {
           console.error('❌ Error with axios POST:', axiosError);
@@ -1178,7 +1424,9 @@ export const clusterApi = {
           const existsAfterError = await this.checkClusterExists(clusterName);
 
           if (existsAfterError) {
-            console.log(`Cluster "${clusterName}" exists despite API error, returning success`);
+            console.log(
+              `Cluster "${clusterName}" exists despite API error, returning success`
+            );
             return {
               success: true,
               status: 'completed',
@@ -1187,8 +1435,8 @@ export const clusterApi = {
                 name: clusterName,
                 status: 'Running',
                 nodes: workerNodes + controlPlaneNodes,
-                created: new Date().toISOString()
-              }
+                created: new Date().toISOString(),
+              },
             };
           }
 
@@ -1206,12 +1454,19 @@ export const clusterApi = {
       }
 
       // If we didn't get a task ID but the request was successful, check if the cluster exists
-      if (responseData && (responseData.status === 'success' || responseData.success)) {
-        console.log('Request was successful but no task ID was returned, checking if cluster exists...');
+      if (
+        responseData &&
+        (responseData.status === 'success' || responseData.success)
+      ) {
+        console.log(
+          'Request was successful but no task ID was returned, checking if cluster exists...'
+        );
         const existsAfterRequest = await this.checkClusterExists(clusterName);
 
         if (existsAfterRequest) {
-          console.log(`Cluster "${clusterName}" exists after request, returning success`);
+          console.log(
+            `Cluster "${clusterName}" exists after request, returning success`
+          );
           return {
             success: true,
             status: 'completed',
@@ -1220,8 +1475,8 @@ export const clusterApi = {
               name: clusterName,
               status: 'Running',
               nodes: workerNodes + controlPlaneNodes,
-              created: new Date().toISOString()
-            }
+              created: new Date().toISOString(),
+            },
           };
         }
       }
@@ -1231,18 +1486,24 @@ export const clusterApi = {
       return {
         ...responseData,
         success: true,
-        message: responseData?.message || `Cluster "${clusterName}" creation initiated`
+        message:
+          responseData?.message ||
+          `Cluster "${clusterName}" creation initiated`,
       };
     } catch (error: any) {
       console.error('❌ Error in createCluster:', error);
 
       // One final check to see if the cluster exists despite the error
       try {
-        console.log('Final check: seeing if cluster exists despite all errors...');
+        console.log(
+          'Final check: seeing if cluster exists despite all errors...'
+        );
         const clusterExists = await this.checkClusterExists(clusterName);
 
         if (clusterExists) {
-          console.log(`Cluster "${clusterName}" exists despite all errors, returning success`);
+          console.log(
+            `Cluster "${clusterName}" exists despite all errors, returning success`
+          );
           return {
             success: true,
             status: 'completed',
@@ -1251,12 +1512,15 @@ export const clusterApi = {
               name: clusterName,
               status: 'Running',
               nodes: workerNodes + controlPlaneNodes,
-              created: new Date().toISOString()
-            }
+              created: new Date().toISOString(),
+            },
           };
         }
       } catch (finalCheckError) {
-        console.error('Error in final cluster existence check:', finalCheckError);
+        console.error(
+          'Error in final cluster existence check:',
+          finalCheckError
+        );
       }
 
       // Format the error message
@@ -1267,11 +1531,15 @@ export const clusterApi = {
         // that falls out of the range of 2xx
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
-        errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+        errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          errorMessage;
       } else if (error.request) {
         // The request was made but no response was received
         console.error('No response received:', error.request);
-        errorMessage = 'No response from server. Please check if the backend is running.';
+        errorMessage =
+          'No response from server. Please check if the backend is running.';
       } else {
         // Something happened in setting up the request that triggered an Error
         console.error('Error setting up the request:', error.message);
@@ -1282,7 +1550,7 @@ export const clusterApi = {
         success: false,
         status: 'failed',
         message: errorMessage,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   },
@@ -1290,23 +1558,31 @@ export const clusterApi = {
   // Check if a cluster exists by name using the robust cluster checker
   async checkClusterExists(clusterName: string): Promise<boolean> {
     try {
-      console.log(`Checking if cluster ${clusterName} exists using robust checker...`);
+      console.log(
+        `Checking if cluster ${clusterName} exists using robust checker...`
+      );
 
       // First try the robust cluster checker which has multiple fallback methods
       const robustExists = await robustCheckClusterExists(clusterName);
       if (robustExists) {
-        console.log(`✅ Cluster ${clusterName} exists (confirmed by robust checker)`);
+        console.log(
+          `✅ Cluster ${clusterName} exists (confirmed by robust checker)`
+        );
         return true;
       }
 
       // If robust checker fails, try our own simple check as a final fallback
-      console.log(`Robust checker didn't find cluster, trying simple status check...`);
+      console.log(
+        `Robust checker didn't find cluster, trying simple status check...`
+      );
 
       // Use AbortController to prevent hanging requests
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         try {
-          controller.abort(new DOMException('Timeout exceeded', 'TimeoutError'));
+          controller.abort(
+            new DOMException('Timeout exceeded', 'TimeoutError')
+          );
         } catch (e) {
           console.warn('Error aborting controller:', e);
         }
@@ -1318,9 +1594,9 @@ export const clusterApi = {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
+            Accept: 'application/json',
+            'Cache-Control': 'no-cache',
+          },
         });
 
         clearTimeout(timeoutId);
@@ -1335,9 +1611,13 @@ export const clusterApi = {
 
         // Check if our cluster is in the list
         const clusters = data.data?.clusters || [];
-        const clusterExists = clusters.some((cluster: any) => cluster.name === clusterName);
+        const clusterExists = clusters.some(
+          (cluster: any) => cluster.name === clusterName
+        );
 
-        console.log(`Cluster ${clusterName} exists (simple check): ${clusterExists}`);
+        console.log(
+          `Cluster ${clusterName} exists (simple check): ${clusterExists}`
+        );
         return clusterExists;
       } catch (fetchError) {
         clearTimeout(timeoutId);
@@ -1366,7 +1646,9 @@ export const clusterApi = {
       const onComplete = onCompleteOrMaxAttempts as (status: any) => void;
       const onError = onErrorOrClusterName as (error: any) => void;
 
-      console.log(`🔄 Starting callback-based task polling for task ID: ${taskId}`);
+      console.log(
+        `🔄 Starting callback-based task polling for task ID: ${taskId}`
+      );
 
       const startTime = Date.now();
       let attempts = 0;
@@ -1377,31 +1659,43 @@ export const clusterApi = {
 
         // Check for global timeout
         if (Date.now() - startTime > timeoutMs) {
-          console.warn(`Global timeout of ${timeoutMs}ms exceeded for task ${taskId}`);
+          console.warn(
+            `Global timeout of ${timeoutMs}ms exceeded for task ${taskId}`
+          );
 
           // If we have a cluster name, check if it exists despite the timeout
           if (clusterName) {
-            console.log('Global timeout reached, checking if cluster exists anyway...');
+            console.log(
+              'Global timeout reached, checking if cluster exists anyway...'
+            );
             try {
               const clusterExists = await robustCheckClusterExists(clusterName);
 
               if (clusterExists) {
-                console.log('Cluster exists despite global timeout, marking as success');
+                console.log(
+                  'Cluster exists despite global timeout, marking as success'
+                );
                 const successStatus = {
                   status: 'completed',
                   completed: true,
                   success: true,
-                  message: 'Cluster created successfully (verified by direct check after timeout)'
+                  message:
+                    'Cluster created successfully (verified by direct check after timeout)',
                 };
                 onComplete(successStatus);
                 return;
               }
             } catch (checkError) {
-              console.warn('Error checking cluster existence after timeout:', checkError);
+              console.warn(
+                'Error checking cluster existence after timeout:',
+                checkError
+              );
             }
           }
 
-          const error = new Error(`Task polling timed out after ${timeoutMs}ms`);
+          const error = new Error(
+            `Task polling timed out after ${timeoutMs}ms`
+          );
           error.name = 'TaskPollingTimeout';
           (error as any).isTaskTimeout = true;
           onError(error);
@@ -1409,12 +1703,16 @@ export const clusterApi = {
         }
 
         try {
-          console.log(`📊 Polling task status (attempt ${attempts}/${maxAttempts})...`);
+          console.log(
+            `📊 Polling task status (attempt ${attempts}/${maxAttempts})...`
+          );
 
           // Use AbortController for timeout
           const controller = new AbortController();
           const timeoutId = setTimeout(() => {
-            controller.abort(new DOMException('Request timeout', 'TimeoutError'));
+            controller.abort(
+              new DOMException('Request timeout', 'TimeoutError')
+            );
           }, 20000); // 20 seconds for task status polling (reduced from 30s)
 
           const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
@@ -1422,9 +1720,9 @@ export const clusterApi = {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache'
-            }
+              Accept: 'application/json',
+              'Cache-Control': 'no-cache',
+            },
           });
 
           clearTimeout(timeoutId);
@@ -1452,21 +1750,27 @@ export const clusterApi = {
           }
 
           // Handle progress from multiple possible sources
-          const progress = taskData.progress || taskData.percent_complete || taskData.completion || 0;
+          const progress =
+            taskData.progress ||
+            taskData.percent_complete ||
+            taskData.completion ||
+            0;
           const message = taskData.message || taskData.result?.message || '';
 
           // Check for completion indicators in various formats
-          const isCompleted = taskData.completed === true ||
-                             taskData.is_completed === true ||
-                             taskData.finished === true ||
-                             taskData.done === true ||
-                             (taskData.result && taskData.result.completed === true);
+          const isCompleted =
+            taskData.completed === true ||
+            taskData.is_completed === true ||
+            taskData.finished === true ||
+            taskData.done === true ||
+            (taskData.result && taskData.result.completed === true);
 
-          const isSuccessful = taskData.success === true ||
-                              taskData.successful === true ||
-                              (taskData.result && taskData.result.success === true) ||
-                              status === 'success' ||
-                              status === 'successful';
+          const isSuccessful =
+            taskData.success === true ||
+            taskData.successful === true ||
+            (taskData.result && taskData.result.success === true) ||
+            status === 'success' ||
+            status === 'successful';
 
           // Create normalized status object
           const normalizedStatus = {
@@ -1474,8 +1778,12 @@ export const clusterApi = {
             progress,
             message,
             success: isSuccessful,
-            completed: isCompleted || ['completed', 'succeeded', 'success', 'successful'].includes(status),
-            ...taskData
+            completed:
+              isCompleted ||
+              ['completed', 'succeeded', 'success', 'successful'].includes(
+                status
+              ),
+            ...taskData,
           };
 
           // Call onUpdate callback
@@ -1489,20 +1797,29 @@ export const clusterApi = {
               normalizedStatus,
               taskData,
               isSuccessful,
-              isCompleted
+              isCompleted,
             });
 
             // Special handling for "failed" tasks - check if cluster actually exists
-            if (status === 'failed' && taskData.details && taskData.details.cluster_name) {
+            if (
+              status === 'failed' &&
+              taskData.details &&
+              taskData.details.cluster_name
+            ) {
               const clusterName = taskData.details.cluster_name;
-              console.log(`🔍 Task marked as failed, but checking if cluster '${clusterName}' actually exists...`);
+              console.log(
+                `🔍 Task marked as failed, but checking if cluster '${clusterName}' actually exists...`
+              );
 
               try {
                 // Check if cluster exists using our robust cluster checker
-                const clusterExists = await robustCheckClusterExists(clusterName);
+                const clusterExists =
+                  await robustCheckClusterExists(clusterName);
 
                 if (clusterExists) {
-                  console.log(`✅ Cluster '${clusterName}' exists despite task failure - treating as success`);
+                  console.log(
+                    `✅ Cluster '${clusterName}' exists despite task failure - treating as success`
+                  );
 
                   // Override the failed status with success
                   const successStatus = {
@@ -1510,13 +1827,15 @@ export const clusterApi = {
                     status: 'completed',
                     success: true,
                     completed: true,
-                    message: `Cluster '${clusterName}' created successfully (verified by existence check)`
+                    message: `Cluster '${clusterName}' created successfully (verified by existence check)`,
                   };
 
                   onComplete(successStatus);
                   return;
                 } else {
-                  console.log(`❌ Cluster '${clusterName}' does not exist - task genuinely failed`);
+                  console.log(
+                    `❌ Cluster '${clusterName}' does not exist - task genuinely failed`
+                  );
                 }
               } catch (error) {
                 console.warn(`⚠️ Error checking cluster existence:`, error);
@@ -1534,12 +1853,14 @@ export const clusterApi = {
           const nextPollDelay = intervalMs + jitter;
 
           setTimeout(pollLoop, nextPollDelay);
-
         } catch (error: any) {
           console.error(`❌ Error polling task status:`, error);
 
           // Mark timeout errors properly for better error handling
-          if (error.name === 'TimeoutError' || error.message?.includes('timeout')) {
+          if (
+            error.name === 'TimeoutError' ||
+            error.message?.includes('timeout')
+          ) {
             error.name = 'TaskPollingTimeout';
             (error as any).isTaskTimeout = true;
           }
@@ -1547,28 +1868,39 @@ export const clusterApi = {
           if (attempts >= maxAttempts) {
             // Final check for cluster existence before giving up
             if (clusterName) {
-              console.log('Final check: seeing if cluster exists despite all errors...');
+              console.log(
+                'Final check: seeing if cluster exists despite all errors...'
+              );
               try {
-                const clusterExists = await robustCheckClusterExists(clusterName);
+                const clusterExists =
+                  await robustCheckClusterExists(clusterName);
 
                 if (clusterExists) {
-                  console.log('Cluster exists despite all errors, marking as success');
+                  console.log(
+                    'Cluster exists despite all errors, marking as success'
+                  );
                   const successStatus = {
                     status: 'completed',
                     completed: true,
                     success: true,
-                    message: 'Cluster created successfully despite all errors'
+                    message: 'Cluster created successfully despite all errors',
                   };
                   onComplete(successStatus);
                   return;
                 }
               } catch (checkError) {
-                console.warn('Error checking cluster existence after all errors:', checkError);
+                console.warn(
+                  'Error checking cluster existence after all errors:',
+                  checkError
+                );
               }
             }
 
             // Mark timeout errors properly
-            if (error.name === 'TimeoutError' || error.message?.includes('timeout')) {
+            if (
+              error.name === 'TimeoutError' ||
+              error.message?.includes('timeout')
+            ) {
               error.name = 'TaskPollingTimeout';
               (error as any).isTaskTimeout = true;
             }
@@ -1581,7 +1913,10 @@ export const clusterApi = {
 
           if (attempts > 5) {
             // After 5 attempts, start increasing the delay
-            backoffDelay = Math.min(intervalMs * Math.pow(1.3, Math.floor((attempts - 5) / 2)), 12000);
+            backoffDelay = Math.min(
+              intervalMs * Math.pow(1.3, Math.floor((attempts - 5) / 2)),
+              12000
+            );
           }
 
           // Add jitter to avoid thundering herd
@@ -1598,8 +1933,8 @@ export const clusterApi = {
     }
 
     // Legacy interface (for backward compatibility)
-    const interval = onUpdateOrInterval as number || 5000;
-    const maxAttempts = onCompleteOrMaxAttempts as number || 36;
+    const interval = (onUpdateOrInterval as number) || 5000;
+    const maxAttempts = (onCompleteOrMaxAttempts as number) || 36;
     const legacyClusterName = onErrorOrClusterName as string;
     let attempts = 0;
     let lastProgress = 0;
@@ -1610,35 +1945,49 @@ export const clusterApi = {
     const startTime = Date.now();
     const GLOBAL_TIMEOUT_MS = 480000; // 8 minutes total timeout for cluster operations (reduced from 10 minutes)
 
-    console.log(`Starting task polling for task ${taskId} with ${maxAttempts} max attempts, interval ${interval}ms, and global timeout ${GLOBAL_TIMEOUT_MS}ms`);
+    console.log(
+      `Starting task polling for task ${taskId} with ${maxAttempts} max attempts, interval ${interval}ms, and global timeout ${GLOBAL_TIMEOUT_MS}ms`
+    );
 
     const checkStatus = async (): Promise<any> => {
       attempts++;
 
       // Check if we've exceeded the global timeout
       if (Date.now() - startTime > GLOBAL_TIMEOUT_MS) {
-        console.warn(`Global timeout of ${GLOBAL_TIMEOUT_MS}ms exceeded for task ${taskId}`);
+        console.warn(
+          `Global timeout of ${GLOBAL_TIMEOUT_MS}ms exceeded for task ${taskId}`
+        );
 
         // If we have a cluster name, check if it exists despite the timeout
         if (legacyClusterName) {
-          console.log('Global timeout reached, checking if cluster exists anyway...');
-          const clusterExists = await robustCheckClusterExists(legacyClusterName);
+          console.log(
+            'Global timeout reached, checking if cluster exists anyway...'
+          );
+          const clusterExists =
+            await robustCheckClusterExists(legacyClusterName);
 
           if (clusterExists) {
-            console.log('Cluster exists despite global timeout, marking as success');
+            console.log(
+              'Cluster exists despite global timeout, marking as success'
+            );
             return {
               status: 'completed',
               completed: true,
               success: true,
-              message: 'Cluster created successfully (verified by direct check after timeout)'
+              message:
+                'Cluster created successfully (verified by direct check after timeout)',
             };
           }
         }
 
-        throw new Error(`Global timeout of ${GLOBAL_TIMEOUT_MS}ms exceeded for task ${taskId}`);
+        throw new Error(
+          `Global timeout of ${GLOBAL_TIMEOUT_MS}ms exceeded for task ${taskId}`
+        );
       }
 
-      console.log(`Checking task status (attempt ${attempts}/${maxAttempts})...`);
+      console.log(
+        `Checking task status (attempt ${attempts}/${maxAttempts})...`
+      );
 
       try {
         // First try with fetch API for better error handling
@@ -1648,28 +1997,35 @@ export const clusterApi = {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => {
             try {
-              controller.abort(new DOMException('Timeout exceeded', 'TimeoutError'));
+              controller.abort(
+                new DOMException('Timeout exceeded', 'TimeoutError')
+              );
             } catch (e) {
               console.warn('Error aborting controller:', e);
             }
           }, 10000); // 10s timeout for task status polling (reduced from 20s)
 
-          const fetchResponse = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
-            signal: controller.signal,
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
+          const fetchResponse = await fetch(
+            `${API_BASE_URL}/api/tasks/${taskId}`,
+            {
+              signal: controller.signal,
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'Cache-Control': 'no-cache',
+                Pragma: 'no-cache',
+              },
             }
-          });
+          );
 
           clearTimeout(timeoutId);
 
           if (!fetchResponse.ok) {
             const errorData = await fetchResponse.json().catch(() => ({}));
-            throw new Error(errorData.message || `HTTP error! status: ${fetchResponse.status}`);
+            throw new Error(
+              errorData.message || `HTTP error! status: ${fetchResponse.status}`
+            );
           }
 
           responseData = await fetchResponse.json();
@@ -1677,33 +2033,43 @@ export const clusterApi = {
           console.warn('Fetch API failed, falling back to axios:', fetchError);
 
           // Handle timeout errors specifically
-          if (fetchError.name === 'TimeoutError' || fetchError.message?.includes('timeout')) {
-            console.warn(`Task polling timeout for ${taskId}, attempting axios fallback...`);
+          if (
+            fetchError.name === 'TimeoutError' ||
+            fetchError.message?.includes('timeout')
+          ) {
+            console.warn(
+              `Task polling timeout for ${taskId}, attempting axios fallback...`
+            );
           }
 
           try {
             // Fall back to axios if fetch fails
             const axiosResponse = await api.get(`/api/tasks/${taskId}`, {
               params: { _: Date.now() }, // Add cache busting
-              timeout: 15000 // Shorter timeout for axios fallback
+              timeout: 15000, // Shorter timeout for axios fallback
             });
             responseData = axiosResponse.data;
           } catch (axiosError: any) {
             // If both fetch and axios fail, handle gracefully
-            if (axiosError.name === 'TaskPollingTimeout' ||
-                axiosError.message === 'TASK_POLLING_TIMEOUT' ||
-                axiosError.isTaskTimeout ||
-                axiosError.message?.includes('Task polling timeout')) {
-              console.warn(`Both fetch and axios timed out for task ${taskId}, returning unknown status`);
+            if (
+              axiosError.name === 'TaskPollingTimeout' ||
+              axiosError.message === 'TASK_POLLING_TIMEOUT' ||
+              axiosError.isTaskTimeout ||
+              axiosError.message?.includes('Task polling timeout')
+            ) {
+              console.warn(
+                `Both fetch and axios timed out for task ${taskId}, returning unknown status`
+              );
               responseData = {
                 id: taskId,
                 status: 'unknown',
                 progress: lastProgress || 0,
-                message: 'Task status check timed out - task may still be running',
+                message:
+                  'Task status check timed out - task may still be running',
                 result: null,
                 error: null,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
               };
             } else {
               throw axiosError;
@@ -1729,40 +2095,66 @@ export const clusterApi = {
         }
 
         // Handle progress from multiple possible sources
-        const progress = taskData.progress || taskData.percent_complete || taskData.completion || 0;
+        const progress =
+          taskData.progress ||
+          taskData.percent_complete ||
+          taskData.completion ||
+          0;
 
         // Check for completion indicators in various formats
-        const isCompleted = taskData.completed === true ||
-                           taskData.is_completed === true ||
-                           taskData.finished === true ||
-                           taskData.done === true ||
-                           (taskData.result && taskData.result.completed === true);
+        const isCompleted =
+          taskData.completed === true ||
+          taskData.is_completed === true ||
+          taskData.finished === true ||
+          taskData.done === true ||
+          (taskData.result && taskData.result.completed === true);
 
-        const isSuccessful = taskData.success === true ||
-                            taskData.successful === true ||
-                            (taskData.result && taskData.result.success === true) ||
-                            status === 'success' ||
-                            status === 'successful';
+        const isSuccessful =
+          taskData.success === true ||
+          taskData.successful === true ||
+          (taskData.result && taskData.result.success === true) ||
+          status === 'success' ||
+          status === 'successful';
 
-        console.log(`Task ${taskId} status:`, status, 'progress:', progress, 'completed:', isCompleted, 'successful:', isSuccessful);
+        console.log(
+          `Task ${taskId} status:`,
+          status,
+          'progress:',
+          progress,
+          'completed:',
+          isCompleted,
+          'successful:',
+          isSuccessful
+        );
 
         // Check if progress is stuck
-        if (progress === lastProgress && ['running', 'pending', 'started', 'processing'].includes(status)) {
+        if (
+          progress === lastProgress &&
+          ['running', 'pending', 'started', 'processing'].includes(status)
+        ) {
           progressStuckCount++;
-          console.log(`Progress stuck at ${progress}% for ${progressStuckCount} checks`);
+          console.log(
+            `Progress stuck at ${progress}% for ${progressStuckCount} checks`
+          );
 
           // If progress is stuck for too long, check if the cluster exists
           if (progressStuckCount >= MAX_PROGRESS_STUCK && legacyClusterName) {
-            console.log(`Progress stuck at ${progress}% for too long, checking if cluster exists...`);
-            const clusterExists = await robustCheckClusterExists(legacyClusterName);
+            console.log(
+              `Progress stuck at ${progress}% for too long, checking if cluster exists...`
+            );
+            const clusterExists =
+              await robustCheckClusterExists(legacyClusterName);
 
             if (clusterExists) {
-              console.log('Cluster exists despite stuck progress, marking as success');
+              console.log(
+                'Cluster exists despite stuck progress, marking as success'
+              );
               return {
                 status: 'completed',
                 completed: true,
                 success: true,
-                message: 'Cluster created successfully (verified by direct check)'
+                message:
+                  'Cluster created successfully (verified by direct check)',
               };
             }
           }
@@ -1773,54 +2165,88 @@ export const clusterApi = {
         }
 
         // Check for completion using normalized fields
-        if (status === 'completed' || status === 'succeeded' || status === 'success' || status === 'successful' || isCompleted) {
+        if (
+          status === 'completed' ||
+          status === 'succeeded' ||
+          status === 'success' ||
+          status === 'successful' ||
+          isCompleted
+        ) {
           console.log('Task completed successfully:', taskData);
           return {
             ...taskData,
             status: 'completed',
             completed: true,
             success: isSuccessful || taskData.success !== false, // Use normalized success check
-            message: taskData.message || taskData.result?.message || 'Task completed successfully'
+            message:
+              taskData.message ||
+              taskData.result?.message ||
+              'Task completed successfully',
           };
         }
 
         // Check for failure using multiple indicators
-        if (status === 'failed' || status === 'error' || status === 'failure' || taskData.error || taskData.failed === true) {
+        if (
+          status === 'failed' ||
+          status === 'error' ||
+          status === 'failure' ||
+          taskData.error ||
+          taskData.failed === true
+        ) {
           // If we have a cluster name, check if the cluster exists despite the task failure
           if (legacyClusterName) {
-            console.log('Task reported failure, checking if cluster exists anyway...');
-            const clusterExists = await robustCheckClusterExists(legacyClusterName);
+            console.log(
+              'Task reported failure, checking if cluster exists anyway...'
+            );
+            const clusterExists =
+              await robustCheckClusterExists(legacyClusterName);
 
             if (clusterExists) {
-              console.log('Cluster exists despite task failure, marking as success');
+              console.log(
+                'Cluster exists despite task failure, marking as success'
+              );
               return {
                 ...taskData,
                 status: 'completed',
                 completed: true,
                 success: true,
-                message: 'Cluster created successfully despite task status reporting failure'
+                message:
+                  'Cluster created successfully despite task status reporting failure',
               };
             }
           }
 
-          throw new Error(`Task failed: ${taskData.message || taskData.error || 'Unknown error'}`);
+          throw new Error(
+            `Task failed: ${taskData.message || taskData.error || 'Unknown error'}`
+          );
         }
 
         // Handle in-progress states and unknown status
-        if (['running', 'pending', 'started', 'processing', 'unknown'].includes(status) || !status) {
+        if (
+          ['running', 'pending', 'started', 'processing', 'unknown'].includes(
+            status
+          ) ||
+          !status
+        ) {
           if (attempts >= maxAttempts) {
             // If we have a cluster name, check if the cluster exists despite the task timeout
             if (legacyClusterName) {
-              console.log('Task timed out, checking if cluster exists anyway...');
-              const clusterExists = await robustCheckClusterExists(legacyClusterName);
+              console.log(
+                'Task timed out, checking if cluster exists anyway...'
+              );
+              const clusterExists =
+                await robustCheckClusterExists(legacyClusterName);
 
               if (clusterExists) {
-                console.log('Cluster exists despite task timeout, marking as success');
+                console.log(
+                  'Cluster exists despite task timeout, marking as success'
+                );
                 return {
                   status: 'completed',
                   completed: true,
                   success: true,
-                  message: 'Cluster created successfully despite task status timeout'
+                  message:
+                    'Cluster created successfully despite task status timeout',
                 };
               }
             }
@@ -1834,14 +2260,19 @@ export const clusterApi = {
 
           if (attempts > 10) {
             // After 10 attempts, start increasing the delay
-            backoffDelay = Math.min(interval * Math.pow(1.3, Math.floor((attempts - 10) / 3)), 15000);
+            backoffDelay = Math.min(
+              interval * Math.pow(1.3, Math.floor((attempts - 10) / 3)),
+              15000
+            );
           }
 
           // Add some jitter to avoid thundering herd
           const jitter = Math.random() * 1000;
           const finalDelay = backoffDelay + jitter;
 
-          console.log(`Task in progress, polling again in ${Math.round(finalDelay)}ms... (attempt ${attempts}/${maxAttempts})`);
+          console.log(
+            `Task in progress, polling again in ${Math.round(finalDelay)}ms... (attempt ${attempts}/${maxAttempts})`
+          );
 
           await delay(finalDelay);
           return checkStatus();
@@ -1852,16 +2283,22 @@ export const clusterApi = {
         if (attempts >= maxAttempts) {
           // If we have a cluster name, check if the cluster exists despite the unknown status
           if (legacyClusterName) {
-            console.log('Task has unknown status, checking if cluster exists anyway...');
-            const clusterExists = await robustCheckClusterExists(legacyClusterName);
+            console.log(
+              'Task has unknown status, checking if cluster exists anyway...'
+            );
+            const clusterExists =
+              await robustCheckClusterExists(legacyClusterName);
 
             if (clusterExists) {
-              console.log('Cluster exists despite unknown task status, marking as success');
+              console.log(
+                'Cluster exists despite unknown task status, marking as success'
+              );
               return {
                 status: 'completed',
                 completed: true,
                 success: true,
-                message: 'Cluster created successfully despite unknown task status'
+                message:
+                  'Cluster created successfully despite unknown task status',
               };
             }
           }
@@ -1875,17 +2312,26 @@ export const clusterApi = {
         console.error('Error in checkStatus:', error);
 
         // After a few attempts, check if the cluster exists directly
-        if (legacyClusterName && (attempts % 3 === 0 || attempts >= maxAttempts - 1)) {
-          console.log('Task status polling error, checking if cluster exists directly...');
-          const clusterExists = await robustCheckClusterExists(legacyClusterName);
+        if (
+          legacyClusterName &&
+          (attempts % 3 === 0 || attempts >= maxAttempts - 1)
+        ) {
+          console.log(
+            'Task status polling error, checking if cluster exists directly...'
+          );
+          const clusterExists =
+            await robustCheckClusterExists(legacyClusterName);
 
           if (clusterExists) {
-            console.log('Cluster exists despite task status API errors, marking as success');
+            console.log(
+              'Cluster exists despite task status API errors, marking as success'
+            );
             return {
               status: 'completed',
               completed: true,
               success: true,
-              message: 'Cluster created successfully despite task status API errors'
+              message:
+                'Cluster created successfully despite task status API errors',
             };
           }
         }
@@ -1894,25 +2340,35 @@ export const clusterApi = {
         if (attempts >= maxAttempts || error.message?.includes('404')) {
           // One final check for cluster existence
           if (legacyClusterName) {
-            console.log('Final check: seeing if cluster exists despite all errors...');
-            const clusterExists = await robustCheckClusterExists(legacyClusterName);
+            console.log(
+              'Final check: seeing if cluster exists despite all errors...'
+            );
+            const clusterExists =
+              await robustCheckClusterExists(legacyClusterName);
 
             if (clusterExists) {
-              console.log('Cluster exists despite all errors, marking as success');
+              console.log(
+                'Cluster exists despite all errors, marking as success'
+              );
               return {
                 status: 'completed',
                 completed: true,
                 success: true,
-                message: 'Cluster created successfully despite all errors'
+                message: 'Cluster created successfully despite all errors',
               };
             }
           }
 
-          throw new Error(`Failed to get task status after ${attempts} attempts: ${error.message}`);
+          throw new Error(
+            `Failed to get task status after ${attempts} attempts: ${error.message}`
+          );
         }
 
         // Otherwise, wait and retry
-        const backoff = Math.min(interval * Math.pow(1.5, Math.floor(attempts/3)), 10000);
+        const backoff = Math.min(
+          interval * Math.pow(1.5, Math.floor(attempts / 3)),
+          10000
+        );
         console.log(`Error occurred, retrying in ${backoff}ms...`);
         await delay(backoff);
         return checkStatus();
@@ -1929,7 +2385,9 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning empty templates (no mock data)');
+        console.log(
+          'Backend server is not available, returning empty templates (no mock data)'
+        );
         return [];
       }
 
@@ -1938,10 +2396,15 @@ export const clusterApi = {
       if (response.status >= 200 && response.status < 300) {
         return response.data;
       } else {
-        throw new Error(`Failed to get app templates: ${response.data.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to get app templates: ${response.data.message || 'Unknown error'}`
+        );
       }
     } catch (error: unknown) {
-      console.error('Error getting app templates:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Error getting app templates:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       // Return empty array on error (no mock data)
       return [];
     }
@@ -1953,12 +2416,14 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock task status');
+        console.log(
+          'Backend server is not available, returning mock task status'
+        );
         return {
           status: 'completed',
           completed: true,
           success: true,
-          message: 'Task completed successfully (mock)'
+          message: 'Task completed successfully (mock)',
         };
       }
 
@@ -1976,13 +2441,18 @@ export const clusterApi = {
           success: taskData.success || false,
           message: taskData.message || '',
           progress: taskData.progress || 0,
-          ...taskData
+          ...taskData,
         };
       } else {
-        throw new Error(`Failed to get task status: ${response.data.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to get task status: ${response.data.message || 'Unknown error'}`
+        );
       }
     } catch (error: unknown) {
-      console.error(`Error getting task status for ${taskId}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        `Error getting task status for ${taskId}:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   },
@@ -1995,27 +2465,36 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock success response');
+        console.log(
+          'Backend server is not available, returning mock success response'
+        );
         return {
           success: true,
           message: `Cluster ${clusterName} deleted successfully (mock)`,
-          cluster_name: clusterName
+          cluster_name: clusterName,
         };
       }
 
       // Use the cluster API with longer timeout for delete operations
-      const response = await clusterApi_axios.delete(`/api/cluster/${clusterName}`);
+      const response = await clusterApi_axios.delete(
+        `/api/cluster/${clusterName}`
+      );
 
       if (response.status >= 200 && response.status < 300) {
-        console.log(`✅ Cluster ${clusterName} deleted successfully:`, response.data);
+        console.log(
+          `✅ Cluster ${clusterName} deleted successfully:`,
+          response.data
+        );
         return {
           success: true,
           message: `Cluster ${clusterName} deleted successfully`,
           cluster_name: clusterName,
-          ...response.data
+          ...response.data,
         };
       } else {
-        throw new Error(`Failed to delete cluster: ${response.data?.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to delete cluster: ${response.data?.message || 'Unknown error'}`
+        );
       }
     } catch (error: any) {
       console.error(`❌ Error deleting cluster ${clusterName}:`, error);
@@ -2026,10 +2505,14 @@ export const clusterApi = {
       if (error.response) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
-        errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+        errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          errorMessage;
       } else if (error.request) {
         console.error('No response received:', error.request);
-        errorMessage = 'No response from server. Please check if the backend is running.';
+        errorMessage =
+          'No response from server. Please check if the backend is running.';
       } else {
         console.error('Error setting up the request:', error.message);
         errorMessage = error.message || errorMessage;
@@ -2039,7 +2522,7 @@ export const clusterApi = {
         success: false,
         message: errorMessage,
         error: errorMessage,
-        cluster_name: clusterName
+        cluster_name: clusterName,
       };
     }
   },
@@ -2056,10 +2539,12 @@ export const clusterApi = {
       const online = await isServerOnline();
 
       if (!online) {
-        console.log('Backend server is not available, returning mock success response');
+        console.log(
+          'Backend server is not available, returning mock success response'
+        );
         return {
           success: true,
-          message: `Resource limits updated successfully for ${clusterName} (mock)`
+          message: `Resource limits updated successfully for ${clusterName} (mock)`,
         };
       }
 
@@ -2067,35 +2552,48 @@ export const clusterApi = {
         workerCpu,
         workerMemory,
         controlPlaneCpu,
-        controlPlaneMemory
+        controlPlaneMemory,
       });
 
       // Use the standardized endpoint
-      const response = await api.post(`/api/cluster/${clusterName}/set-resource-limits`, {
-        worker_config: {
-          cpu: workerCpu.toString(),
-          memory: workerMemory
-        },
-        control_plane_config: {
-          cpu: controlPlaneCpu.toString(),
-          memory: controlPlaneMemory
+      const response = await api.post(
+        `/api/cluster/${clusterName}/set-resource-limits`,
+        {
+          worker_config: {
+            cpu: workerCpu.toString(),
+            memory: workerMemory,
+          },
+          control_plane_config: {
+            cpu: controlPlaneCpu.toString(),
+            memory: controlPlaneMemory,
+          },
         }
-      });
+      );
 
       if (response.status >= 200 && response.status < 300) {
         console.log('Resource limits updated successfully:', response.data);
         return response.data;
       } else {
-        throw new Error(`Failed to update resource limits: ${response.data.message || 'Unknown error'}`);
+        throw new Error(
+          `Failed to update resource limits: ${response.data.message || 'Unknown error'}`
+        );
       }
     } catch (error: unknown) {
-      console.error(`Error setting resource limits for ${clusterName}:`, error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        `Error setting resource limits for ${clusterName}:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   },
 
   // Application management methods
-  manageApplication: async (taskId: string, action: string, clusterName: string, namespace: string = 'default') => {
+  manageApplication: async (
+    taskId: string,
+    action: string,
+    clusterName: string,
+    namespace: string = 'default'
+  ) => {
     try {
       console.log(`🔧 Managing application ${taskId} with action: ${action}`);
 
@@ -2107,10 +2605,14 @@ export const clusterApi = {
       const response = await api.post(`/api/apps/${taskId}/action`, {
         action,
         cluster_name: clusterName,
-        namespace
+        namespace,
       });
 
-      console.log('✅ Application management response:', response.status, response.data);
+      console.log(
+        '✅ Application management response:',
+        response.status,
+        response.data
+      );
       return response.data;
     } catch (error) {
       console.error('❌ Error managing application:', error);
@@ -2118,7 +2620,12 @@ export const clusterApi = {
     }
   },
 
-  scaleApplication: async (taskId: string, replicas: number, clusterName: string, namespace: string = 'default') => {
+  scaleApplication: async (
+    taskId: string,
+    replicas: number,
+    clusterName: string,
+    namespace: string = 'default'
+  ) => {
     try {
       console.log(`📏 Scaling application ${taskId} to ${replicas} replicas`);
 
@@ -2130,10 +2637,14 @@ export const clusterApi = {
       const response = await api.post(`/api/apps/${taskId}/scale`, {
         replicas,
         cluster_name: clusterName,
-        namespace
+        namespace,
       });
 
-      console.log('✅ Application scaling response:', response.status, response.data);
+      console.log(
+        '✅ Application scaling response:',
+        response.status,
+        response.data
+      );
       return response.data;
     } catch (error) {
       console.error('❌ Error scaling application:', error);
@@ -2141,7 +2652,11 @@ export const clusterApi = {
     }
   },
 
-  getApplicationDetails: async (taskId: string, clusterName: string, namespace: string = 'default') => {
+  getApplicationDetails: async (
+    taskId: string,
+    clusterName: string,
+    namespace: string = 'default'
+  ) => {
     try {
       console.log(`📋 Getting details for application ${taskId}`);
 
@@ -2153,19 +2668,23 @@ export const clusterApi = {
           data: {
             task: { id: taskId, status: 'running' },
             deployment: { name: 'mock-app', replicas: 1, ready_replicas: 1 },
-            pods: [{ name: 'mock-pod-1', phase: 'Running', ready: true }]
-          }
+            pods: [{ name: 'mock-pod-1', phase: 'Running', ready: true }],
+          },
         };
       }
 
       const response = await api.get(`/api/apps/${taskId}/details`, {
         params: {
           cluster_name: clusterName,
-          namespace
-        }
+          namespace,
+        },
       });
 
-      console.log('✅ Application details response:', response.status, response.data);
+      console.log(
+        '✅ Application details response:',
+        response.status,
+        response.data
+      );
       return response.data;
     } catch (error) {
       console.error('❌ Error getting application details:', error);
@@ -2173,7 +2692,12 @@ export const clusterApi = {
     }
   },
 
-  getApplicationLogs: async (taskId: string, clusterName: string, namespace: string = 'default', lines: number = 100) => {
+  getApplicationLogs: async (
+    taskId: string,
+    clusterName: string,
+    namespace: string = 'default',
+    lines: number = 100
+  ) => {
     try {
       console.log(`📜 Getting logs for application ${taskId}`);
 
@@ -2186,8 +2710,8 @@ export const clusterApi = {
             logs: 'Mock log entry 1\nMock log entry 2\nApplication is running...',
             app_name: 'mock-app',
             namespace,
-            cluster: clusterName
-          }
+            cluster: clusterName,
+          },
         };
       }
 
@@ -2195,11 +2719,15 @@ export const clusterApi = {
         params: {
           cluster_name: clusterName,
           namespace,
-          lines
-        }
+          lines,
+        },
       });
 
-      console.log('✅ Application logs response:', response.status, response.data);
+      console.log(
+        '✅ Application logs response:',
+        response.status,
+        response.data
+      );
       return response.data;
     } catch (error) {
       console.error('❌ Error getting application logs:', error);
@@ -2207,7 +2735,11 @@ export const clusterApi = {
     }
   },
 
-  getApplicationMetrics: async (taskId: string, clusterName: string, namespace: string = 'default') => {
+  getApplicationMetrics: async (
+    taskId: string,
+    clusterName: string,
+    namespace: string = 'default'
+  ) => {
     try {
       console.log(`📊 Getting metrics for application ${taskId}`);
 
@@ -2217,28 +2749,30 @@ export const clusterApi = {
         return {
           success: true,
           data: {
-            metrics: [
-              { pod_name: 'mock-pod-1', cpu: '10m', memory: '64Mi' }
-            ],
+            metrics: [{ pod_name: 'mock-pod-1', cpu: '10m', memory: '64Mi' }],
             resources: {
               requests: { cpu: '100m', memory: '128Mi' },
-              limits: { cpu: '200m', memory: '256Mi' }
+              limits: { cpu: '200m', memory: '256Mi' },
             },
             app_name: 'mock-app',
             namespace,
-            cluster: clusterName
-          }
+            cluster: clusterName,
+          },
         };
       }
 
       const response = await api.get(`/api/apps/${taskId}/metrics`, {
         params: {
           cluster_name: clusterName,
-          namespace
-        }
+          namespace,
+        },
       });
 
-      console.log('✅ Application metrics response:', response.status, response.data);
+      console.log(
+        '✅ Application metrics response:',
+        response.status,
+        response.data
+      );
       return response.data;
     } catch (error) {
       console.error('❌ Error getting application metrics:', error);
@@ -2251,7 +2785,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock cluster details');
+        console.log(
+          'Backend server is not available, returning mock cluster details'
+        );
         return {
           success: true,
           data: {
@@ -2260,12 +2796,14 @@ export const clusterApi = {
             version: { client_version: 'v1.28.0', server_version: 'v1.28.0' },
             cluster_info: 'Mock cluster info',
             created: new Date().toISOString(),
-            context: `kind-${clusterName}`
-          }
+            context: `kind-${clusterName}`,
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/details`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/details`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2280,7 +2818,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock node data');
+        console.log(
+          'Backend server is not available, returning mock node data'
+        );
         return {
           success: true,
           data: {
@@ -2293,7 +2833,7 @@ export const clusterApi = {
                 status: 'Ready',
                 ready: true,
                 age: '1h',
-                version: 'v1.28.0'
+                version: 'v1.28.0',
               },
               {
                 name: `${clusterName}-worker`,
@@ -2301,14 +2841,16 @@ export const clusterApi = {
                 status: 'Ready',
                 ready: true,
                 age: '1h',
-                version: 'v1.28.0'
-              }
-            ]
-          }
+                version: 'v1.28.0',
+              },
+            ],
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/nodes`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/nodes`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2323,7 +2865,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock health data');
+        console.log(
+          'Backend server is not available, returning mock health data'
+        );
         return {
           success: true,
           data: {
@@ -2332,20 +2876,22 @@ export const clusterApi = {
             components: [
               { name: 'scheduler', healthy: true, status: 'Healthy' },
               { name: 'controller-manager', healthy: true, status: 'Healthy' },
-              { name: 'etcd-0', healthy: true, status: 'Healthy' }
+              { name: 'etcd-0', healthy: true, status: 'Healthy' },
             ],
             system_pods: [],
             summary: {
               total_components: 3,
               healthy_components: 3,
               total_system_pods: 0,
-              healthy_system_pods: 0
-            }
-          }
+              healthy_system_pods: 0,
+            },
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/health`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/health`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2360,7 +2906,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock resource data');
+        console.log(
+          'Backend server is not available, returning mock resource data'
+        );
         return {
           success: true,
           data: {
@@ -2372,7 +2920,7 @@ export const clusterApi = {
                 running_pods: 0,
                 service_count: 1,
                 deployment_count: 0,
-                status: 'Active'
+                status: 'Active',
               },
               {
                 name: 'kube-system',
@@ -2380,26 +2928,31 @@ export const clusterApi = {
                 running_pods: 8,
                 service_count: 1,
                 deployment_count: 2,
-                status: 'Active'
-              }
+                status: 'Active',
+              },
             ],
             summary: {
               total_namespaces: 2,
               total_pods: 8,
               total_services: 2,
-              total_deployments: 2
-            }
-          }
+              total_deployments: 2,
+            },
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/resources`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/resources`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     } catch (error) {
-      console.error(`Error getting cluster resources for ${clusterName}:`, error);
+      console.error(
+        `Error getting cluster resources for ${clusterName}:`,
+        error
+      );
       throw error;
     }
   },
@@ -2408,7 +2961,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock network data');
+        console.log(
+          'Backend server is not available, returning mock network data'
+        );
         return {
           success: true,
           data: {
@@ -2419,8 +2974,8 @@ export const clusterApi = {
                 namespace: 'default',
                 type: 'ClusterIP',
                 cluster_ip: '10.96.0.1',
-                ports: [{ port: 443, target_port: 6443 }]
-              }
+                ports: [{ port: 443, target_port: 6443 }],
+              },
             ],
             ingresses: [],
             summary: {
@@ -2428,13 +2983,15 @@ export const clusterApi = {
               total_ingresses: 0,
               cluster_ip_services: 1,
               nodeport_services: 0,
-              loadbalancer_services: 0
-            }
-          }
+              loadbalancer_services: 0,
+            },
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/network`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/network`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2449,7 +3006,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock storage data');
+        console.log(
+          'Backend server is not available, returning mock storage data'
+        );
         return {
           success: true,
           data: {
@@ -2460,8 +3019,8 @@ export const clusterApi = {
                 provisioner: 'rancher.io/local-path',
                 reclaim_policy: 'Delete',
                 volume_binding_mode: 'WaitForFirstConsumer',
-                default: true
-              }
+                default: true,
+              },
             ],
             persistent_volumes: [],
             persistent_volume_claims: [],
@@ -2470,13 +3029,15 @@ export const clusterApi = {
               total_persistent_volumes: 0,
               total_persistent_volume_claims: 0,
               bound_pvs: 0,
-              bound_pvcs: 0
-            }
-          }
+              bound_pvcs: 0,
+            },
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/storage`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/storage`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2491,7 +3052,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock workload data');
+        console.log(
+          'Backend server is not available, returning mock workload data'
+        );
         return {
           success: true,
           data: {
@@ -2504,19 +3067,24 @@ export const clusterApi = {
               running_pods: 0,
               failed_pods: 0,
               total_deployments: 0,
-              ready_deployments: 0
-            }
-          }
+              ready_deployments: 0,
+            },
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/workloads`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/workloads`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     } catch (error) {
-      console.error(`Error getting cluster workloads for ${clusterName}:`, error);
+      console.error(
+        `Error getting cluster workloads for ${clusterName}:`,
+        error
+      );
       throw error;
     }
   },
@@ -2525,7 +3093,9 @@ export const clusterApi = {
     try {
       const online = await isServerOnline();
       if (!online) {
-        console.log('Backend server is not available, returning mock events data');
+        console.log(
+          'Backend server is not available, returning mock events data'
+        );
         return {
           success: true,
           data: {
@@ -2538,20 +3108,22 @@ export const clusterApi = {
                 message: 'Started container',
                 source: 'kubelet',
                 object: { kind: 'Pod', name: 'test-pod' },
-                age: '5m'
-              }
+                age: '5m',
+              },
             ],
             summary: {
               total_events: 1,
               warning_events: 0,
               normal_events: 1,
-              recent_warnings: []
-            }
-          }
+              recent_warnings: [],
+            },
+          },
         };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/cluster/${clusterName}/events?limit=${limit}`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/cluster/${clusterName}/events?limit=${limit}`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2560,5 +3132,5 @@ export const clusterApi = {
       console.error(`Error getting cluster events for ${clusterName}:`, error);
       throw error;
     }
-  }
+  },
 };

@@ -9,7 +9,17 @@ interface AnimatedCounterProps {
   prefix?: string;
   suffix?: string;
   decimals?: number;
-  easing?: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'circIn' | 'circOut' | 'circInOut' | 'backIn' | 'backOut' | 'backInOut';
+  easing?:
+    | 'linear'
+    | 'easeIn'
+    | 'easeOut'
+    | 'easeInOut'
+    | 'circIn'
+    | 'circOut'
+    | 'circInOut'
+    | 'backIn'
+    | 'backOut'
+    | 'backInOut';
   delay?: number;
   triggerOnce?: boolean;
   threshold?: number;
@@ -48,7 +58,7 @@ export function AnimatedCounter({
 
   // Update the displayed value based on the spring animation
   useEffect(() => {
-    const unsubscribe = springValue.onChange((latest) => {
+    const unsubscribe = springValue.onChange(latest => {
       setDisplayValue(latest);
     });
 
@@ -121,31 +131,34 @@ export function AnimatedStatistic({
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="flex items-start justify-between">
+      <div className='flex items-start justify-between'>
         <div>
-          <h3 className={`text-sm font-medium text-muted-foreground mb-1 ${titleClassName}`}>
+          <h3
+            className={`text-sm font-medium text-muted-foreground mb-1 ${titleClassName}`}
+          >
             {title}
           </h3>
 
           <div className={`text-3xl md:text-4xl font-bold ${valueClassName}`}>
-            <AnimatedCounter
-              value={value}
-              {...counterProps}
-            />
+            <AnimatedCounter value={value} {...counterProps} />
           </div>
 
           {description && (
-            <p className={`text-sm text-muted-foreground mt-1 ${descriptionClassName}`}>
+            <p
+              className={`text-sm text-muted-foreground mt-1 ${descriptionClassName}`}
+            >
               {description}
             </p>
           )}
 
           {trend && (
             <div className={`flex items-center mt-2 ${trendClassName}`}>
-              <span className={`text-xs font-medium ${trend.positive ? 'text-success' : 'text-error'}`}>
+              <span
+                className={`text-xs font-medium ${trend.positive ? 'text-success' : 'text-error'}`}
+              >
                 {trend.positive ? '↑' : '↓'} {trend.value}%
               </span>
-              <span className="text-xs text-muted-foreground ml-1">
+              <span className='text-xs text-muted-foreground ml-1'>
                 {trend.label}
               </span>
             </div>
@@ -156,7 +169,9 @@ export function AnimatedStatistic({
           <motion.div
             className={`p-3 rounded-full bg-primary/10 ${iconClassName}`}
             initial={{ scale: 0.8, opacity: 0 }}
-            animate={isInView ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
+            animate={
+              isInView ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }
+            }
             transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
           >
             {icon}

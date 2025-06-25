@@ -91,8 +91,8 @@ export function AnimatedText({
           hidden: { opacity: 0 },
           visible: {
             opacity: 1,
-            transition: { duration }
-          }
+            transition: { duration },
+          },
         };
       case 'slide-up':
         return {
@@ -100,8 +100,8 @@ export function AnimatedText({
           visible: {
             opacity: 1,
             y: 0,
-            transition: { duration }
-          }
+            transition: { duration },
+          },
         };
       case 'slide-down':
         return {
@@ -109,8 +109,8 @@ export function AnimatedText({
           visible: {
             opacity: 1,
             y: 0,
-            transition: { duration }
-          }
+            transition: { duration },
+          },
         };
       case 'slide-left':
         return {
@@ -118,8 +118,8 @@ export function AnimatedText({
           visible: {
             opacity: 1,
             x: 0,
-            transition: { duration }
-          }
+            transition: { duration },
+          },
         };
       case 'slide-right':
         return {
@@ -127,8 +127,8 @@ export function AnimatedText({
           visible: {
             opacity: 1,
             x: 0,
-            transition: { duration }
-          }
+            transition: { duration },
+          },
         };
       case 'typewriter':
         return {
@@ -140,9 +140,9 @@ export function AnimatedText({
               type: 'spring',
               damping: 12,
               stiffness: 200,
-              duration: duration / 2
-            }
-          }
+              duration: duration / 2,
+            },
+          },
         };
       case 'wave':
         return {
@@ -155,8 +155,8 @@ export function AnimatedText({
               ease: 'easeInOut',
               delay: i * staggerChildren,
               ...(repeat && { repeat: Infinity, repeatDelay: 0.5 }),
-            }
-          })
+            },
+          }),
         };
       case 'bounce':
         return {
@@ -169,20 +169,20 @@ export function AnimatedText({
               ease: 'easeInOut',
               delay: i * staggerChildren,
               ...(repeat && { repeat: Infinity, repeatDelay: 0.5 }),
-            }
-          })
+            },
+          }),
         };
       case 'gradient':
       case 'highlight':
         return {
           hidden: {},
-          visible: {}
+          visible: {},
         };
       case 'none':
       default:
         return {
           hidden: {},
-          visible: {}
+          visible: {},
         };
     }
   };
@@ -191,15 +191,25 @@ export function AnimatedText({
 
   // Handle animation control
   useEffect(() => {
-    if ((animateOnView && isInView) || (animateOnHover && isHovered) || (!animateOnView && !animateOnHover)) {
-      controls.start('visible')
-        .then(() => {
-          if (onAnimationComplete) onAnimationComplete();
-        });
+    if (
+      (animateOnView && isInView) ||
+      (animateOnHover && isHovered) ||
+      (!animateOnView && !animateOnHover)
+    ) {
+      controls.start('visible').then(() => {
+        if (onAnimationComplete) onAnimationComplete();
+      });
     } else if (animateOnHover && !isHovered) {
       controls.start('hidden');
     }
-  }, [controls, isInView, isHovered, animateOnView, animateOnHover, onAnimationComplete]);
+  }, [
+    controls,
+    isInView,
+    isHovered,
+    animateOnView,
+    animateOnHover,
+    onAnimationComplete,
+  ]);
 
   // Special case for gradient and highlight animations
   if (animation === 'gradient') {
@@ -207,15 +217,25 @@ export function AnimatedText({
       <Component
         ref={ref}
         className={cn(
-          "bg-clip-text text-transparent bg-gradient-to-r transition-all duration-500",
+          'bg-clip-text text-transparent bg-gradient-to-r transition-all duration-500',
           className
         )}
         style={{
           backgroundImage: `linear-gradient(to right, ${gradientFrom}, ${gradientTo})`,
-          opacity: (animateOnView && isInView) || (animateOnHover && isHovered) || (!animateOnView && !animateOnHover) ? 1 : 0,
-          transform: (animateOnView && isInView) || (animateOnHover && isHovered) || (!animateOnView && !animateOnHover) ? 'translateY(0)' : 'translateY(10px)',
+          opacity:
+            (animateOnView && isInView) ||
+            (animateOnHover && isHovered) ||
+            (!animateOnView && !animateOnHover)
+              ? 1
+              : 0,
+          transform:
+            (animateOnView && isInView) ||
+            (animateOnHover && isHovered) ||
+            (!animateOnView && !animateOnHover)
+              ? 'translateY(0)'
+              : 'translateY(10px)',
           transition: `opacity ${duration}s ease-out, transform ${duration}s ease-out`,
-          transitionDelay: `${delay}s`
+          transitionDelay: `${delay}s`,
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -229,22 +249,27 @@ export function AnimatedText({
     return (
       <Component
         ref={ref}
-        className={cn("relative inline-block", className)}
+        className={cn('relative inline-block', className)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <span style={{ color }}>{text}</span>
         <motion.span
-          className="absolute bottom-0 left-0 w-full h-[30%] -z-10 origin-left"
+          className='absolute bottom-0 left-0 w-full h-[30%] -z-10 origin-left'
           style={{ backgroundColor: highlightColor }}
           initial={{ scaleX: 0 }}
           animate={{
-            scaleX: (animateOnView && isInView) || (animateOnHover && isHovered) || (!animateOnView && !animateOnHover) ? 1 : 0
+            scaleX:
+              (animateOnView && isInView) ||
+              (animateOnHover && isHovered) ||
+              (!animateOnView && !animateOnHover)
+                ? 1
+                : 0,
           }}
           transition={{
             duration,
             delay,
-            ease: [0.22, 1, 0.36, 1]
+            ease: [0.22, 1, 0.36, 1],
           }}
         />
       </Component>
@@ -255,9 +280,9 @@ export function AnimatedText({
   return (
     <motion.div
       ref={ref}
-      className={cn("inline-flex flex-wrap", className)}
+      className={cn('inline-flex flex-wrap', className)}
       variants={containerVariants}
-      initial="hidden"
+      initial='hidden'
       animate={controls}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -270,7 +295,7 @@ export function AnimatedText({
           style={{
             display: 'inline-block',
             marginRight: animation === 'typewriter' ? 0 : '0.25em',
-            color
+            color,
           }}
         >
           {word}

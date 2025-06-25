@@ -5,14 +5,16 @@ This module defines the base Command interface that all commands must implement.
 It also provides access to repositories through the RepositoryFactory.
 """
 
-from abc import ABC, abstractmethod
 import argparse
+from abc import ABC, abstractmethod
 from typing import Optional
 
-from kind_cluster_setup.infrastructure.repositories.factory import get_repository_factory
-from kind_cluster_setup.domain.repositories import (
-    ClusterRepository, TaskRepository, ApplicationRepository, UserRepository
-)
+from kind_cluster_setup.domain.repositories import (ApplicationRepository,
+                                                    ClusterRepository,
+                                                    TaskRepository,
+                                                    UserRepository)
+from kind_cluster_setup.infrastructure.repositories.factory import \
+    get_repository_factory
 from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)

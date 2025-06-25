@@ -74,11 +74,7 @@ export function AnimatedSection({
 
   // If animations are disabled, just render the children
   if (disabled) {
-    return (
-      <Component className={className}>
-        {children}
-      </Component>
-    );
+    return <Component className={className}>{children}</Component>;
   }
 
   // Define container animation variants
@@ -89,8 +85,8 @@ export function AnimatedSection({
         staggerChildren: staggerChildren,
         staggerDirection: staggerDirection === 'forward' ? 1 : -1,
         delayChildren: delay,
-      }
-    }
+      },
+    },
   };
 
   // Define child animation variants
@@ -104,8 +100,8 @@ export function AnimatedSection({
             transition: {
               duration,
               ease: 'easeOut',
-            }
-          }
+            },
+          },
         };
       case 'slide-up':
         return {
@@ -118,8 +114,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'slide-down':
         return {
@@ -132,8 +128,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'slide-left':
         return {
@@ -146,8 +142,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'slide-right':
         return {
@@ -160,8 +156,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'zoom-in':
         return {
@@ -174,8 +170,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'zoom-out':
         return {
@@ -188,8 +184,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'flip-up':
         return {
@@ -202,8 +198,8 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'flip-down':
         return {
@@ -216,14 +212,14 @@ export function AnimatedSection({
               damping,
               stiffness,
               duration,
-            }
-          }
+            },
+          },
         };
       case 'none':
       default:
         return {
           hidden: {},
-          visible: {}
+          visible: {},
         };
     }
   };
@@ -236,8 +232,8 @@ export function AnimatedSection({
       <motion.div
         ref={ref}
         className={className}
-        initial="hidden"
-        animate={shouldAnimate ? "visible" : "hidden"}
+        initial='hidden'
+        animate={shouldAnimate ? 'visible' : 'hidden'}
         variants={containerVariants}
         onAnimationStart={onAnimationStart}
         onAnimationComplete={onAnimationComplete}
@@ -261,8 +257,8 @@ export function AnimatedSection({
     <motion.div
       ref={ref}
       className={className}
-      initial="hidden"
-      animate={shouldAnimate ? "visible" : "hidden"}
+      initial='hidden'
+      animate={shouldAnimate ? 'visible' : 'hidden'}
       variants={childVariants}
       transition={{
         delay,
@@ -272,9 +268,7 @@ export function AnimatedSection({
       onAnimationStart={onAnimationStart}
       onAnimationComplete={onAnimationComplete}
     >
-      <Component>
-        {children}
-      </Component>
+      <Component>{children}</Component>
     </motion.div>
   );
 }

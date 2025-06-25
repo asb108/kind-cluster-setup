@@ -57,13 +57,23 @@ export function GuidedTour({
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const [hasCompletedTour, setHasCompletedTour] = useState(false);
-  const [doNotShowAgain, setDoNotShowAgain] = useLocalStorage(`tour-${tourId}-completed`, false);
+  const [doNotShowAgain, setDoNotShowAgain] = useLocalStorage(
+    `tour-${tourId}-completed`,
+    false
+  );
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   // Calculate the position of the tooltip based on the target element and placement
-  const calculatePosition = (targetElement: Element, placement: string, tooltipElement: HTMLElement | null) => {
+  const calculatePosition = (
+    targetElement: Element,
+    placement: string,
+    tooltipElement: HTMLElement | null
+  ) => {
     const rect = targetElement.getBoundingClientRect();
-    const tooltipRect = tooltipElement?.getBoundingClientRect() || { width: 300, height: 200 };
+    const tooltipRect = tooltipElement?.getBoundingClientRect() || {
+      width: 300,
+      height: 200,
+    };
     const padding = spotlightPadding;
 
     let top = 0;
@@ -72,23 +82,23 @@ export function GuidedTour({
     switch (placement) {
       case 'top':
         top = rect.top - tooltipRect.height - padding;
-        left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        left = rect.left + rect.width / 2 - tooltipRect.width / 2;
         break;
       case 'bottom':
         top = rect.bottom + padding;
-        left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        left = rect.left + rect.width / 2 - tooltipRect.width / 2;
         break;
       case 'left':
-        top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+        top = rect.top + rect.height / 2 - tooltipRect.height / 2;
         left = rect.left - tooltipRect.width - padding;
         break;
       case 'right':
-        top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+        top = rect.top + rect.height / 2 - tooltipRect.height / 2;
         left = rect.right + padding;
         break;
       default:
         top = rect.bottom + padding;
-        left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        left = rect.left + rect.width / 2 - tooltipRect.width / 2;
     }
 
     // Ensure the tooltip stays within the viewport
@@ -96,9 +106,11 @@ export function GuidedTour({
     const viewportHeight = window.innerHeight;
 
     if (left < 20) left = 20;
-    if (left + tooltipRect.width > viewportWidth - 20) left = viewportWidth - tooltipRect.width - 20;
+    if (left + tooltipRect.width > viewportWidth - 20)
+      left = viewportWidth - tooltipRect.width - 20;
     if (top < 20) top = 20;
-    if (top + tooltipRect.height > viewportHeight - 20) top = viewportHeight - tooltipRect.height - 20;
+    if (top + tooltipRect.height > viewportHeight - 20)
+      top = viewportHeight - tooltipRect.height - 20;
 
     return { top, left };
   };
@@ -219,26 +231,30 @@ export function GuidedTour({
   const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex }}>
+    <div className='fixed inset-0 pointer-events-none' style={{ zIndex }}>
       {/* Backdrop with spotlight */}
       <div
-        className="absolute inset-0 pointer-events-auto"
+        className='absolute inset-0 pointer-events-auto'
         style={{
           backgroundColor: backdropColor,
-          maskImage: targetRect ? `
+          maskImage: targetRect
+            ? `
             radial-gradient(
               circle at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px,
               transparent ${Math.max(targetRect.width, targetRect.height) / 2 + spotlightPadding}px,
               black ${Math.max(targetRect.width, targetRect.height) / 2 + spotlightPadding + 1}px
             )
-          ` : 'none',
-          WebkitMaskImage: targetRect ? `
+          `
+            : 'none',
+          WebkitMaskImage: targetRect
+            ? `
             radial-gradient(
               circle at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px,
               transparent ${Math.max(targetRect.width, targetRect.height) / 2 + spotlightPadding}px,
               black ${Math.max(targetRect.width, targetRect.height) / 2 + spotlightPadding + 1}px
             )
-          ` : 'none',
+          `
+            : 'none',
         }}
         onClick={!disableInteraction ? handleClose : undefined}
       />
@@ -261,25 +277,27 @@ export function GuidedTour({
           {/* Close button */}
           {showCloseButton && (
             <button
-              className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted transition-colors"
+              className='absolute top-2 right-2 p-1 rounded-full hover:bg-muted transition-colors'
               onClick={handleClose}
-              aria-label="Close tour"
+              aria-label='Close tour'
             >
-              <X className="h-4 w-4" />
+              <X className='h-4 w-4' />
             </button>
           )}
 
           {/* Title */}
-          <h3 className="text-lg font-semibold mb-2">{currentTourStep.title}</h3>
+          <h3 className='text-lg font-semibold mb-2'>
+            {currentTourStep.title}
+          </h3>
 
           {/* Content */}
-          <div className="mb-4 text-muted-foreground">
+          <div className='mb-4 text-muted-foreground'>
             {currentTourStep.content}
           </div>
 
           {/* Progress indicator */}
           {showProgress && (
-            <div className="flex items-center justify-center mb-4">
+            <div className='flex items-center justify-center mb-4'>
               {steps.map((_, index) => (
                 <div
                   key={index}
@@ -292,21 +310,21 @@ export function GuidedTour({
           )}
 
           {/* Navigation buttons */}
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
               {!disableDoNotShowAgain && (
                 <button
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className='text-xs text-muted-foreground hover:text-foreground transition-colors'
                   onClick={handleDoNotShowAgain}
                 >
                   Don't show again
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               {showSkip && !isLastStep && (
                 <button
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className='text-sm text-muted-foreground hover:text-foreground transition-colors'
                   onClick={handleComplete}
                 >
                   Skip
@@ -314,19 +332,21 @@ export function GuidedTour({
               )}
               {!isFirstStep && (
                 <EnhancedButton
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   onClick={handlePrevious}
-                  icon={<ChevronLeft className="h-4 w-4" />}
+                  icon={<ChevronLeft className='h-4 w-4' />}
                 >
                   Previous
                 </EnhancedButton>
               )}
               <EnhancedButton
-                variant="default"
-                size="sm"
+                variant='default'
+                size='sm'
                 onClick={handleNext}
-                icon={isLastStep ? undefined : <ChevronRight className="h-4 w-4" />}
+                icon={
+                  isLastStep ? undefined : <ChevronRight className='h-4 w-4' />
+                }
                 iconPosition={isLastStep ? 'left' : 'right'}
               >
                 {isLastStep ? 'Finish' : 'Next'}

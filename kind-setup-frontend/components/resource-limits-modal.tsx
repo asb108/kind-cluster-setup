@@ -35,7 +35,9 @@ export function ResourceLimitsModal({ clusterName }: ResourceLimitsModalProps) {
   const loadCurrentLimits = async () => {
     try {
       setIsLoading(true);
-      console.log(`Loading current resource limits for cluster ${clusterName}...`);
+      console.log(
+        `Loading current resource limits for cluster ${clusterName}...`
+      );
 
       // Get the current configuration from the API
       const config = await clusterApi.getKindConfig(clusterName);
@@ -54,16 +56,22 @@ export function ResourceLimitsModal({ clusterName }: ResourceLimitsModalProps) {
         // Update control plane settings
         if (control_plane) {
           setCpuControlPlane(parseInt(control_plane.cpu) || 2);
-          setMemoryControlPlane((control_plane.memory || '4Gi').replace('Gi', ''));
+          setMemoryControlPlane(
+            (control_plane.memory || '4Gi').replace('Gi', '')
+          );
         }
 
         console.log(`Loaded resource limits for ${clusterName}`);
       }
     } catch (error) {
-      console.error(`Failed to load resource limits for ${clusterName}:`, error);
+      console.error(
+        `Failed to load resource limits for ${clusterName}:`,
+        error
+      );
       toast({
         title: 'Warning',
-        description: 'Could not load current resource limits. Using default values.',
+        description:
+          'Could not load current resource limits. Using default values.',
         variant: 'destructive',
       });
     } finally {
@@ -104,7 +112,10 @@ export function ResourceLimitsModal({ clusterName }: ResourceLimitsModalProps) {
       console.error('Failed to apply resource limits:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to apply resource limits',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to apply resource limits',
         variant: 'destructive',
       });
     } finally {
@@ -123,18 +134,18 @@ export function ResourceLimitsModal({ clusterName }: ResourceLimitsModalProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <EnhancedButton
-          variant="outline"
-          size="sm"
-          icon={<Settings className="h-4 w-4" />}
+          variant='outline'
+          size='sm'
+          icon={<Settings className='h-4 w-4' />}
           data-cluster={clusterName}
         >
           Resource Limits
         </EnhancedButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px] bg-card border-border">
+      <DialogContent className='sm:max-w-[550px] bg-card border-border'>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-h3">
-            <Settings className="h-5 w-5 text-primary" />
+          <DialogTitle className='flex items-center gap-2 text-h3'>
+            <Settings className='h-5 w-5 text-primary' />
             Resource Limits: {clusterName}
           </DialogTitle>
           <DialogDescription>
@@ -142,103 +153,126 @@ export function ResourceLimitsModal({ clusterName }: ResourceLimitsModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
+        <div className='grid gap-6 py-4'>
           <motion.div
-            className="space-y-4 p-4 rounded-lg border border-border bg-muted/20"
+            className='space-y-4 p-4 rounded-lg border border-border bg-muted/20'
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-md bg-primary/10">
-                <Cpu className="h-5 w-5 text-primary" />
+            <div className='flex items-center gap-2'>
+              <div className='p-2 rounded-md bg-primary/10'>
+                <Cpu className='h-5 w-5 text-primary' />
               </div>
-              <h3 className="font-semibold text-lg">Worker Node Configuration</h3>
+              <h3 className='font-semibold text-lg'>
+                Worker Node Configuration
+              </h3>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="worker-cpu" className="flex items-center gap-1">
-                  <Cpu className="h-4 w-4 text-muted-foreground" />
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='worker-cpu' className='flex items-center gap-1'>
+                  <Cpu className='h-4 w-4 text-muted-foreground' />
                   CPU Cores
                 </Label>
                 <Input
-                  id="worker-cpu"
-                  type="number"
-                  min="1"
-                  max="16"
+                  id='worker-cpu'
+                  type='number'
+                  min='1'
+                  max='16'
                   value={cpuWorker}
-                  onChange={(e) => setCpuWorker(parseInt(e.target.value) || 1)}
+                  onChange={e => setCpuWorker(parseInt(e.target.value) || 1)}
                   disabled={isLoading}
-                  className="form-input"
+                  className='form-input'
                 />
-                <p className="text-xs text-muted-foreground">Recommended: 2-4 cores per worker</p>
+                <p className='text-xs text-muted-foreground'>
+                  Recommended: 2-4 cores per worker
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="worker-memory" className="flex items-center gap-1">
-                  <HardDrive className="h-4 w-4 text-muted-foreground" />
+              <div className='space-y-2'>
+                <Label
+                  htmlFor='worker-memory'
+                  className='flex items-center gap-1'
+                >
+                  <HardDrive className='h-4 w-4 text-muted-foreground' />
                   Memory (GB)
                 </Label>
                 <Input
-                  id="worker-memory"
-                  type="number"
-                  min="1"
-                  max="64"
+                  id='worker-memory'
+                  type='number'
+                  min='1'
+                  max='64'
                   value={memoryWorker}
-                  onChange={(e) => setMemoryWorker(e.target.value)}
+                  onChange={e => setMemoryWorker(e.target.value)}
                   disabled={isLoading}
-                  className="form-input"
+                  className='form-input'
                 />
-                <p className="text-xs text-muted-foreground">Recommended: 4-8 GB per worker</p>
+                <p className='text-xs text-muted-foreground'>
+                  Recommended: 4-8 GB per worker
+                </p>
               </div>
             </div>
           </motion.div>
 
           <motion.div
-            className="space-y-4 p-4 rounded-lg border border-border bg-muted/20"
+            className='space-y-4 p-4 rounded-lg border border-border bg-muted/20'
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-md bg-secondary/10">
-                <Cpu className="h-5 w-5 text-secondary" />
+            <div className='flex items-center gap-2'>
+              <div className='p-2 rounded-md bg-secondary/10'>
+                <Cpu className='h-5 w-5 text-secondary' />
               </div>
-              <h3 className="font-semibold text-lg">Control Plane Configuration</h3>
+              <h3 className='font-semibold text-lg'>
+                Control Plane Configuration
+              </h3>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="control-plane-cpu" className="flex items-center gap-1">
-                  <Cpu className="h-4 w-4 text-muted-foreground" />
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <Label
+                  htmlFor='control-plane-cpu'
+                  className='flex items-center gap-1'
+                >
+                  <Cpu className='h-4 w-4 text-muted-foreground' />
                   CPU Cores
                 </Label>
                 <Input
-                  id="control-plane-cpu"
-                  type="number"
-                  min="1"
-                  max="16"
+                  id='control-plane-cpu'
+                  type='number'
+                  min='1'
+                  max='16'
                   value={cpuControlPlane}
-                  onChange={(e) => setCpuControlPlane(parseInt(e.target.value) || 1)}
+                  onChange={e =>
+                    setCpuControlPlane(parseInt(e.target.value) || 1)
+                  }
                   disabled={isLoading}
-                  className="form-input"
+                  className='form-input'
                 />
-                <p className="text-xs text-muted-foreground">Recommended: 2 cores minimum</p>
+                <p className='text-xs text-muted-foreground'>
+                  Recommended: 2 cores minimum
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="control-plane-memory" className="flex items-center gap-1">
-                  <HardDrive className="h-4 w-4 text-muted-foreground" />
+              <div className='space-y-2'>
+                <Label
+                  htmlFor='control-plane-memory'
+                  className='flex items-center gap-1'
+                >
+                  <HardDrive className='h-4 w-4 text-muted-foreground' />
                   Memory (GB)
                 </Label>
                 <Input
-                  id="control-plane-memory"
-                  type="number"
-                  min="1"
-                  max="64"
+                  id='control-plane-memory'
+                  type='number'
+                  min='1'
+                  max='64'
                   value={memoryControlPlane}
-                  onChange={(e) => setMemoryControlPlane(e.target.value)}
+                  onChange={e => setMemoryControlPlane(e.target.value)}
                   disabled={isLoading}
-                  className="form-input"
+                  className='form-input'
                 />
-                <p className="text-xs text-muted-foreground">Recommended: 4 GB minimum</p>
+                <p className='text-xs text-muted-foreground'>
+                  Recommended: 4 GB minimum
+                </p>
               </div>
             </div>
           </motion.div>
@@ -246,14 +280,14 @@ export function ResourceLimitsModal({ clusterName }: ResourceLimitsModalProps) {
 
         <DialogFooter>
           <EnhancedButton
-            variant="outline"
+            variant='outline'
             onClick={() => setIsOpen(false)}
             disabled={isLoading}
           >
             Cancel
           </EnhancedButton>
           <EnhancedButton
-            variant="default"
+            variant='default'
             onClick={handleApplyLimits}
             disabled={isLoading}
             loading={isLoading}

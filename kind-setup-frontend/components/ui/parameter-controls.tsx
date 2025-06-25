@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import type { ParameterDefinition } from './dynamic-form';
@@ -11,7 +11,13 @@ interface ParameterControlProps {
   error?: string;
 }
 
-export function ParameterControl({ parameter, value, onChange, disabled = false, error }: ParameterControlProps) {
+export function ParameterControl({
+  parameter,
+  value,
+  onChange,
+  disabled = false,
+  error,
+}: ParameterControlProps) {
   const baseInputClasses = `
     w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
     ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
@@ -20,9 +26,9 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
 
   const renderTextInput = () => (
     <input
-      type="text"
+      type='text'
       value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       disabled={disabled}
       className={baseInputClasses}
       placeholder={parameter.default?.toString() || ''}
@@ -31,9 +37,9 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
 
   const renderPasswordInput = () => (
     <input
-      type="password"
+      type='password'
       value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       disabled={disabled}
       className={baseInputClasses}
       placeholder={parameter.default?.toString() || ''}
@@ -43,7 +49,7 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
   const renderTextareaInput = () => (
     <textarea
       value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       disabled={disabled}
       className={`${baseInputClasses} min-h-[100px] resize-vertical`}
       placeholder={parameter.default?.toString() || ''}
@@ -53,10 +59,11 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
 
   const renderNumberInput = () => (
     <input
-      type="number"
+      type='number'
       value={value ?? ''}
-      onChange={(e) => {
-        const numValue = e.target.value === '' ? undefined : Number(e.target.value);
+      onChange={e => {
+        const numValue =
+          e.target.value === '' ? undefined : Number(e.target.value);
         onChange(numValue);
       }}
       disabled={disabled}
@@ -73,16 +80,16 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
     const currentValue = value ?? parameter.default ?? min;
 
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Min: {min}</span>
-          <span className="text-sm font-medium">{currentValue}</span>
-          <span className="text-sm text-gray-600">Max: {max}</span>
+      <div className='space-y-2'>
+        <div className='flex items-center justify-between'>
+          <span className='text-sm text-gray-600'>Min: {min}</span>
+          <span className='text-sm font-medium'>{currentValue}</span>
+          <span className='text-sm text-gray-600'>Max: {max}</span>
         </div>
         <input
-          type="range"
+          type='range'
           value={currentValue}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={e => onChange(Number(e.target.value))}
           disabled={disabled}
           className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider ${
             disabled ? 'opacity-50 cursor-not-allowed' : ''
@@ -117,17 +124,19 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
   };
 
   const renderCheckboxInput = () => (
-    <label className="flex items-center space-x-2 cursor-pointer">
+    <label className='flex items-center space-x-2 cursor-pointer'>
       <input
-        type="checkbox"
+        type='checkbox'
         checked={value ?? parameter.default ?? false}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={e => onChange(e.target.checked)}
         disabled={disabled}
         className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
           disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
         }`}
       />
-      <span className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>
+      <span
+        className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
+      >
         {parameter.label}
       </span>
     </label>
@@ -135,16 +144,16 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
 
   const renderSelectInput = () => {
     const options = parameter.validation?.options || [];
-    
+
     return (
       <select
         value={value ?? parameter.default ?? ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         disabled={disabled}
         className={baseInputClasses}
       >
-        <option value="">Select an option...</option>
-        {options.map((option) => (
+        <option value=''>Select an option...</option>
+        {options.map(option => (
           <option key={option} value={option}>
             {option}
           </option>
@@ -165,26 +174,35 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
     };
 
     return (
-      <div className="space-y-2">
-        <div className={`border rounded-md p-2 ${error ? 'border-red-500' : 'border-gray-300'} ${
-          disabled ? 'bg-gray-100' : 'bg-white'
-        }`}>
+      <div className='space-y-2'>
+        <div
+          className={`border rounded-md p-2 ${error ? 'border-red-500' : 'border-gray-300'} ${
+            disabled ? 'bg-gray-100' : 'bg-white'
+          }`}
+        >
           {options.length === 0 ? (
-            <p className="text-gray-500 text-sm">No options available</p>
+            <p className='text-gray-500 text-sm'>No options available</p>
           ) : (
-            <div className="space-y-1 max-h-32 overflow-y-auto">
-              {options.map((option) => (
-                <label key={option} className="flex items-center space-x-2 cursor-pointer">
+            <div className='space-y-1 max-h-32 overflow-y-auto'>
+              {options.map(option => (
+                <label
+                  key={option}
+                  className='flex items-center space-x-2 cursor-pointer'
+                >
                   <input
-                    type="checkbox"
+                    type='checkbox'
                     checked={selectedValues.includes(option)}
                     onChange={() => toggleOption(option)}
                     disabled={disabled}
                     className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
-                      disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      disabled
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'cursor-pointer'
                     }`}
                   />
-                  <span className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <span
+                    className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
+                  >
                     {option}
                   </span>
                 </label>
@@ -193,18 +211,18 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
           )}
         </div>
         {selectedValues.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {selectedValues.map((selectedValue) => (
+          <div className='flex flex-wrap gap-1'>
+            {selectedValues.map(selectedValue => (
               <span
                 key={selectedValue}
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800'
               >
                 {selectedValue}
                 {!disabled && (
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => toggleOption(selectedValue)}
-                    className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600 focus:outline-none"
+                    className='ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600 focus:outline-none'
                   >
                     ×
                   </button>
@@ -219,12 +237,12 @@ export function ParameterControl({ parameter, value, onChange, disabled = false,
 
   const renderFileInput = () => (
     <input
-      type="file"
-      onChange={(e) => {
+      type='file'
+      onChange={e => {
         const file = e.target.files?.[0];
         if (file) {
           const reader = new FileReader();
-          reader.onload = (event) => {
+          reader.onload = event => {
             onChange(event.target?.result);
           };
           reader.readAsText(file);

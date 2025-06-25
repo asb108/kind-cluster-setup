@@ -1,15 +1,19 @@
 import os
 import tempfile
+from typing import Any, Dict, List, Optional, Union
+
 import yaml
-from typing import Dict, Any, List, Optional, Union
-from kind_cluster_setup.deployment.base import DeploymentStrategy
-from kind_cluster_setup.utils.logging import get_logger
-from kind_cluster_setup.utils.constants import HELM_CHART_PATH, PROJECT_ROOT
-from kind_cluster_setup.core.command import SubprocessCommandExecutor, CommandResult
+
+from kind_cluster_setup.core.command import (CommandResult,
+                                             SubprocessCommandExecutor)
 from kind_cluster_setup.core.helm import HelmClient
 from kind_cluster_setup.core.kubernetes import KubectlClient
+from kind_cluster_setup.deployment.base import DeploymentStrategy
+from kind_cluster_setup.utils.constants import HELM_CHART_PATH, PROJECT_ROOT
+from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
 
 class HelmDeploymentStrategy(DeploymentStrategy):
     def __init__(self):
@@ -18,8 +22,15 @@ class HelmDeploymentStrategy(DeploymentStrategy):
         self.helm_client = HelmClient(self.executor)
         self.kubectl_client = KubectlClient(self.executor)
 
-    def deploy(self, app: str, app_config: Union[Dict[str, Any], List[Dict[str, Any]]], env_config: Dict[str, Any],
-              template_dir: str = None, cluster_name: str = None, values: Dict[str, Any] = None) -> bool:
+    def deploy(
+        self,
+        app: str,
+        app_config: Union[Dict[str, Any], List[Dict[str, Any]]],
+        env_config: Dict[str, Any],
+        template_dir: str = None,
+        cluster_name: str = None,
+        values: Dict[str, Any] = None,
+    ) -> bool:
         """Deploy an application using Helm
 
         Args:
@@ -45,12 +56,17 @@ class HelmDeploymentStrategy(DeploymentStrategy):
                 config = app_config[0] if app_config else {}
 
             # Get namespace from config or use default format
-            namespace = config.get('namespace', env_config.get('namespace', f"{app}-{env_config.get('environment', 'dev')}"))
+            namespace = config.get(
+                "namespace",
+                env_config.get(
+                    "namespace", f"{app}-{env_config.get('environment', 'dev')}"
+                ),
+            )
 
             # Get template directory - either from provided template_dir, app_config, or use default path
             chart_dir = template_dir
             if not chart_dir:
-                chart_dir = config.get('template_dir')
+                chart_dir = config.get("template_dir")
             if not chart_dir:
                 chart_dir = os.path.join(PROJECT_ROOT, "templates", "apps", app)
 
@@ -58,7 +74,7 @@ class HelmDeploymentStrategy(DeploymentStrategy):
             if not os.path.exists(chart_dir):
                 alt_paths = [
                     os.path.join(PROJECT_ROOT, "applications", app, "helm"),
-                    os.path.join(PROJECT_ROOT, "helm", app)
+                    os.path.join(PROJECT_ROOT, "helm", app),
                 ]
                 for alt_path in alt_paths:
                     if os.path.exists(alt_path):
@@ -71,22 +87,26 @@ class HelmDeploymentStrategy(DeploymentStrategy):
                 return False
 
             # Get values for template substitution
-            helm_values = values if values is not None else config.get('values', {})
+            helm_values = values if values is not None else config.get("values", {})
 
             # Get cluster context
-            actual_cluster_name = cluster_name if cluster_name else config.get('cluster_name', 'kind')
+            actual_cluster_name = (
+                cluster_name if cluster_name else config.get("cluster_name", "kind")
+            )
             context = f"kind-{actual_cluster_name}"
             if actual_cluster_name.startswith("kind-"):
                 context = actual_cluster_name
 
             # Get release name
-            release_name = config.get('release_name', f"{app}-release")
+            release_name = config.get("release_name", f"{app}-release")
 
             # Get chart version if specified
-            version = config.get('app_version')
+            version = config.get("app_version")
 
             logger.info(f"Using chart directory: {chart_dir}")
-            logger.info(f"Deploying to namespace: {namespace} in cluster: {actual_cluster_name}")
+            logger.info(
+                f"Deploying to namespace: {namespace} in cluster: {actual_cluster_name}"
+            )
 
             # Set kubectl context
             try:
@@ -104,7 +124,9 @@ class HelmDeploymentStrategy(DeploymentStrategy):
 
             # Create values.yaml file from provided values
             try:
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as temp_values_file:
+                with tempfile.NamedTemporaryFile(
+                    mode="w", suffix=".yaml", delete=False
+                ) as temp_values_file:
                     yaml.dump(helm_values, temp_values_file)
                     values_file_path = temp_values_file.name
             except Exception as e:
@@ -113,7 +135,9 @@ class HelmDeploymentStrategy(DeploymentStrategy):
 
             # Install or upgrade the Helm chart
             try:
-                logger.info(f"Installing/upgrading Helm chart {chart_dir} as {release_name} in namespace {namespace}")
+                logger.info(
+                    f"Installing/upgrading Helm chart {chart_dir} as {release_name} in namespace {namespace}"
+                )
                 result = self.helm_client.install_or_upgrade(
                     release_name=release_name,
                     chart=chart_dir,
@@ -121,7 +145,7 @@ class HelmDeploymentStrategy(DeploymentStrategy):
                     values_file=values_file_path,
                     version=version,
                     create_namespace=True,
-                    wait=True
+                    wait=True,
                 )
 
                 logger.info(f"Helm chart for {app} deployed successfully")
@@ -142,7 +166,9 @@ class HelmDeploymentStrategy(DeploymentStrategy):
                 try:
                     os.unlink(values_file_path)
                 except Exception as e:
-                    logger.warning(f"Failed to clean up temporary values file: {str(e)}")
+                    logger.warning(
+                        f"Failed to clean up temporary values file: {str(e)}"
+                    )
 
     def check_status(self, app: str, namespace: Optional[str] = None) -> Dict[str, Any]:
         """Check the status of a deployed Helm chart
@@ -163,12 +189,7 @@ class HelmDeploymentStrategy(DeploymentStrategy):
         # Get release name (could be different from app name)
         release_name = f"{app}-release"
 
-        status_info = {
-            'status': 'Unknown',
-            'pods': [],
-            'services': [],
-            'message': ''
-        }
+        status_info = {"status": "Unknown", "pods": [], "services": [], "message": ""}
 
         # Check Helm release status
         try:
@@ -178,23 +199,28 @@ class HelmDeploymentStrategy(DeploymentStrategy):
             )
 
             logger.info(f"Helm chart for {app} status checked successfully")
-            status_info['status'] = 'Deployed'
-            status_info['message'] = result.stdout
+            status_info["status"] = "Deployed"
+            status_info["message"] = result.stdout
 
             # Get pod status
             try:
                 # Get pods with the app.kubernetes.io/instance label
                 pods = self.kubectl_client.get_pods(
                     namespace=namespace,
-                    selector=f"app.kubernetes.io/instance={release_name}"
+                    selector=f"app.kubernetes.io/instance={release_name}",
                 )
 
-                status_info['pods'] = pods
+                status_info["pods"] = pods
 
                 # Determine overall status based on pods
-                if status_info['pods']:
-                    all_running = all(pod.get('status', {}).get('phase') == 'Running' for pod in status_info['pods'])
-                    status_info['status'] = 'Running' if all_running else 'Partially Running'
+                if status_info["pods"]:
+                    all_running = all(
+                        pod.get("status", {}).get("phase") == "Running"
+                        for pod in status_info["pods"]
+                    )
+                    status_info["status"] = (
+                        "Running" if all_running else "Partially Running"
+                    )
             except Exception as e:
                 logger.warning(f"Could not get pod status: {str(e)}")
 
@@ -202,13 +228,20 @@ class HelmDeploymentStrategy(DeploymentStrategy):
             try:
                 # Execute the kubectl get services command
                 svc_result = self.kubectl_client.execute(
-                    ["get", "services", "-l", f"app.kubernetes.io/instance={release_name}", "-o", "json"],
-                    namespace=namespace
+                    [
+                        "get",
+                        "services",
+                        "-l",
+                        f"app.kubernetes.io/instance={release_name}",
+                        "-o",
+                        "json",
+                    ],
+                    namespace=namespace,
                 )
 
                 # Parse the JSON output
                 svc_data = yaml.safe_load(svc_result.stdout)
-                status_info['services'] = svc_data.get('items', [])
+                status_info["services"] = svc_data.get("items", [])
             except Exception as e:
                 logger.warning(f"Could not get service status: {str(e)}")
 
@@ -217,8 +250,8 @@ class HelmDeploymentStrategy(DeploymentStrategy):
         except Exception as e:
             error_msg = f"Failed to check status of Helm chart for {app}: {str(e)}"
             logger.error(error_msg)
-            status_info['status'] = 'Error'
-            status_info['message'] = error_msg
+            status_info["status"] = "Error"
+            status_info["message"] = error_msg
             return status_info
 
     def delete(self, app: str, namespace: Optional[str] = None) -> bool:
@@ -243,9 +276,7 @@ class HelmDeploymentStrategy(DeploymentStrategy):
         try:
             # Uninstall the Helm release
             result = self.helm_client.uninstall(
-                release_name=release_name,
-                namespace=namespace,
-                wait=True
+                release_name=release_name, namespace=namespace, wait=True
             )
 
             logger.info(f"Helm release for {app} deleted successfully")
@@ -271,9 +302,10 @@ class HelmDeploymentStrategy(DeploymentStrategy):
         # Check for Chart.yaml which is required for a valid Helm chart
         chart_yaml = os.path.join(template_dir, "Chart.yaml")
         if not os.path.exists(chart_yaml):
-            logger.warning(f"Chart.yaml not found in template directory: {template_dir}")
+            logger.warning(
+                f"Chart.yaml not found in template directory: {template_dir}"
+            )
             # This might be a local chart directory without Chart.yaml, so we'll continue
             # but log a warning
 
         return True
-

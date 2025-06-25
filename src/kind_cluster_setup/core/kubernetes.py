@@ -5,12 +5,14 @@ This module provides classes for interacting with Kubernetes through
 the kubectl command-line tool, using the CommandExecutor abstraction.
 """
 
-import os
 import json
-import yaml
-from typing import Dict, List, Optional, Any, Union
+import os
+from typing import Any, Dict, List, Optional, Union
 
-from kind_cluster_setup.core.command import CommandExecutor, CommandResult, CommandExecutionError
+import yaml
+
+from kind_cluster_setup.core.command import (CommandExecutionError,
+                                             CommandExecutor, CommandResult)
 
 
 class KubectlClient:
@@ -30,12 +32,14 @@ class KubectlClient:
         """
         self.executor = executor
 
-    def execute(self,
-                args: List[str],
-                context: Optional[str] = None,
-                namespace: Optional[str] = None,
-                kubeconfig: Optional[str] = None,
-                check: bool = True) -> CommandResult:
+    def execute(
+        self,
+        args: List[str],
+        context: Optional[str] = None,
+        namespace: Optional[str] = None,
+        kubeconfig: Optional[str] = None,
+        check: bool = True,
+    ) -> CommandResult:
         """
         Execute a kubectl command with the given arguments.
 
@@ -74,10 +78,12 @@ class KubectlClient:
         # Execute the command
         return self.executor.execute(command, env=env, check=check)
 
-    def get_nodes(self,
-                 context: Optional[str] = None,
-                 output_format: str = "json",
-                 kubeconfig: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_nodes(
+        self,
+        context: Optional[str] = None,
+        output_format: str = "json",
+        kubeconfig: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Get the list of nodes in the cluster.
 
@@ -106,12 +112,14 @@ class KubectlClient:
         else:
             raise ValueError(f"Unsupported output format: {output_format}")
 
-    def get_pods(self,
-                namespace: str,
-                context: Optional[str] = None,
-                selector: Optional[str] = None,
-                output_format: str = "json",
-                kubeconfig: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_pods(
+        self,
+        namespace: str,
+        context: Optional[str] = None,
+        selector: Optional[str] = None,
+        output_format: str = "json",
+        kubeconfig: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Get the list of pods in the namespace.
 
@@ -137,10 +145,7 @@ class KubectlClient:
 
         # Execute the command
         result = self.execute(
-            args,
-            context=context,
-            namespace=namespace,
-            kubeconfig=kubeconfig
+            args, context=context, namespace=namespace, kubeconfig=kubeconfig
         )
 
         # Parse the output
@@ -151,11 +156,13 @@ class KubectlClient:
         else:
             raise ValueError(f"Unsupported output format: {output_format}")
 
-    def apply(self,
-             files: List[str],
-             context: Optional[str] = None,
-             namespace: Optional[str] = None,
-             kubeconfig: Optional[str] = None) -> CommandResult:
+    def apply(
+        self,
+        files: List[str],
+        context: Optional[str] = None,
+        namespace: Optional[str] = None,
+        kubeconfig: Optional[str] = None,
+    ) -> CommandResult:
         """
         Apply Kubernetes manifests from files.
 
@@ -180,21 +187,20 @@ class KubectlClient:
 
         # Execute the command
         return self.execute(
-            args,
-            context=context,
-            namespace=namespace,
-            kubeconfig=kubeconfig
+            args, context=context, namespace=namespace, kubeconfig=kubeconfig
         )
 
-    def wait_for_condition(self,
-                          resource_type: str,
-                          resource_name: Optional[str] = None,
-                          condition: str = "Ready",
-                          selector: Optional[str] = None,
-                          timeout: str = "60s",
-                          context: Optional[str] = None,
-                          namespace: Optional[str] = None,
-                          kubeconfig: Optional[str] = None) -> CommandResult:
+    def wait_for_condition(
+        self,
+        resource_type: str,
+        resource_name: Optional[str] = None,
+        condition: str = "Ready",
+        selector: Optional[str] = None,
+        timeout: str = "60s",
+        context: Optional[str] = None,
+        namespace: Optional[str] = None,
+        kubeconfig: Optional[str] = None,
+    ) -> CommandResult:
         """
         Wait for a condition on a Kubernetes resource.
 
@@ -233,22 +239,21 @@ class KubectlClient:
 
         # Execute the command
         return self.execute(
-            args,
-            context=context,
-            namespace=namespace,
-            kubeconfig=kubeconfig
+            args, context=context, namespace=namespace, kubeconfig=kubeconfig
         )
 
-    def expose(self,
-              resource: str,
-              name: str,
-              port: Union[int, str],
-              target_port: Optional[Union[int, str]] = None,
-              type: str = "ClusterIP",
-              protocol: str = "TCP",
-              context: Optional[str] = None,
-              namespace: Optional[str] = None,
-              kubeconfig: Optional[str] = None) -> CommandResult:
+    def expose(
+        self,
+        resource: str,
+        name: str,
+        port: Union[int, str],
+        target_port: Optional[Union[int, str]] = None,
+        type: str = "ClusterIP",
+        protocol: str = "TCP",
+        context: Optional[str] = None,
+        namespace: Optional[str] = None,
+        kubeconfig: Optional[str] = None,
+    ) -> CommandResult:
         """
         Expose a Kubernetes resource as a service.
 
@@ -284,20 +289,19 @@ class KubectlClient:
 
         # Execute the command
         return self.execute(
-            args,
-            context=context,
-            namespace=namespace,
-            kubeconfig=kubeconfig
+            args, context=context, namespace=namespace, kubeconfig=kubeconfig
         )
 
-    def get(self,
-           resource: str,
-           name: Optional[str] = None,
-           selector: Optional[str] = None,
-           output: Optional[str] = None,
-           context: Optional[str] = None,
-           namespace: Optional[str] = None,
-           kubeconfig: Optional[str] = None) -> CommandResult:
+    def get(
+        self,
+        resource: str,
+        name: Optional[str] = None,
+        selector: Optional[str] = None,
+        output: Optional[str] = None,
+        context: Optional[str] = None,
+        namespace: Optional[str] = None,
+        kubeconfig: Optional[str] = None,
+    ) -> CommandResult:
         """
         Get information about Kubernetes resources.
 
@@ -337,5 +341,5 @@ class KubectlClient:
             context=context,
             namespace=namespace,
             kubeconfig=kubeconfig,
-            check=False
+            check=False,
         )

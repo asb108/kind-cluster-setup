@@ -14,7 +14,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8020';
  * Check if a specific cluster exists by making a direct and
  * reliable API call with timeout safeguards
  */
-export async function checkClusterExists(clusterName: string): Promise<boolean> {
+export async function checkClusterExists(
+  clusterName: string
+): Promise<boolean> {
   if (!clusterName) {
     console.warn('No cluster name provided to checkClusterExists');
     return false;
@@ -28,7 +30,7 @@ export async function checkClusterExists(clusterName: string): Promise<boolean> 
       checkViaStatusAPI,
       checkViaListAPI,
       checkViaKubectlAPI,
-      checkViaDirectAPI
+      checkViaDirectAPI,
     ];
 
     // Add a global timeout for the entire operation
@@ -41,17 +43,23 @@ export async function checkClusterExists(clusterName: string): Promise<boolean> 
       try {
         // Check if we've exceeded the global timeout
         if (Date.now() - startTime > GLOBAL_TIMEOUT_MS) {
-          console.warn(`Global timeout of ${GLOBAL_TIMEOUT_MS}ms exceeded for cluster existence check`);
+          console.warn(
+            `Global timeout of ${GLOBAL_TIMEOUT_MS}ms exceeded for cluster existence check`
+          );
           break;
         }
 
-        console.log(`Checking if cluster "${clusterName}" exists via ${method.name}... (method ${i + 1}/${methods.length})`);
+        console.log(
+          `Checking if cluster "${clusterName}" exists via ${method.name}... (method ${i + 1}/${methods.length})`
+        );
         const exists = await method(clusterName);
         if (exists) {
           console.log(`✅ Cluster "${clusterName}" found via ${method.name}`);
           return true;
         } else {
-          console.log(`❌ Cluster "${clusterName}" not found via ${method.name}`);
+          console.log(
+            `❌ Cluster "${clusterName}" not found via ${method.name}`
+          );
         }
       } catch (methodError) {
         console.warn(`Method ${method.name} failed:`, methodError);
@@ -64,13 +72,17 @@ export async function checkClusterExists(clusterName: string): Promise<boolean> 
 
     // One final attempt with a direct docker container check
     try {
-      console.log(`Making final attempt to check if cluster "${clusterName}" exists via docker containers...`);
+      console.log(
+        `Making final attempt to check if cluster "${clusterName}" exists via docker containers...`
+      );
 
       // Use AbortController to prevent hanging requests
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         try {
-          controller.abort(new DOMException('Timeout exceeded', 'TimeoutError'));
+          controller.abort(
+            new DOMException('Timeout exceeded', 'TimeoutError')
+          );
         } catch (e) {
           console.warn('Error aborting controller:', e);
         }
@@ -80,9 +92,9 @@ export async function checkClusterExists(clusterName: string): Promise<boolean> 
         signal: controller.signal,
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
+          Pragma: 'no-cache',
         },
       });
 
@@ -95,14 +107,18 @@ export async function checkClusterExists(clusterName: string): Promise<boolean> 
         if (result?.data?.containers) {
           // Look for containers with names that match our cluster
           const kindPrefix = 'kind-';
-          const clusterPrefix = clusterName.startsWith(kindPrefix) ? clusterName : `${kindPrefix}${clusterName}`;
+          const clusterPrefix = clusterName.startsWith(kindPrefix)
+            ? clusterName
+            : `${kindPrefix}${clusterName}`;
 
-          const found = result.data.containers.some(
-            (container: any) => container.name.includes(clusterPrefix)
+          const found = result.data.containers.some((container: any) =>
+            container.name.includes(clusterPrefix)
           );
 
           if (found) {
-            console.log(`✅ Cluster "${clusterName}" found via docker containers check`);
+            console.log(
+              `✅ Cluster "${clusterName}" found via docker containers check`
+            );
             return true;
           }
         }
@@ -138,7 +154,9 @@ export function startPeriodicClusterCheck(
     if (!isRunning) return;
 
     attempts++;
-    console.log(`Periodic cluster check for "${clusterName}" (attempt ${attempts}/${maxAttempts})`);
+    console.log(
+      `Periodic cluster check for "${clusterName}" (attempt ${attempts}/${maxAttempts})`
+    );
 
     try {
       const exists = await checkClusterExists(clusterName);
@@ -148,7 +166,9 @@ export function startPeriodicClusterCheck(
         onFound(clusterName);
         return; // Stop checking once found
       } else if (attempts >= maxAttempts) {
-        console.log(`⏰ Periodic check for cluster "${clusterName}" reached max attempts (${maxAttempts})`);
+        console.log(
+          `⏰ Periodic check for cluster "${clusterName}" reached max attempts (${maxAttempts})`
+        );
         if (onNotFound) {
           onNotFound(clusterName);
         }
@@ -158,10 +178,15 @@ export function startPeriodicClusterCheck(
         setTimeout(checkLoop, intervalMs);
       }
     } catch (error) {
-      console.error(`Error in periodic cluster check for "${clusterName}":`, error);
+      console.error(
+        `Error in periodic cluster check for "${clusterName}":`,
+        error
+      );
 
       if (attempts >= maxAttempts) {
-        console.log(`⏰ Periodic check for cluster "${clusterName}" reached max attempts after error`);
+        console.log(
+          `⏰ Periodic check for cluster "${clusterName}" reached max attempts after error`
+        );
         if (onNotFound) {
           onNotFound(clusterName);
         }
@@ -203,9 +228,9 @@ async function checkViaStatusAPI(clusterName: string): Promise<boolean> {
       signal: controller.signal,
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       },
     });
 
@@ -256,9 +281,9 @@ async function checkViaListAPI(clusterName: string): Promise<boolean> {
       signal: controller.signal,
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       },
     });
 
@@ -275,7 +300,8 @@ async function checkViaListAPI(clusterName: string): Promise<boolean> {
     // Check if the specified cluster exists in the list
     if (result?.data && Array.isArray(result.data)) {
       const found = result.data.some(
-        (cluster: any) => cluster.name === clusterName || cluster.cluster_name === clusterName
+        (cluster: any) =>
+          cluster.name === clusterName || cluster.cluster_name === clusterName
       );
 
       return found;
@@ -309,9 +335,9 @@ async function checkViaKubectlAPI(clusterName: string): Promise<boolean> {
       signal: controller.signal,
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       },
     });
 
@@ -328,10 +354,13 @@ async function checkViaKubectlAPI(clusterName: string): Promise<boolean> {
     // Check if the specified cluster exists in the contexts
     if (result?.data?.contexts) {
       const kindPrefix = 'kind-';
-      const contextName = clusterName.startsWith(kindPrefix) ? clusterName : `${kindPrefix}${clusterName}`;
+      const contextName = clusterName.startsWith(kindPrefix)
+        ? clusterName
+        : `${kindPrefix}${clusterName}`;
 
       const found = result.data.contexts.some(
-        (context: any) => context.name === contextName || context.name === clusterName
+        (context: any) =>
+          context.name === contextName || context.name === clusterName
       );
 
       return found;
@@ -361,15 +390,18 @@ async function checkViaDirectAPI(clusterName: string): Promise<boolean> {
 
   try {
     // Make the API call with the abort controller
-    const response = await fetch(`${API_URL}/api/cluster/${clusterName}/exists`, {
-      signal: controller.signal,
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-      },
-    });
+    const response = await fetch(
+      `${API_URL}/api/cluster/${clusterName}/exists`,
+      {
+        signal: controller.signal,
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      }
+    );
 
     clearTimeout(timeoutId);
 
@@ -390,9 +422,9 @@ async function checkViaDirectAPI(clusterName: string): Promise<boolean> {
       signal: controller.signal,
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       },
     });
 
@@ -404,10 +436,12 @@ async function checkViaDirectAPI(clusterName: string): Promise<boolean> {
         // Look for containers with names like "kind-control-plane" or "kind-worker"
         // that belong to our cluster
         const kindPrefix = 'kind-';
-        const clusterPrefix = clusterName.startsWith(kindPrefix) ? clusterName : `${kindPrefix}${clusterName}`;
+        const clusterPrefix = clusterName.startsWith(kindPrefix)
+          ? clusterName
+          : `${kindPrefix}${clusterName}`;
 
-        const found = dockerResult.data.containers.some(
-          (container: any) => container.name.includes(clusterPrefix)
+        const found = dockerResult.data.containers.some((container: any) =>
+          container.name.includes(clusterPrefix)
         );
 
         return found;

@@ -2,18 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import { motion, useInView, useAnimation, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-type ProgressVariant =
-  | 'default'
-  | 'gradient'
-  | 'striped'
-  | 'glow'
-  | 'segments';
+type ProgressVariant = 'default' | 'gradient' | 'striped' | 'glow' | 'segments';
 
-type ProgressSize =
-  | 'xs'
-  | 'sm'
-  | 'md'
-  | 'lg';
+type ProgressSize = 'xs' | 'sm' | 'md' | 'lg';
 
 type ProgressColor =
   | 'primary'
@@ -141,7 +132,7 @@ export function AnimatedProgress({
   // Render segments for segmented progress bar
   const renderSegments = () => {
     const segments = [];
-    const segmentWidth = (100 - (segmentGap * (segmentCount - 1))) / segmentCount;
+    const segmentWidth = (100 - segmentGap * (segmentCount - 1)) / segmentCount;
     const filledSegments = Math.ceil((percentage / 100) * segmentCount);
 
     for (let i = 0; i < segmentCount; i++) {
@@ -161,17 +152,13 @@ export function AnimatedProgress({
           }}
           transition={{
             duration: 0.3,
-            delay: animationDelay + (i * 0.05),
+            delay: animationDelay + i * 0.05,
           }}
         />
       );
     }
 
-    return (
-      <div className="flex w-full h-full justify-between">
-        {segments}
-      </div>
-    );
+    return <div className='flex w-full h-full justify-between'>{segments}</div>;
   };
 
   // Render progress bar based on variant
@@ -186,7 +173,7 @@ export function AnimatedProgress({
               rounded && 'rounded-full',
               barClassName
             )}
-            initial="hidden"
+            initial='hidden'
             animate={controls}
             variants={progressVariants}
             onAnimationComplete={onAnimationComplete}
@@ -202,14 +189,23 @@ export function AnimatedProgress({
               barClassName
             )}
             style={{
-              boxShadow: `0 0 10px ${color === 'primary' ? 'var(--primary)' :
-                          color === 'secondary' ? 'var(--secondary)' :
-                          color === 'tertiary' ? 'var(--tertiary)' :
-                          color === 'success' ? 'var(--success)' :
-                          color === 'warning' ? 'var(--warning)' :
-                          color === 'error' ? 'var(--error)' : 'var(--info)'}`
+              boxShadow: `0 0 10px ${
+                color === 'primary'
+                  ? 'var(--primary)'
+                  : color === 'secondary'
+                    ? 'var(--secondary)'
+                    : color === 'tertiary'
+                      ? 'var(--tertiary)'
+                      : color === 'success'
+                        ? 'var(--success)'
+                        : color === 'warning'
+                          ? 'var(--warning)'
+                          : color === 'error'
+                            ? 'var(--error)'
+                            : 'var(--info)'
+              }`,
             }}
-            initial="hidden"
+            initial='hidden'
             animate={controls}
             variants={progressVariants}
             onAnimationComplete={onAnimationComplete}
@@ -226,7 +222,7 @@ export function AnimatedProgress({
               rounded && 'rounded-full',
               barClassName
             )}
-            initial="hidden"
+            initial='hidden'
             animate={controls}
             variants={progressVariants}
             onAnimationComplete={onAnimationComplete}
@@ -238,13 +234,18 @@ export function AnimatedProgress({
   return (
     <div className={cn('w-full', className)}>
       {(label || (showValue && valuePosition === 'top')) && (
-        <div className={cn(
-          'flex mb-1',
-          labelPosition === 'left' ? 'justify-between' : 'flex-col'
-        )}>
-          {label && <span className="text-sm font-medium">{label}</span>}
+        <div
+          className={cn(
+            'flex mb-1',
+            labelPosition === 'left' ? 'justify-between' : 'flex-col'
+          )}
+        >
+          {label && <span className='text-sm font-medium'>{label}</span>}
           {showValue && valuePosition === 'top' && (
-            <span className={cn('text-sm', valueClassName)}>{value}{max !== 100 && `/${max}`}</span>
+            <span className={cn('text-sm', valueClassName)}>
+              {value}
+              {max !== 100 && `/${max}`}
+            </span>
           )}
         </div>
       )}
@@ -261,17 +262,21 @@ export function AnimatedProgress({
         {renderProgressBar()}
 
         {showValue && valuePosition === 'inside' && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className='absolute inset-0 flex items-center justify-center'>
             <span className={cn('text-xs font-medium', valueClassName)}>
-              {value}{max !== 100 && `/${max}`}
+              {value}
+              {max !== 100 && `/${max}`}
             </span>
           </div>
         )}
       </div>
 
       {showValue && valuePosition === 'right' && (
-        <div className="flex justify-end mt-1">
-          <span className={cn('text-sm', valueClassName)}>{value}{max !== 100 && `/${max}`}</span>
+        <div className='flex justify-end mt-1'>
+          <span className={cn('text-sm', valueClassName)}>
+            {value}
+            {max !== 100 && `/${max}`}
+          </span>
         </div>
       )}
     </div>

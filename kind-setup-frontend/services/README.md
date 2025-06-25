@@ -44,10 +44,10 @@ async function deployApp(clusterName, appName) {
     await clusterApi.deployApplication(
       clusterName,
       appName,
-      'default',  // namespace
-      {},         // values
-      'helm',     // deployment method
-      'latest'    // version
+      'default', // namespace
+      {}, // values
+      'helm', // deployment method
+      'latest' // version
     );
     return true;
   } catch (error) {

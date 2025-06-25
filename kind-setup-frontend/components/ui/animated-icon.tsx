@@ -87,8 +87,12 @@ export function AnimatedIcon({
               duration,
               ease: 'easeInOut',
               times: [0, 0.5, 1],
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: repeatType as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: repeatType as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -100,8 +104,12 @@ export function AnimatedIcon({
             transition: {
               duration,
               ease: 'linear',
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: 'loop' as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: 'loop' as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -114,8 +122,12 @@ export function AnimatedIcon({
               duration,
               ease: 'easeInOut',
               times: [0, 0.5, 1],
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: repeatType as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: repeatType as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -128,8 +140,12 @@ export function AnimatedIcon({
               duration: duration * 0.8,
               ease: 'easeInOut',
               times: [0, 0.2, 0.4, 0.6, 0.8, 1],
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: repeatType as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: repeatType as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -142,8 +158,12 @@ export function AnimatedIcon({
               duration: duration * 0.8,
               ease: 'easeInOut',
               times: [0, 0.2, 0.4, 0.6, 0.8, 1],
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: repeatType as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: repeatType as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -157,8 +177,12 @@ export function AnimatedIcon({
               duration: duration * 0.5,
               ease: 'easeInOut',
               times: [0, 0.5, 1],
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: repeatType as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: repeatType as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -171,8 +195,12 @@ export function AnimatedIcon({
               duration: duration * 2,
               ease: 'easeInOut',
               times: [0, 0.5, 1],
-              repeat: repeat ? (typeof repeat === 'number' ? repeat : Infinity) : 0,
-              repeatType: repeatType as "loop" | "reverse" | "mirror",
+              repeat: repeat
+                ? typeof repeat === 'number'
+                  ? repeat
+                  : Infinity
+                : 0,
+              repeatType: repeatType as 'loop' | 'reverse' | 'mirror',
               delay,
             },
           },
@@ -237,13 +265,16 @@ export function AnimatedIcon({
 
   return (
     <div
-      className={cn("relative inline-flex items-center justify-center", containerClassName)}
+      className={cn(
+        'relative inline-flex items-center justify-center',
+        containerClassName
+      )}
       onMouseEnter={handleHoverStart}
       onMouseLeave={handleHoverEnd}
     >
       <motion.div
         className={cn(
-          "inline-flex items-center justify-center transition-colors",
+          'inline-flex items-center justify-center transition-colors',
           sizeClasses[size],
           disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
           className
@@ -251,7 +282,9 @@ export function AnimatedIcon({
         style={{
           color: isHovered && hoverColor ? hoverColor : color,
         }}
-        animate={isHovered ? hoverAnimationVariants.animate : animationVariants.animate}
+        animate={
+          isHovered ? hoverAnimationVariants.animate : animationVariants.animate
+        }
         onClick={disabled ? undefined : onClick}
         onAnimationComplete={onAnimationComplete}
         {...motionProps}
@@ -262,7 +295,7 @@ export function AnimatedIcon({
       {tooltip && showTooltip && (
         <motion.div
           className={cn(
-            "absolute z-50 px-2 py-1 text-xs font-medium bg-popover text-popover-foreground rounded shadow-sm border border-border whitespace-nowrap",
+            'absolute z-50 px-2 py-1 text-xs font-medium bg-popover text-popover-foreground rounded shadow-sm border border-border whitespace-nowrap',
             tooltipPositionClasses[tooltipPosition],
             tooltipClassName
           )}

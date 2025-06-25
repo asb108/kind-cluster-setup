@@ -1,9 +1,14 @@
-import unittest
 import os
 import time
-from unittest.mock import patch, MagicMock, call
-from kind_cluster_setup.cluster.kind_cluster import KindCluster, DockerNotRunningError, KindNotInstalledError, ClusterOperationError
+import unittest
+from unittest.mock import MagicMock, call, patch
+
+from kind_cluster_setup.cluster.kind_cluster import (ClusterOperationError,
+                                                     DockerNotRunningError,
+                                                     KindCluster,
+                                                     KindNotInstalledError)
 from kind_cluster_setup.utils.constants import PROJECT_ROOT
+
 
 class TestKindCluster(unittest.TestCase):
     def setUp(self):
@@ -12,7 +17,7 @@ class TestKindCluster(unittest.TestCase):
             "worker_nodes": 2,
             "worker_config": {"cpu": "2", "memory": "4GB"},
             "control_plane_config": {"cpu": "2", "memory": "4GB"},
-            "apply_resource_limits": True
+            "apply_resource_limits": True,
         }
         self.env_config = {"environment": "dev", "namespace": "test"}
         self.kind_cluster = KindCluster(self.cluster_config, self.env_config)
@@ -36,7 +41,9 @@ class TestKindCluster(unittest.TestCase):
         mock_executor = MagicMock()
 
         # Create a new KindCluster with the mock executor
-        kind_cluster = KindCluster(self.cluster_config, self.env_config, executor=mock_executor)
+        kind_cluster = KindCluster(
+            self.cluster_config, self.env_config, executor=mock_executor
+        )
 
         # Mock the kind_client.get_clusters method
         kind_cluster.kind_client.get_clusters = MagicMock(return_value=["test-cluster"])
@@ -59,7 +66,9 @@ class TestKindCluster(unittest.TestCase):
         mock_executor = MagicMock()
 
         # Create a new KindCluster with the mock executor
-        kind_cluster = KindCluster(self.cluster_config, self.env_config, executor=mock_executor)
+        kind_cluster = KindCluster(
+            self.cluster_config, self.env_config, executor=mock_executor
+        )
 
         # Set up the docker_client.is_running method to fail first, then succeed
         docker_is_running_mock = MagicMock(side_effect=[False, True])
@@ -84,10 +93,9 @@ class TestKindCluster(unittest.TestCase):
         kind_cluster.wait_for_ready = MagicMock(return_value=True)
 
         # Mock time.sleep to avoid waiting
-        with patch('time.sleep') as mock_sleep, \
-             patch('os.path.join'), \
-             patch('kind_cluster_setup.utils.yaml_handler.dump_yaml'), \
-             patch('os.remove'):
+        with patch("time.sleep") as mock_sleep, patch("os.path.join"), patch(
+            "kind_cluster_setup.utils.yaml_handler.dump_yaml"
+        ), patch("os.remove"):
 
             # Call the create method
             kind_cluster.create()
@@ -103,8 +111,9 @@ class TestKindCluster(unittest.TestCase):
 
     def test_context_manager(self):
         """Test KindCluster as a context manager."""
-        with patch.object(KindCluster, 'create') as mock_create, \
-             patch.object(KindCluster, 'delete') as mock_delete:
+        with patch.object(KindCluster, "create") as mock_create, patch.object(
+            KindCluster, "delete"
+        ) as mock_delete:
 
             # Use KindCluster as a context manager
             with self.kind_cluster as cluster:
@@ -115,14 +124,14 @@ class TestKindCluster(unittest.TestCase):
             mock_create.assert_called_once()
             mock_delete.assert_called_once()
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_cluster_already_exists(self, mock_run):
         """Test that create() skips if cluster already exists."""
         # Mock that docker is running, kind is installed, and cluster exists
         mock_run.side_effect = [
             MagicMock(returncode=0),  # docker ps
             MagicMock(returncode=0),  # which kind
-            MagicMock(returncode=0, stdout="test-cluster")  # kind get clusters
+            MagicMock(returncode=0, stdout="test-cluster"),  # kind get clusters
         ]
 
         self.kind_cluster.create()
@@ -130,5 +139,6 @@ class TestKindCluster(unittest.TestCase):
         # Verify only the checks were performed, but no cluster creation
         self.assertEqual(mock_run.call_count, 3)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

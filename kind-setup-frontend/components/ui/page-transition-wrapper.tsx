@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-type TransitionEffect = 
+type TransitionEffect =
   | 'fade'
   | 'slide-up'
   | 'slide-down'
@@ -37,11 +37,11 @@ export function PageTransitionWrapper({
 }: PageTransitionWrapperProps) {
   const pathname = usePathname();
   const [renderKey, setRenderKey] = useState(pathname);
-  
+
   useEffect(() => {
     setRenderKey(pathname || '');
   }, [pathname]);
-  
+
   // Define animation variants based on the effect
   const getVariants = () => {
     switch (effect) {
@@ -107,28 +107,28 @@ export function PageTransitionWrapper({
         };
     }
   };
-  
+
   // If transitions are disabled, just render the children
   if (disabled) {
     return <>{children}</>;
   }
-  
+
   return (
-    <AnimatePresence 
+    <AnimatePresence
       mode={exitBeforeEnter ? 'wait' : 'sync'}
       onExitComplete={() => onAnimationComplete?.()}
     >
       <motion.div
         key={renderKey}
-        initial="initial"
-        animate="animate"
-        exit="exit"
+        initial='initial'
+        animate='animate'
+        exit='exit'
         variants={getVariants()}
-        transition={{ 
-          duration, 
-          ease: [0.22, 1, 0.36, 1] // Custom cubic-bezier for smooth transitions
+        transition={{
+          duration,
+          ease: [0.22, 1, 0.36, 1], // Custom cubic-bezier for smooth transitions
         }}
-        className={cn("w-full", className)}
+        className={cn('w-full', className)}
         onAnimationStart={() => onAnimationStart?.()}
         onAnimationComplete={() => onAnimationComplete?.()}
       >
@@ -150,8 +150,8 @@ export function withPageTransition<P extends object>(
       </PageTransitionWrapper>
     );
   };
-  
+
   WithPageTransition.displayName = `WithPageTransition(${Component.displayName || Component.name || 'Component'})`;
-  
+
   return WithPageTransition;
 }

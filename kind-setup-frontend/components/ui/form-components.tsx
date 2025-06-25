@@ -1,4 +1,4 @@
-"use client";
+'use client';
 'use client';
 
 import React from 'react';
@@ -6,7 +6,13 @@ import { ChevronDown, Check, AlertCircle, Info } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -16,7 +22,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Form,
   FormControl,
@@ -24,10 +30,10 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { cn } from '@/lib/utils';
 
 interface FormLabelProps {
@@ -41,15 +47,12 @@ export function FormLabel({
   htmlFor,
   children,
   required = false,
-  className = ''
+  className = '',
 }: FormLabelProps) {
   return (
-    <Label
-      htmlFor={htmlFor}
-      className={cn("mb-1.5", className)}
-    >
+    <Label htmlFor={htmlFor} className={cn('mb-1.5', className)}>
       {children}
-      {required && <span className="text-destructive ml-1">*</span>}
+      {required && <span className='text-destructive ml-1'>*</span>}
     </Label>
   );
 }
@@ -69,17 +72,20 @@ export function FormInput({
   ...props
 }: FormInputProps) {
   return (
-    <div className={cn("w-full", wrapperClassName)}>
+    <div className={cn('w-full', wrapperClassName)}>
       <Input
-        className={cn(error && "border-destructive focus-visible:ring-destructive", className)}
+        className={cn(
+          error && 'border-destructive focus-visible:ring-destructive',
+          className
+        )}
         {...props}
       />
       {hint && !error && (
-        <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
+        <p className='mt-1.5 text-xs text-muted-foreground'>{hint}</p>
       )}
       {error && (
-        <p className="mt-1.5 text-xs text-destructive flex items-center">
-          <AlertCircle className="w-3 h-3 mr-1" />
+        <p className='mt-1.5 text-xs text-destructive flex items-center'>
+          <AlertCircle className='w-3 h-3 mr-1' />
           {error}
         </p>
       )}
@@ -105,7 +111,7 @@ export function ValidatedFormInput<T extends z.ZodType>({
   label,
   placeholder,
   description,
-  type = "text",
+  type = 'text',
   required = false,
   className,
 }: ValidatedFormInputProps<T>) {
@@ -117,14 +123,10 @@ export function ValidatedFormInput<T extends z.ZodType>({
         <FormItem className={className}>
           <FormLabel>
             {label}
-            {required && <span className="text-destructive ml-1">*</span>}
+            {required && <span className='text-destructive ml-1'>*</span>}
           </FormLabel>
           <FormControl>
-            <Input
-              type={type}
-              placeholder={placeholder}
-              {...field}
-            />
+            <Input type={type} placeholder={placeholder} {...field} />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
@@ -134,7 +136,8 @@ export function ValidatedFormInput<T extends z.ZodType>({
   );
 }
 
-interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface FormTextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
   hint?: string;
   className?: string;
@@ -149,21 +152,21 @@ export function FormTextarea({
   ...props
 }: FormTextareaProps) {
   return (
-    <div className={cn("w-full", wrapperClassName)}>
+    <div className={cn('w-full', wrapperClassName)}>
       <Textarea
         className={cn(
-          "min-h-[100px]",
-          error && "border-destructive focus-visible:ring-destructive",
+          'min-h-[100px]',
+          error && 'border-destructive focus-visible:ring-destructive',
           className
         )}
         {...props}
       />
       {hint && !error && (
-        <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
+        <p className='mt-1.5 text-xs text-muted-foreground'>{hint}</p>
       )}
       {error && (
-        <p className="mt-1.5 text-xs text-destructive flex items-center">
-          <AlertCircle className="w-3 h-3 mr-1" />
+        <p className='mt-1.5 text-xs text-destructive flex items-center'>
+          <AlertCircle className='w-3 h-3 mr-1' />
           {error}
         </p>
       )}
@@ -199,12 +202,12 @@ export function ValidatedFormTextarea<T extends z.ZodType>({
         <FormItem className={className}>
           <FormLabel>
             {label}
-            {required && <span className="text-destructive ml-1">*</span>}
+            {required && <span className='text-destructive ml-1'>*</span>}
           </FormLabel>
           <FormControl>
             <Textarea
               placeholder={placeholder}
-              className="min-h-[100px]"
+              className='min-h-[100px]'
               {...field}
             />
           </FormControl>
@@ -215,8 +218,6 @@ export function ValidatedFormTextarea<T extends z.ZodType>({
     />
   );
 }
-
-
 
 interface FormSelectOption {
   value: string;
@@ -257,23 +258,19 @@ export function FormSelect({
   };
 
   return (
-    <div className={cn("w-full", wrapperClassName)}>
-      <Select
-        value={value}
-        onValueChange={handleChange}
-        disabled={disabled}
-      >
+    <div className={cn('w-full', wrapperClassName)}>
+      <Select value={value} onValueChange={handleChange} disabled={disabled}>
         <SelectTrigger
           id={id}
           className={cn(
-            error && "border-destructive focus-visible:ring-destructive",
+            error && 'border-destructive focus-visible:ring-destructive',
             className
           )}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {options.map((option) => (
+          {options.map(option => (
             <SelectItem
               key={option.value}
               value={option.value}
@@ -285,11 +282,11 @@ export function FormSelect({
         </SelectContent>
       </Select>
       {hint && !error && (
-        <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
+        <p className='mt-1.5 text-xs text-muted-foreground'>{hint}</p>
       )}
       {error && (
-        <p className="mt-1.5 text-xs text-destructive flex items-center">
-          <AlertCircle className="w-3 h-3 mr-1" />
+        <p className='mt-1.5 text-xs text-destructive flex items-center'>
+          <AlertCircle className='w-3 h-3 mr-1' />
           {error}
         </p>
       )}
@@ -327,7 +324,7 @@ export function ValidatedFormSelect<T extends z.ZodType>({
         <FormItem className={className}>
           <FormLabel>
             {label}
-            {required && <span className="text-destructive ml-1">*</span>}
+            {required && <span className='text-destructive ml-1'>*</span>}
           </FormLabel>
           <Select
             onValueChange={field.onChange}
@@ -340,7 +337,7 @@ export function ValidatedFormSelect<T extends z.ZodType>({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {options.map((option) => (
+              {options.map(option => (
                 <SelectItem
                   key={option.value}
                   value={option.value}
@@ -359,7 +356,11 @@ export function ValidatedFormSelect<T extends z.ZodType>({
   );
 }
 
-interface FormCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> {
+interface FormCheckboxProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    'type' | 'onChange'
+  > {
   label: React.ReactNode;
   error?: string;
   hint?: string;
@@ -384,28 +385,28 @@ export function FormCheckbox({
   };
 
   return (
-    <div className={cn("w-full", wrapperClassName)}>
-      <div className={cn("flex items-start", className)}>
+    <div className={cn('w-full', wrapperClassName)}>
+      <div className={cn('flex items-start', className)}>
         <Checkbox
           id={props.id}
           checked={props.checked}
           onCheckedChange={handleChange}
           disabled={props.disabled}
-          className="mt-1"
+          className='mt-1'
         />
         <label
           htmlFor={props.id}
-          className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+          className='ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer'
         >
           {label}
         </label>
       </div>
       {hint && !error && (
-        <p className="mt-1.5 text-xs text-muted-foreground pl-7">{hint}</p>
+        <p className='mt-1.5 text-xs text-muted-foreground pl-7'>{hint}</p>
       )}
       {error && (
-        <p className="mt-1.5 text-xs text-destructive flex items-center pl-7">
-          <AlertCircle className="w-3 h-3 mr-1" />
+        <p className='mt-1.5 text-xs text-destructive flex items-center pl-7'>
+          <AlertCircle className='w-3 h-3 mr-1' />
           {error}
         </p>
       )}
@@ -434,22 +435,20 @@ export function ValidatedFormCheckbox<T extends z.ZodType>({
       control={form.control}
       name={name as any}
       render={({ field }) => (
-        <FormItem className={cn("flex flex-row items-start space-x-3 space-y-0 rounded-md p-4", className)}>
+        <FormItem
+          className={cn(
+            'flex flex-row items-start space-x-3 space-y-0 rounded-md p-4',
+            className
+          )}
+        >
           <FormControl>
-            <Checkbox
-              checked={field.value}
-              onCheckedChange={field.onChange}
-            />
+            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
           </FormControl>
-          <div className="space-y-1 leading-none">
-            <FormLabel className="text-sm font-medium leading-none">
+          <div className='space-y-1 leading-none'>
+            <FormLabel className='text-sm font-medium leading-none'>
               {label}
             </FormLabel>
-            {description && (
-              <FormDescription>
-                {description}
-              </FormDescription>
-            )}
+            {description && <FormDescription>{description}</FormDescription>}
             <FormMessage />
           </div>
         </FormItem>
@@ -464,7 +463,11 @@ interface FormRadioOption {
   disabled?: boolean;
 }
 
-interface FormRadioGroupProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> {
+interface FormRadioGroupProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    'type' | 'onChange'
+  > {
   options: FormRadioOption[];
   error?: string;
   hint?: string;
@@ -491,15 +494,15 @@ export function FormRadioGroup({
   };
 
   return (
-    <div className={cn("w-full", wrapperClassName)}>
+    <div className={cn('w-full', wrapperClassName)}>
       <RadioGroup
         value={value}
         onValueChange={handleChange}
-        className={cn("space-y-2", className)}
+        className={cn('space-y-2', className)}
         disabled={props.disabled}
       >
-        {options.map((option) => (
-          <div key={option.value} className="flex items-center space-x-2">
+        {options.map(option => (
+          <div key={option.value} className='flex items-center space-x-2'>
             <RadioGroupItem
               value={option.value}
               id={`radio-${option.value}`}
@@ -507,7 +510,7 @@ export function FormRadioGroup({
             />
             <label
               htmlFor={`radio-${option.value}`}
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer'
             >
               {option.label}
             </label>
@@ -515,11 +518,11 @@ export function FormRadioGroup({
         ))}
       </RadioGroup>
       {hint && !error && (
-        <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
+        <p className='mt-1.5 text-xs text-muted-foreground'>{hint}</p>
       )}
       {error && (
-        <p className="mt-1.5 text-xs text-destructive flex items-center">
-          <AlertCircle className="w-3 h-3 mr-1" />
+        <p className='mt-1.5 text-xs text-destructive flex items-center'>
+          <AlertCircle className='w-3 h-3 mr-1' />
           {error}
         </p>
       )}
@@ -555,17 +558,17 @@ export function ValidatedFormRadioGroup<T extends z.ZodType>({
         <FormItem className={className}>
           <FormLabel>
             {label}
-            {required && <span className="text-destructive ml-1">*</span>}
+            {required && <span className='text-destructive ml-1'>*</span>}
           </FormLabel>
           <FormControl>
             <RadioGroup
               onValueChange={field.onChange}
               defaultValue={field.value}
               value={field.value}
-              className="space-y-2"
+              className='space-y-2'
             >
-              {options.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2">
+              {options.map(option => (
+                <div key={option.value} className='flex items-center space-x-2'>
                   <RadioGroupItem
                     value={option.value}
                     id={`${name}-${option.value}`}
@@ -573,7 +576,7 @@ export function ValidatedFormRadioGroup<T extends z.ZodType>({
                   />
                   <label
                     htmlFor={`${name}-${option.value}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer'
                   >
                     {option.label}
                   </label>
@@ -595,11 +598,7 @@ interface FormGroupProps {
 }
 
 export function FormGroup({ children, className = '' }: FormGroupProps) {
-  return (
-    <div className={cn("space-y-4", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn('space-y-4', className)}>{children}</div>;
 }
 
 interface FormSectionProps {
@@ -613,7 +612,7 @@ export function FormSection({
   children,
   title,
   description,
-  className = ''
+  className = '',
 }: FormSectionProps) {
   return (
     <Card className={className}>
@@ -623,9 +622,7 @@ export function FormSection({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
       )}
-      <CardContent className="space-y-6">
-        {children}
-      </CardContent>
+      <CardContent className='space-y-6'>{children}</CardContent>
     </Card>
   );
 }
@@ -637,12 +634,10 @@ interface FormInfoProps {
 
 export function FormInfo({ children, className = '' }: FormInfoProps) {
   return (
-    <Alert className={cn("bg-muted/50", className)}>
-      <Info className="h-4 w-4" />
+    <Alert className={cn('bg-muted/50', className)}>
+      <Info className='h-4 w-4' />
       <AlertTitle>Information</AlertTitle>
-      <AlertDescription>
-        {children}
-      </AlertDescription>
+      <AlertDescription>{children}</AlertDescription>
     </Alert>
   );
 }
@@ -681,7 +676,10 @@ export function ValidatedForm<T extends z.ZodType>({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-6", className)}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn('space-y-6', className)}
+      >
         {childrenWithProps}
         {submitButton}
       </form>

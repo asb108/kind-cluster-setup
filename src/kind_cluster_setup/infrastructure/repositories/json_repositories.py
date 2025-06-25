@@ -5,22 +5,23 @@ This module provides JSON file-based implementations of the repository
 interfaces defined in kind_cluster_setup.domain.repositories.
 """
 
-import os
 import json
-from typing import Dict, List, Optional, Any, Type, TypeVar, cast
+import os
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
 from kind_cluster_setup.core.repository import FileRepository
-from kind_cluster_setup.domain.entities import Cluster, Task, Application, User
-from kind_cluster_setup.domain.repositories import (
-    ClusterRepository, TaskRepository, ApplicationRepository, UserRepository
-)
+from kind_cluster_setup.domain.entities import Application, Cluster, Task, User
+from kind_cluster_setup.domain.repositories import (ApplicationRepository,
+                                                    ClusterRepository,
+                                                    TaskRepository,
+                                                    UserRepository)
 from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 # Type variable for entity classes
-E = TypeVar('E', Cluster, Task, Application, User)
+E = TypeVar("E", Cluster, Task, Application, User)
 
 
 class JsonFileRepository(FileRepository[E]):
@@ -44,21 +45,27 @@ class JsonFileRepository(FileRepository[E]):
     def _load_entities(self) -> None:
         """Load entities from the JSON file."""
         if not os.path.exists(self.file_path):
-            logger.info(f"File {self.file_path} does not exist, creating empty repository")
+            logger.info(
+                f"File {self.file_path} does not exist, creating empty repository"
+            )
             self._entities = {}
             return
 
         try:
-            with open(self.file_path, 'r') as f:
+            with open(self.file_path, "r") as f:
                 data = json.load(f)
 
             self._entities = {}
             for entity_dict in data:
                 # Convert string dates to datetime objects
-                if 'created_at' in entity_dict:
-                    entity_dict['created_at'] = datetime.fromisoformat(entity_dict['created_at'])
-                if 'updated_at' in entity_dict:
-                    entity_dict['updated_at'] = datetime.fromisoformat(entity_dict['updated_at'])
+                if "created_at" in entity_dict:
+                    entity_dict["created_at"] = datetime.fromisoformat(
+                        entity_dict["created_at"]
+                    )
+                if "updated_at" in entity_dict:
+                    entity_dict["updated_at"] = datetime.fromisoformat(
+                        entity_dict["updated_at"]
+                    )
 
                 # Create entity instance
                 entity = self.entity_class(**entity_dict)
@@ -81,15 +88,15 @@ class JsonFileRepository(FileRepository[E]):
                 entity_dict = entity.__dict__.copy()
 
                 # Convert datetime objects to ISO format strings
-                if 'created_at' in entity_dict:
-                    entity_dict['created_at'] = entity_dict['created_at'].isoformat()
-                if 'updated_at' in entity_dict:
-                    entity_dict['updated_at'] = entity_dict['updated_at'].isoformat()
+                if "created_at" in entity_dict:
+                    entity_dict["created_at"] = entity_dict["created_at"].isoformat()
+                if "updated_at" in entity_dict:
+                    entity_dict["updated_at"] = entity_dict["updated_at"].isoformat()
 
                 entity_dicts.append(entity_dict)
 
             # Write to file
-            with open(self.file_path, 'w') as f:
+            with open(self.file_path, "w") as f:
                 json.dump(entity_dicts, f, indent=2)
 
             logger.info(f"Saved {len(self._entities)} entities to {self.file_path}")
@@ -149,7 +156,8 @@ class JsonClusterRepository(JsonFileRepository[Cluster], ClusterRepository):
             A list of clusters in the specified environment
         """
         return [
-            cluster for cluster in self._entities.values()
+            cluster
+            for cluster in self._entities.values()
             if cluster.environment == environment
         ]
 
@@ -164,8 +172,7 @@ class JsonClusterRepository(JsonFileRepository[Cluster], ClusterRepository):
             A list of clusters with the specified status
         """
         return [
-            cluster for cluster in self._entities.values()
-            if cluster.status == status
+            cluster for cluster in self._entities.values() if cluster.status == status
         ]
 
 
@@ -192,8 +199,7 @@ class JsonTaskRepository(JsonFileRepository[Task], TaskRepository):
             A list of tasks associated with the specified cluster
         """
         return [
-            task for task in self._entities.values()
-            if task.cluster_id == cluster_id
+            task for task in self._entities.values() if task.cluster_id == cluster_id
         ]
 
     def find_by_status(self, status: str) -> List[Task]:
@@ -206,10 +212,7 @@ class JsonTaskRepository(JsonFileRepository[Task], TaskRepository):
         Returns:
             A list of tasks with the specified status
         """
-        return [
-            task for task in self._entities.values()
-            if task.status == status
-        ]
+        return [task for task in self._entities.values() if task.status == status]
 
     def find_pending_tasks(self) -> List[Task]:
         """
@@ -218,7 +221,7 @@ class JsonTaskRepository(JsonFileRepository[Task], TaskRepository):
         Returns:
             A list of tasks with status 'pending'
         """
-        return self.find_by_status('pending')
+        return self.find_by_status("pending")
 
 
 class JsonApplicationRepository(JsonFileRepository[Application], ApplicationRepository):
@@ -243,10 +246,7 @@ class JsonApplicationRepository(JsonFileRepository[Application], ApplicationRepo
         Returns:
             A list of applications deployed on the specified cluster
         """
-        return [
-            app for app in self._entities.values()
-            if app.cluster_id == cluster_id
-        ]
+        return [app for app in self._entities.values() if app.cluster_id == cluster_id]
 
     def find_by_name(self, name: str) -> Optional[Application]:
         """
@@ -273,10 +273,7 @@ class JsonApplicationRepository(JsonFileRepository[Application], ApplicationRepo
         Returns:
             A list of applications with the specified status
         """
-        return [
-            app for app in self._entities.values()
-            if app.status == status
-        ]
+        return [app for app in self._entities.values() if app.status == status]
 
 
 class JsonUserRepository(JsonFileRepository[User], UserRepository):
@@ -331,7 +328,4 @@ class JsonUserRepository(JsonFileRepository[User], UserRepository):
         Returns:
             A list of users with the specified role
         """
-        return [
-            user for user in self._entities.values()
-            if user.role == role
-        ]
+        return [user for user in self._entities.values() if user.role == role]

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { ChevronRight, Home } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { getBreadcrumbs } from "../Sidebar";
+import * as React from 'react';
+import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ChevronRight, Home } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { getBreadcrumbs } from '../Sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,7 +13,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from '@/components/ui/breadcrumb';
 
 interface PageHeaderProps {
   title: string;
@@ -34,17 +34,17 @@ export function PageHeader({
   const breadcrumbs = getBreadcrumbs(pathname || '');
 
   return (
-    <div className={cn("mb-8 space-y-4", className)}>
+    <div className={cn('mb-8 space-y-4', className)}>
       {showBreadcrumbs && breadcrumbs.length > 1 && (
-        <Breadcrumb className="mb-4">
+        <Breadcrumb className='mb-4'>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/">
-                <Home className="h-3.5 w-3.5" />
-                <span className="sr-only">Home</span>
+              <BreadcrumbLink href='/'>
+                <Home className='h-3.5 w-3.5' />
+                <span className='sr-only'>Home</span>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            {breadcrumbs.slice(1, -1).map((crumb) => (
+            {breadcrumbs.slice(1, -1).map(crumb => (
               <BreadcrumbItem key={crumb.href}>
                 <BreadcrumbSeparator />
                 <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
@@ -62,17 +62,17 @@ export function PageHeader({
         </Breadcrumb>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-primary-gradient">
+          <h1 className='text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-primary-gradient'>
             {title}
           </h1>
           {description && (
-            <p className="text-muted-foreground mt-1">{description}</p>
+            <p className='text-muted-foreground mt-1'>{description}</p>
           )}
         </motion.div>
         {actions && (
@@ -80,7 +80,7 @@ export function PageHeader({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="flex items-center gap-3"
+            className='flex items-center gap-3'
           >
             {actions}
           </motion.div>

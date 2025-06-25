@@ -63,9 +63,12 @@
   /* Enhanced shadows with color tints */
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
-  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-medium:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-heavy:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-elevated:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   /* Colored shadows */
   --shadow-primary: 0 4px 14px rgba(123, 58, 255, 0.25);
@@ -75,16 +78,52 @@
   --shadow-glow: 0 0 15px rgba(123, 58, 255, 0.5);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, hsl(267, 70%, 62%), hsl(267, 70%, 50%));
-  --gradient-primary-soft: linear-gradient(135deg, hsl(267, 70%, 70%), hsl(267, 70%, 55%));
-  --gradient-secondary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(217, 91%, 50%));
-  --gradient-tertiary: linear-gradient(135deg, hsl(187, 100%, 50%), hsl(187, 100%, 40%));
-  --gradient-success: linear-gradient(135deg, hsl(142, 76%, 45%), hsl(142, 76%, 35%));
-  --gradient-warning: linear-gradient(135deg, hsl(38, 92%, 60%), hsl(38, 92%, 50%));
+  --gradient-primary: linear-gradient(
+    135deg,
+    hsl(267, 70%, 62%),
+    hsl(267, 70%, 50%)
+  );
+  --gradient-primary-soft: linear-gradient(
+    135deg,
+    hsl(267, 70%, 70%),
+    hsl(267, 70%, 55%)
+  );
+  --gradient-secondary: linear-gradient(
+    135deg,
+    hsl(217, 91%, 60%),
+    hsl(217, 91%, 50%)
+  );
+  --gradient-tertiary: linear-gradient(
+    135deg,
+    hsl(187, 100%, 50%),
+    hsl(187, 100%, 40%)
+  );
+  --gradient-success: linear-gradient(
+    135deg,
+    hsl(142, 76%, 45%),
+    hsl(142, 76%, 35%)
+  );
+  --gradient-warning: linear-gradient(
+    135deg,
+    hsl(38, 92%, 60%),
+    hsl(38, 92%, 50%)
+  );
   --gradient-error: linear-gradient(135deg, hsl(0, 84%, 65%), hsl(0, 84%, 55%));
-  --gradient-purple-blue: linear-gradient(135deg, hsl(267, 70%, 62%), hsl(217, 91%, 60%));
-  --gradient-blue-teal: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(187, 100%, 43%));
-  --gradient-teal-green: linear-gradient(135deg, hsl(187, 100%, 43%), hsl(142, 76%, 36%));
+  --gradient-purple-blue: linear-gradient(
+    135deg,
+    hsl(267, 70%, 62%),
+    hsl(217, 91%, 60%)
+  );
+  --gradient-blue-teal: linear-gradient(
+    135deg,
+    hsl(217, 91%, 60%),
+    hsl(187, 100%, 43%)
+  );
+  --gradient-teal-green: linear-gradient(
+    135deg,
+    hsl(187, 100%, 43%),
+    hsl(142, 76%, 36%)
+  );
 
   /* Chart colors */
   --chart-1: 267 70 62; /* #7B3AFF */
@@ -159,9 +198,12 @@
   /* Enhanced shadows for dark mode */
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --shadow-medium:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-heavy:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-elevated:
+    0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 
   /* Colored shadows for dark mode */
   --shadow-primary: 0 4px 14px rgba(131, 71, 255, 0.35);
@@ -171,16 +213,52 @@
   --shadow-glow: 0 0 15px rgba(131, 71, 255, 0.6);
 
   /* Gradients for dark mode */
-  --gradient-primary: linear-gradient(135deg, hsl(267, 70%, 65%), hsl(267, 70%, 55%));
-  --gradient-primary-soft: linear-gradient(135deg, hsl(267, 70%, 75%), hsl(267, 70%, 60%));
-  --gradient-secondary: linear-gradient(135deg, hsl(217, 91%, 65%), hsl(217, 91%, 55%));
-  --gradient-tertiary: linear-gradient(135deg, hsl(187, 100%, 55%), hsl(187, 100%, 45%));
-  --gradient-success: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
-  --gradient-warning: linear-gradient(135deg, hsl(38, 92%, 65%), hsl(38, 92%, 55%));
+  --gradient-primary: linear-gradient(
+    135deg,
+    hsl(267, 70%, 65%),
+    hsl(267, 70%, 55%)
+  );
+  --gradient-primary-soft: linear-gradient(
+    135deg,
+    hsl(267, 70%, 75%),
+    hsl(267, 70%, 60%)
+  );
+  --gradient-secondary: linear-gradient(
+    135deg,
+    hsl(217, 91%, 65%),
+    hsl(217, 91%, 55%)
+  );
+  --gradient-tertiary: linear-gradient(
+    135deg,
+    hsl(187, 100%, 55%),
+    hsl(187, 100%, 45%)
+  );
+  --gradient-success: linear-gradient(
+    135deg,
+    hsl(142, 76%, 50%),
+    hsl(142, 76%, 40%)
+  );
+  --gradient-warning: linear-gradient(
+    135deg,
+    hsl(38, 92%, 65%),
+    hsl(38, 92%, 55%)
+  );
   --gradient-error: linear-gradient(135deg, hsl(0, 84%, 70%), hsl(0, 84%, 60%));
-  --gradient-purple-blue: linear-gradient(135deg, hsl(267, 70%, 65%), hsl(217, 91%, 65%));
-  --gradient-blue-teal: linear-gradient(135deg, hsl(217, 91%, 65%), hsl(187, 100%, 48%));
-  --gradient-teal-green: linear-gradient(135deg, hsl(187, 100%, 48%), hsl(142, 76%, 40%));
+  --gradient-purple-blue: linear-gradient(
+    135deg,
+    hsl(267, 70%, 65%),
+    hsl(217, 91%, 65%)
+  );
+  --gradient-blue-teal: linear-gradient(
+    135deg,
+    hsl(217, 91%, 65%),
+    hsl(187, 100%, 48%)
+  );
+  --gradient-teal-green: linear-gradient(
+    135deg,
+    hsl(187, 100%, 48%),
+    hsl(142, 76%, 40%)
+  );
 
   /* Chart colors - slightly brighter for dark mode */
   --chart-1: 267 80 70; /* #9D6FFF */
@@ -196,7 +274,8 @@
     @apply border-border;
   }
 
-  html, body {
+  html,
+  body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -204,13 +283,25 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   /* Typography */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
     @apply text-primary;
   }
@@ -295,7 +386,9 @@
   }
 
   /* Form elements */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     @apply bg-background border border-input rounded-md px-3 py-2 text-foreground;
     @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
@@ -351,7 +444,7 @@
   .btn-loading::before {
     @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4
            border-2 border-t-transparent rounded-full animate-spin;
-    content: "";
+    content: '';
   }
 
   /* Card styles with enhanced visual effects */
@@ -361,7 +454,12 @@
   }
 
   /* Improved text contrast for card content */
-  .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+  .card h1,
+  .card h2,
+  .card h3,
+  .card h4,
+  .card h5,
+  .card h6 {
     @apply text-foreground font-bold;
   }
 
@@ -395,7 +493,7 @@
   }
 
   .card-gradient::before {
-    content: "";
+    content: '';
     @apply absolute inset-0 rounded-lg p-[1px] bg-gradient-to-r from-primary/40 to-secondary/40 -z-10;
     margin: -1px;
   }
@@ -415,7 +513,7 @@
   }
 
   .nav-item::before {
-    content: "";
+    content: '';
     @apply absolute left-0 bottom-0 h-[2px] w-0 bg-primary
            transition-all duration-300 ease-out;
   }
@@ -516,8 +614,12 @@
   }
 
   @keyframes progress-bar-stripes {
-    from { background-position: 1rem 0; }
-    to { background-position: 0 0; }
+    from {
+      background-position: 1rem 0;
+    }
+    to {
+      background-position: 0 0;
+    }
   }
 
   /* Stats card with enhanced visual effects */
@@ -549,19 +651,28 @@
   .dashboard-card {
     @apply relative overflow-hidden rounded-xl border-0 shadow-lg
            transition-all duration-300 ease-in-out;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
 
   /* Card hover effects */
   .dashboard-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 
   /* Add subtle pulse animation to value */
   @keyframes subtle-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
   }
 
   .dashboard-card h3 {
@@ -751,7 +862,7 @@
 
   /* Add a decorative accent to cards */
   .dashboard-card::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
@@ -777,7 +888,7 @@
 
   /* Add subtle pattern overlay */
   .dashboard-card::after {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
@@ -790,13 +901,17 @@
 
   /* Stats card bottom border */
   .stats-card::after {
-    content: "";
+    content: '';
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(to right, rgba(var(--primary-rgb), 0.6), rgba(var(--secondary-rgb), 0.6));
+    background: linear-gradient(
+      to right,
+      rgba(var(--primary-rgb), 0.6),
+      rgba(var(--secondary-rgb), 0.6)
+    );
     opacity: 0;
     transition: opacity 0.3s ease-out;
   }
@@ -898,7 +1013,7 @@
   }
 
   .gradient-border::before {
-    content: "";
+    content: '';
     @apply absolute inset-0 rounded-lg p-[1px] bg-gradient-to-r from-primary/60 to-secondary/60 -z-10;
     margin: -1px;
   }
@@ -908,7 +1023,7 @@
   }
 
   .gradient-border-primary::before {
-    content: "";
+    content: '';
     @apply absolute inset-0 rounded-lg p-[1px] bg-gradient-to-r from-primary/60 to-primary-dark/60 -z-10;
     margin: -1px;
   }
@@ -918,7 +1033,7 @@
   }
 
   .gradient-border-secondary::before {
-    content: "";
+    content: '';
     @apply absolute inset-0 rounded-lg p-[1px] bg-gradient-to-r from-secondary/60 to-secondary-dark/60 -z-10;
     margin: -1px;
   }
@@ -970,7 +1085,8 @@
   }
 
   @keyframes bounce-subtle {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
     }
     50% {
@@ -983,7 +1099,8 @@
   }
 
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
     }
     50% {
@@ -1025,7 +1142,7 @@
   }
 
   .status-dot::after {
-    content: "";
+    content: '';
     @apply absolute inset-0 rounded-full animate-ping opacity-75;
     animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
@@ -1126,7 +1243,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -1176,11 +1294,27 @@
   opacity: 0;
 }
 
-.staggered-item:nth-child(1) { animation: fadeIn 0.3s ease-in-out 0.1s forwards; }
-.staggered-item:nth-child(2) { animation: fadeIn 0.3s ease-in-out 0.2s forwards; }
-.staggered-item:nth-child(3) { animation: fadeIn 0.3s ease-in-out 0.3s forwards; }
-.staggered-item:nth-child(4) { animation: fadeIn 0.3s ease-in-out 0.4s forwards; }
-.staggered-item:nth-child(5) { animation: fadeIn 0.3s ease-in-out 0.5s forwards; }
-.staggered-item:nth-child(6) { animation: fadeIn 0.3s ease-in-out 0.6s forwards; }
-.staggered-item:nth-child(7) { animation: fadeIn 0.3s ease-in-out 0.7s forwards; }
-.staggered-item:nth-child(8) { animation: fadeIn 0.3s ease-in-out 0.8s forwards; }
+.staggered-item:nth-child(1) {
+  animation: fadeIn 0.3s ease-in-out 0.1s forwards;
+}
+.staggered-item:nth-child(2) {
+  animation: fadeIn 0.3s ease-in-out 0.2s forwards;
+}
+.staggered-item:nth-child(3) {
+  animation: fadeIn 0.3s ease-in-out 0.3s forwards;
+}
+.staggered-item:nth-child(4) {
+  animation: fadeIn 0.3s ease-in-out 0.4s forwards;
+}
+.staggered-item:nth-child(5) {
+  animation: fadeIn 0.3s ease-in-out 0.5s forwards;
+}
+.staggered-item:nth-child(6) {
+  animation: fadeIn 0.3s ease-in-out 0.6s forwards;
+}
+.staggered-item:nth-child(7) {
+  animation: fadeIn 0.3s ease-in-out 0.7s forwards;
+}
+.staggered-item:nth-child(8) {
+  animation: fadeIn 0.3s ease-in-out 0.8s forwards;
+}

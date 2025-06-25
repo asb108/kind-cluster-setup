@@ -6,16 +6,21 @@ This module contains tests for the core abstractions in the kind_cluster_setup.c
 
 import os
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from kind_cluster_setup.core.command import CommandResult, SubprocessCommandExecutor, MockCommandExecutor
+from kind_cluster_setup.core.cluster import (Cluster, ClusterConfig,
+                                             ClusterManager, EnvironmentConfig)
+from kind_cluster_setup.core.command import (CommandResult,
+                                             MockCommandExecutor,
+                                             SubprocessCommandExecutor)
+from kind_cluster_setup.core.deployment import (DeploymentStrategyFactory,
+                                                HelmDeploymentStrategy,
+                                                KubectlDeploymentStrategy)
 from kind_cluster_setup.core.docker import DockerClient
+from kind_cluster_setup.core.factory import ClientFactory, create_mock_factory
+from kind_cluster_setup.core.helm import HelmClient
 from kind_cluster_setup.core.kind import KindClient
 from kind_cluster_setup.core.kubernetes import KubectlClient
-from kind_cluster_setup.core.helm import HelmClient
-from kind_cluster_setup.core.cluster import ClusterManager, ClusterConfig, EnvironmentConfig, Cluster
-from kind_cluster_setup.core.deployment import DeploymentStrategyFactory, KubectlDeploymentStrategy, HelmDeploymentStrategy
-from kind_cluster_setup.core.factory import ClientFactory, create_mock_factory
 
 
 class TestCommandExecutor(unittest.TestCase):
@@ -29,12 +34,12 @@ class TestCommandExecutor(unittest.TestCase):
         # Add mock results
         mock_executor.add_mock_result(
             "docker ps",
-            CommandResult(returncode=0, stdout="CONTAINER ID\n123456789", stderr="")
+            CommandResult(returncode=0, stdout="CONTAINER ID\n123456789", stderr=""),
         )
 
         mock_executor.add_mock_result(
             "kind get clusters",
-            CommandResult(returncode=0, stdout="test-cluster", stderr="")
+            CommandResult(returncode=0, stdout="test-cluster", stderr=""),
         )
 
         # Execute commands and check results
@@ -48,8 +53,12 @@ class TestCommandExecutor(unittest.TestCase):
 
         # Check that executed commands were recorded
         self.assertEqual(len(mock_executor.executed_commands), 2)
-        self.assertEqual(mock_executor.executed_commands[0]['command'], ["docker", "ps"])
-        self.assertEqual(mock_executor.executed_commands[1]['command'], ["kind", "get", "clusters"])
+        self.assertEqual(
+            mock_executor.executed_commands[0]["command"], ["docker", "ps"]
+        )
+        self.assertEqual(
+            mock_executor.executed_commands[1]["command"], ["kind", "get", "clusters"]
+        )
 
 
 class TestDockerClient(unittest.TestCase):
@@ -63,12 +72,15 @@ class TestDockerClient(unittest.TestCase):
         # Add mock results
         mock_executor.add_mock_result(
             "docker ps",
-            CommandResult(returncode=0, stdout='[{"ID":"123456789","Names":"test-container"}]', stderr="")
+            CommandResult(
+                returncode=0,
+                stdout='[{"ID":"123456789","Names":"test-container"}]',
+                stderr="",
+            ),
         )
 
         mock_executor.add_mock_result(
-            "docker update",
-            CommandResult(returncode=0, stdout="", stderr="")
+            "docker update", CommandResult(returncode=0, stdout="", stderr="")
         )
 
         # Create a docker client with the mock executor
@@ -80,14 +92,14 @@ class TestDockerClient(unittest.TestCase):
         # Test get_containers
         containers = docker_client.get_containers()
         self.assertEqual(len(containers), 1)
-        self.assertEqual(containers[0]['ID'], "123456789")
+        self.assertEqual(containers[0]["ID"], "123456789")
 
         # Test update_container
         result = docker_client.update_container(
             container_id="test-container",
             cpu_limit="1",
             memory_limit="2g",
-            memory_swap="4g"
+            memory_swap="4g",
         )
         self.assertTrue(result.success)
 
@@ -103,17 +115,19 @@ class TestKindClient(unittest.TestCase):
         # Add mock results
         mock_executor.add_mock_result(
             "kind version",
-            CommandResult(returncode=0, stdout="kind v0.20.0", stderr="")
+            CommandResult(returncode=0, stdout="kind v0.20.0", stderr=""),
         )
 
         mock_executor.add_mock_result(
             "kind get clusters",
-            CommandResult(returncode=0, stdout="test-cluster\nother-cluster", stderr="")
+            CommandResult(
+                returncode=0, stdout="test-cluster\nother-cluster", stderr=""
+            ),
         )
 
         mock_executor.add_mock_result(
             "kind create cluster",
-            CommandResult(returncode=0, stdout="Creating cluster...\nDone!", stderr="")
+            CommandResult(returncode=0, stdout="Creating cluster...\nDone!", stderr=""),
         )
 
         # Create a kind client with the mock executor
@@ -145,18 +159,30 @@ class TestKubectlClient(unittest.TestCase):
         # Add mock results
         mock_executor.add_mock_result(
             "kubectl get nodes",
-            CommandResult(returncode=0, stdout='{"items":[{"metadata":{"name":"node1"}}]}', stderr="")
+            CommandResult(
+                returncode=0,
+                stdout='{"items":[{"metadata":{"name":"node1"}}]}',
+                stderr="",
+            ),
         )
 
         mock_executor.add_mock_result(
             "kubectl get pods",
-            CommandResult(returncode=0, stdout='{"items":[{"metadata":{"name":"pod1"}}]}', stderr="")
+            CommandResult(
+                returncode=0,
+                stdout='{"items":[{"metadata":{"name":"pod1"}}]}',
+                stderr="",
+            ),
         )
 
         # Add the missing mock result for the 'kubectl --namespace default get pods -o json' command
         mock_executor.add_mock_result(
             "kubectl --namespace default get pods -o json",
-            CommandResult(returncode=0, stdout='{"items":[{"metadata":{"name":"pod1"}}]}', stderr="")
+            CommandResult(
+                returncode=0,
+                stdout='{"items":[{"metadata":{"name":"pod1"}}]}',
+                stderr="",
+            ),
         )
 
         # Create a kubectl client with the mock executor
@@ -165,12 +191,12 @@ class TestKubectlClient(unittest.TestCase):
         # Test get_nodes
         nodes = kubectl_client.get_nodes()
         self.assertEqual(len(nodes), 1)
-        self.assertEqual(nodes[0]['metadata']['name'], "node1")
+        self.assertEqual(nodes[0]["metadata"]["name"], "node1")
 
         # Test get_pods
         pods = kubectl_client.get_pods(namespace="default")
         self.assertEqual(len(pods), 1)
-        self.assertEqual(pods[0]['metadata']['name'], "pod1")
+        self.assertEqual(pods[0]["metadata"]["name"], "pod1")
 
 
 class TestHelmClient(unittest.TestCase):
@@ -183,13 +209,16 @@ class TestHelmClient(unittest.TestCase):
 
         # Add mock results
         mock_executor.add_mock_result(
-            "helm version",
-            CommandResult(returncode=0, stdout="v3.12.0", stderr="")
+            "helm version", CommandResult(returncode=0, stdout="v3.12.0", stderr="")
         )
 
         mock_executor.add_mock_result(
             "helm list",
-            CommandResult(returncode=0, stdout='[{"name":"release1","namespace":"default"}]', stderr="")
+            CommandResult(
+                returncode=0,
+                stdout='[{"name":"release1","namespace":"default"}]',
+                stderr="",
+            ),
         )
 
         # Create a helm client with the mock executor
@@ -201,7 +230,7 @@ class TestHelmClient(unittest.TestCase):
         # Test list_releases
         releases = helm_client.list_releases()
         self.assertEqual(len(releases), 1)
-        self.assertEqual(releases[0]['name'], "release1")
+        self.assertEqual(releases[0]["name"], "release1")
 
 
 class TestClusterManager(unittest.TestCase):
@@ -215,43 +244,39 @@ class TestClusterManager(unittest.TestCase):
         # Add mock results
         mock_executor.add_mock_result(
             "docker ps",
-            CommandResult(returncode=0, stdout="CONTAINER ID\n123456789", stderr="")
+            CommandResult(returncode=0, stdout="CONTAINER ID\n123456789", stderr=""),
         )
 
         mock_executor.add_mock_result(
             "kind version",
-            CommandResult(returncode=0, stdout="kind v0.20.0", stderr="")
+            CommandResult(returncode=0, stdout="kind v0.20.0", stderr=""),
         )
 
         mock_executor.add_mock_result(
-            "kind get clusters",
-            CommandResult(returncode=0, stdout="", stderr="")
+            "kind get clusters", CommandResult(returncode=0, stdout="", stderr="")
         )
 
         mock_executor.add_mock_result(
             "kind create cluster",
-            CommandResult(returncode=0, stdout="Creating cluster...\nDone!", stderr="")
+            CommandResult(returncode=0, stdout="Creating cluster...\nDone!", stderr=""),
         )
 
         # Create a cluster manager with the mock executor
         cluster_manager = ClusterManager(mock_executor)
 
         # Mock the KindClient.is_installed method to return True
-        with patch('kind_cluster_setup.core.kind.KindClient.is_installed', return_value=True):
+        with patch(
+            "kind_cluster_setup.core.kind.KindClient.is_installed", return_value=True
+        ):
             # Test create_cluster
             cluster_config = ClusterConfig(
-                name="test-cluster",
-                worker_nodes=1,
-                apply_resource_limits=True
+                name="test-cluster", worker_nodes=1, apply_resource_limits=True
             )
 
-            env_config = EnvironmentConfig(
-                environment="dev",
-                namespace="default"
-            )
+            env_config = EnvironmentConfig(environment="dev", namespace="default")
 
             # Mock the _apply_resource_limits method to avoid Docker API calls
-            with patch.object(ClusterManager, '_apply_resource_limits'):
+            with patch.object(ClusterManager, "_apply_resource_limits"):
                 cluster = cluster_manager.create_cluster(cluster_config, env_config)
 
                 self.assertEqual(cluster.name, "test-cluster")
@@ -270,12 +295,12 @@ class TestDeploymentStrategy(unittest.TestCase):
         factory = DeploymentStrategyFactory(mock_executor)
 
         # Register strategies
-        factory.register_strategy('kubectl', KubectlDeploymentStrategy)
-        factory.register_strategy('helm', HelmDeploymentStrategy)
+        factory.register_strategy("kubectl", KubectlDeploymentStrategy)
+        factory.register_strategy("helm", HelmDeploymentStrategy)
 
         # Create strategies
-        kubectl_strategy = factory.create_strategy('kubectl')
-        helm_strategy = factory.create_strategy('helm')
+        kubectl_strategy = factory.create_strategy("kubectl")
+        helm_strategy = factory.create_strategy("helm")
 
         # Check types
         self.assertIsInstance(kubectl_strategy, KubectlDeploymentStrategy)
@@ -324,5 +349,5 @@ class TestClientFactory(unittest.TestCase):
         self.assertIsInstance(factory.executor, MockCommandExecutor)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

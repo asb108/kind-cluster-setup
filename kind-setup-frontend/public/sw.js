@@ -12,10 +12,11 @@ const PRECACHE_ASSETS = [
 ];
 
 // Install event - precache assets
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
+    caches
+      .open(CACHE_NAME)
+      .then(cache => {
         return cache.addAll(PRECACHE_ASSETS);
       })
       .then(() => {
@@ -25,24 +26,29 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.filter((cacheName) => {
-          return cacheName !== CACHE_NAME;
-        }).map((cacheName) => {
-          return caches.delete(cacheName);
-        })
-      );
-    }).then(() => {
-      return self.clients.claim();
-    })
+    caches
+      .keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(cacheName => {
+              return cacheName !== CACHE_NAME;
+            })
+            .map(cacheName => {
+              return caches.delete(cacheName);
+            })
+        );
+      })
+      .then(() => {
+        return self.clients.claim();
+      })
   );
 });
 
 // Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   // Skip non-GET requests and browser extensions
   if (
     event.request.method !== 'GET' ||
@@ -57,10 +63,9 @@ self.addEventListener('fetch', (event) => {
   // For API requests, use network only
   if (event.request.url.includes('/api/')) {
     event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          return caches.match('/offline.html');
-        })
+      fetch(event.request).catch(() => {
+        return caches.match('/offline.html');
+      })
     );
     return;
   }
@@ -69,19 +74,18 @@ self.addEventListener('fetch', (event) => {
   if (event.request.headers.get('Accept').includes('text/html')) {
     event.respondWith(
       fetch(event.request)
-        .then((response) => {
+        .then(response => {
           // Cache the latest version
           const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
+          caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseClone);
           });
           return response;
         })
         .catch(() => {
-          return caches.match(event.request)
-            .then((cachedResponse) => {
-              return cachedResponse || caches.match('/offline.html');
-            });
+          return caches.match(event.request).then(cachedResponse => {
+            return cachedResponse || caches.match('/offline.html');
+          });
         })
     );
     return;
@@ -89,31 +93,30 @@ self.addEventListener('fetch', (event) => {
 
   // For other assets, use cache first, fallback to network
   event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        
-        return fetch(event.request)
-          .then((response) => {
-            // Cache the fetched response
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-            return response;
-          })
-          .catch(() => {
-            // For image requests, return a placeholder
-            if (event.request.url.match(/\.(jpg|jpeg|png|gif|svg)$/)) {
-              return caches.match('/images/placeholder.png');
-            }
-            return new Response('Network error happened', {
-              status: 408,
-              headers: { 'Content-Type': 'text/plain' },
-            });
+    caches.match(event.request).then(cachedResponse => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(event.request)
+        .then(response => {
+          // Cache the fetched response
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
           });
-      })
+          return response;
+        })
+        .catch(() => {
+          // For image requests, return a placeholder
+          if (event.request.url.match(/\.(jpg|jpeg|png|gif|svg)$/)) {
+            return caches.match('/images/placeholder.png');
+          }
+          return new Response('Network error happened', {
+            status: 408,
+            headers: { 'Content-Type': 'text/plain' },
+          });
+        });
+    })
   );
 });

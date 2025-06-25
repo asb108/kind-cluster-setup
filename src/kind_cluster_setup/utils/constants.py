@@ -10,16 +10,27 @@ import sys
 from pathlib import Path
 
 # Project root directory
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 # Data directory for storing repository data
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 
 # Application paths
-APP_CONFIG_PATH = os.environ.get("APP_CONFIG_PATH", os.path.join(PROJECT_ROOT, "applications/{app}/config/{environment}.yaml"))
-HELM_CHART_PATH = os.environ.get("HELM_CHART_PATH", os.path.join(PROJECT_ROOT, "applications/{app}/helm"))
-K8S_MANIFEST_PATH = os.environ.get("K8S_MANIFEST_PATH", os.path.join(PROJECT_ROOT, "applications/{app}/kubernetes"))
-CLUSTER_CONFIG_PATH = os.environ.get("CLUSTER_CONFIG_PATH", os.path.join(PROJECT_ROOT, "config/cluster_config.yaml"))
+APP_CONFIG_PATH = os.environ.get(
+    "APP_CONFIG_PATH",
+    os.path.join(PROJECT_ROOT, "applications/{app}/config/{environment}.yaml"),
+)
+HELM_CHART_PATH = os.environ.get(
+    "HELM_CHART_PATH", os.path.join(PROJECT_ROOT, "applications/{app}/helm")
+)
+K8S_MANIFEST_PATH = os.environ.get(
+    "K8S_MANIFEST_PATH", os.path.join(PROJECT_ROOT, "applications/{app}/kubernetes")
+)
+CLUSTER_CONFIG_PATH = os.environ.get(
+    "CLUSTER_CONFIG_PATH", os.path.join(PROJECT_ROOT, "config/cluster_config.yaml")
+)
 
 # Environments
 ENVIRONMENTS = ["dev", "qa", "staging", "prod"]
@@ -29,21 +40,12 @@ DEFAULT_CLUSTER_CONFIG = {
     "name": "kind-cluster",
     "worker_nodes": 1,
     "apply_resource_limits": True,
-    "worker_config": {
-        "cpu": "1",
-        "memory": "2GB"
-    },
-    "control_plane_config": {
-        "cpu": "1",
-        "memory": "2GB"
-    }
+    "worker_config": {"cpu": "1", "memory": "2GB"},
+    "control_plane_config": {"cpu": "1", "memory": "2GB"},
 }
 
 # Default environment configuration
-DEFAULT_ENV_CONFIG = {
-    "environment": "dev",
-    "namespace": "default"
-}
+DEFAULT_ENV_CONFIG = {"environment": "dev", "namespace": "default"}
 
 # Default ports
 DEFAULT_HTTP_PORT = 80

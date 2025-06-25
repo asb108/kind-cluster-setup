@@ -7,15 +7,17 @@ deploying applications to a Kind cluster and storing them in the repository.
 
 import argparse
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from kind_cluster_setup.commands.base import Command
-from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
-from kind_cluster_setup.deployment.kubernetes import KubernetesDeploymentStrategy
-from kind_cluster_setup.config.config_loader import load_app_config, get_environment_config
-from kind_cluster_setup.utils.logging import get_logger
+from kind_cluster_setup.config.config_loader import (get_environment_config,
+                                                     load_app_config)
 from kind_cluster_setup.core.command import SubprocessCommandExecutor
-from kind_cluster_setup.domain.entities import Cluster, Task, Application
+from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
+from kind_cluster_setup.deployment.kubernetes import \
+    KubernetesDeploymentStrategy
+from kind_cluster_setup.domain.entities import Application, Cluster, Task
+from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -43,13 +45,19 @@ class DeployCommand(Command):
             executor = SubprocessCommandExecutor()
 
             # Get the cluster name
-            cluster_name = args.cluster_name if hasattr(args, 'cluster_name') else f"kind-{args.environment}"
+            cluster_name = (
+                args.cluster_name
+                if hasattr(args, "cluster_name")
+                else f"kind-{args.environment}"
+            )
 
             # Find the cluster in the repository
             cluster = self._find_cluster(cluster_name)
 
             # Create a task to track the deployment process
-            task = self._create_task(args.apps, args.deployments, cluster_name, args.environment)
+            task = self._create_task(
+                args.apps, args.deployments, cluster_name, args.environment
+            )
 
             # Deploy each application
             results = []
@@ -64,7 +72,9 @@ class DeployCommand(Command):
                     elif deployment_method == "kubernetes":
                         strategy = KubernetesDeploymentStrategy()
                     else:
-                        raise ValueError(f"Unsupported deployment method: {deployment_method}")
+                        raise ValueError(
+                            f"Unsupported deployment method: {deployment_method}"
+                        )
 
                     # Deploy the application
                     # Get the cluster name from the cluster entity or use the default
@@ -74,11 +84,11 @@ class DeployCommand(Command):
                     values = {}
 
                     # Add expose parameters if requested
-                    if hasattr(args, 'expose') and args.expose:
-                        values['expose_service'] = True
-                        values['service_type'] = args.service_type
-                        values['service_port'] = args.port
-                        values['target_port'] = args.target_port
+                    if hasattr(args, "expose") and args.expose:
+                        values["expose_service"] = True
+                        values["service_type"] = args.service_type
+                        values["service_port"] = args.port
+                        values["target_port"] = args.target_port
 
                     # Deploy the application with the correct parameters
                     result = strategy.deploy(
@@ -86,51 +96,61 @@ class DeployCommand(Command):
                         app_config=app_config,
                         env_config=env_config,
                         cluster_name=actual_cluster_name,
-                        values=values
+                        values=values,
                     )
 
                     # Create or update the application entity
                     application = self._create_or_update_application(
-                        app,
-                        deployment_method,
-                        app_config,
-                        cluster
+                        app, deployment_method, app_config, cluster
                     )
 
-                    results.append({
-                        "app": app,
-                        "deployment_method": deployment_method,
-                        "status": "deployed",
-                        "application_id": application.id if application else None
-                    })
+                    results.append(
+                        {
+                            "app": app,
+                            "deployment_method": deployment_method,
+                            "status": "deployed",
+                            "application_id": application.id if application else None,
+                        }
+                    )
                 except Exception as e:
                     logger.error(f"Failed to deploy {app}: {e}")
-                    results.append({
-                        "app": app,
-                        "deployment_method": deployment_method,
-                        "status": "failed",
-                        "error": str(e)
-                    })
+                    results.append(
+                        {
+                            "app": app,
+                            "deployment_method": deployment_method,
+                            "status": "failed",
+                            "error": str(e),
+                        }
+                    )
 
             # Update the task status
-            self._update_task_status(task, "completed", {
-                "results": results,
-                "cluster_name": cluster_name,
-                "environment": args.environment
-            })
+            self._update_task_status(
+                task,
+                "completed",
+                {
+                    "results": results,
+                    "cluster_name": cluster_name,
+                    "environment": args.environment,
+                },
+            )
 
             logger.info(f"Deployment completed with results: {results}")
         except Exception as e:
             logger.error(f"Failed to deploy applications: {e}")
 
             # Update the task status if it exists
-            if 'task' in locals():
+            if "task" in locals():
                 self._update_task_status(task, "failed", {"error": str(e)})
 
             raise
 
-    def _create_task(self, apps: List[str], deployment_methods: List[str],
-                    cluster_name: str, environment: str) -> Optional[Task]:
+    def _create_task(
+        self,
+        apps: List[str],
+        deployment_methods: List[str],
+        cluster_name: str,
+        environment: str,
+    ) -> Optional[Task]:
         """
         Create a task to track the deployment process.
 
@@ -156,8 +176,8 @@ class DeployCommand(Command):
                 "apps": apps,
                 "deployment_methods": deployment_methods,
                 "cluster_name": cluster_name,
-                "environment": environment
-            }
+                "environment": environment,
+            },
         )
 
         return self.task_repository.save(task)
@@ -179,8 +199,13 @@ class DeployCommand(Command):
 
         return self.cluster_repository.find_by_name(cluster_name)
 
-    def _create_or_update_application(self, app_name: str, deployment_method: str,
-                                     app_config: Dict[str, Any], cluster: Optional[Cluster]) -> Optional[Application]:
+    def _create_or_update_application(
+        self,
+        app_name: str,
+        deployment_method: str,
+        app_config: Dict[str, Any],
+        cluster: Optional[Cluster],
+    ) -> Optional[Application]:
         """
         Create or update an application entity in the repository.
 
@@ -195,7 +220,9 @@ class DeployCommand(Command):
             or the cluster is None.
         """
         if self.application_repository is None or cluster is None:
-            logger.warning("Application repository not available or cluster is None, skipping application creation")
+            logger.warning(
+                "Application repository not available or cluster is None, skipping application creation"
+            )
             return None
 
         # Check if the application already exists
@@ -216,12 +243,14 @@ class DeployCommand(Command):
             cluster_id=cluster.id,
             config=app_config,
             status="deployed",
-            deployment_method=deployment_method
+            deployment_method=deployment_method,
         )
 
         return self.application_repository.save(application)
 
-    def _update_task_status(self, task: Optional[Task], status: str, result: Dict[str, Any]) -> Optional[Task]:
+    def _update_task_status(
+        self, task: Optional[Task], status: str, result: Dict[str, Any]
+    ) -> Optional[Task]:
         """
         Update the status of a task.
 

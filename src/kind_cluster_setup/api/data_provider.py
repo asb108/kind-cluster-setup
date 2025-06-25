@@ -4,15 +4,17 @@ This module provides data access abstractions for the API server,
 including mock data for testing and development purposes.
 """
 
-import logging
-import subprocess
 import datetime
 import json
-from typing import Dict, Any, List, Optional, Tuple
-from ..core.docker import DockerClient
+import logging
+import subprocess
+from typing import Any, Dict, List, Optional, Tuple
+
 from ..core.command import SubprocessCommandExecutor
+from ..core.docker import DockerClient
 
 logger = logging.getLogger(__name__)
+
 
 class DataProvider:
     """Base class for data providers.
@@ -66,9 +68,11 @@ class KindDataProvider(DataProvider):
             # Look for containers that belong to this cluster
             cluster_containers = []
             for container in containers:
-                container_name = container.get('Names', '')
+                container_name = container.get("Names", "")
                 # Kind containers are named like: kind-{cluster-name}-control-plane, kind-{cluster-name}-worker
-                if container_name.startswith(f'{cluster_name}-') or container_name.startswith(f'kind-{cluster_name}-'):
+                if container_name.startswith(
+                    f"{cluster_name}-"
+                ) or container_name.startswith(f"kind-{cluster_name}-"):
                     cluster_containers.append(container)
 
             if not cluster_containers:
@@ -78,19 +82,23 @@ class KindDataProvider(DataProvider):
             # Check if at least the control plane container is running
             control_plane_running = False
             for container in cluster_containers:
-                container_name = container.get('Names', '')
-                container_state = container.get('State', '').lower()
+                container_name = container.get("Names", "")
+                container_state = container.get("State", "").lower()
 
-                if 'control-plane' in container_name:
-                    if container_state == 'running':
+                if "control-plane" in container_name:
+                    if container_state == "running":
                         control_plane_running = True
                         break
 
-            logger.debug(f"Cluster {cluster_name} control plane running: {control_plane_running}")
+            logger.debug(
+                f"Cluster {cluster_name} control plane running: {control_plane_running}"
+            )
             return control_plane_running
 
         except Exception as e:
-            logger.error(f"Error checking if cluster {cluster_name} is running: {str(e)}")
+            logger.error(
+                f"Error checking if cluster {cluster_name} is running: {str(e)}"
+            )
             return False
 
     def cluster_exists(self, cluster_name: str) -> bool:
@@ -104,27 +112,31 @@ class KindDataProvider(DataProvider):
         """
         try:
             # Check if kind is installed
-            kind_check = subprocess.run(['which', 'kind'],
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE,
-                                      text=True)
+            kind_check = subprocess.run(
+                ["which", "kind"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
 
             if kind_check.returncode != 0:
                 logger.error("Kind CLI is not installed or not in PATH")
                 return False
 
             # Get list of clusters
-            result = subprocess.run(['kind', 'get', 'clusters'],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   text=True)
+            result = subprocess.run(
+                ["kind", "get", "clusters"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
 
             if result.returncode != 0:
                 logger.error(f"Failed to list clusters: {result.stderr}")
                 return False
 
             # Check if cluster exists
-            clusters = result.stdout.strip().split('\n')
+            clusters = result.stdout.strip().split("\n")
             return cluster_name in clusters
         except Exception as e:
             logger.error(f"Error checking if cluster exists: {str(e)}")
@@ -146,16 +158,17 @@ class KindDataProvider(DataProvider):
 
             # Get cluster configuration using kubectl
             kubectl_cmd = [
-                'kubectl', 'config', 'view',
-                '--context', f'kind-{cluster_name}',
-                '-o', 'json'
+                "kubectl",
+                "config",
+                "view",
+                "--context",
+                f"kind-{cluster_name}",
+                "-o",
+                "json",
             ]
 
             kubectl_result = subprocess.run(
-                kubectl_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                kubectl_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             if kubectl_result.returncode != 0:
@@ -165,7 +178,7 @@ class KindDataProvider(DataProvider):
                     "name": cluster_name,
                     "kind": "Cluster",
                     "apiVersion": "kind.x-k8s.io/v1alpha4",
-                    "nodes": self._get_cluster_nodes(cluster_name)
+                    "nodes": self._get_cluster_nodes(cluster_name),
                 }
 
             # Parse kubectl output
@@ -184,7 +197,7 @@ class KindDataProvider(DataProvider):
                 "kind": "Cluster",
                 "apiVersion": "kind.x-k8s.io/v1alpha4",
                 "nodes": nodes,
-                "kubeconfig": kubectl_config
+                "kubeconfig": kubectl_config,
             }
 
             # Try to get resource limits if available
@@ -192,14 +205,8 @@ class KindDataProvider(DataProvider):
                 # This would require parsing the Kind config file
                 # For now, we'll just provide default values
                 config["resource_limits"] = {
-                    "worker": {
-                        "cpu": "2",
-                        "memory": "2Gi"
-                    },
-                    "control_plane": {
-                        "cpu": "2",
-                        "memory": "2Gi"
-                    }
+                    "worker": {"cpu": "2", "memory": "2Gi"},
+                    "control_plane": {"cpu": "2", "memory": "2Gi"},
                 }
             except Exception as e:
                 logger.warning(f"Failed to get resource limits: {str(e)}")
@@ -212,7 +219,7 @@ class KindDataProvider(DataProvider):
                 "name": cluster_name,
                 "kind": "Cluster",
                 "apiVersion": "kind.x-k8s.io/v1alpha4",
-                "error": str(e)
+                "error": str(e),
             }
 
     def _get_cluster_nodes(self, cluster_name: str) -> List[Dict[str, Any]]:
@@ -227,18 +234,18 @@ class KindDataProvider(DataProvider):
         try:
             # Set kubectl context to the cluster
             subprocess.run(
-                ['kubectl', 'config', 'use-context', f'kind-{cluster_name}'],
+                ["kubectl", "config", "use-context", f"kind-{cluster_name}"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             # Get nodes
             nodes_result = subprocess.run(
-                ['kubectl', 'get', 'nodes', '-o', 'json'],
+                ["kubectl", "get", "nodes", "-o", "json"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             if nodes_result.returncode != 0:
@@ -259,10 +266,7 @@ class KindDataProvider(DataProvider):
                     if "node-role.kubernetes.io/control-plane" in labels:
                         role = "control-plane"
 
-                    nodes.append({
-                        "name": node_name,
-                        "role": role
-                    })
+                    nodes.append({"name": node_name, "role": role})
 
                 return nodes
             except json.JSONDecodeError:
@@ -276,20 +280,24 @@ class KindDataProvider(DataProvider):
         """Get list of clusters using Kind CLI."""
         try:
             # Check if kind is installed
-            kind_check = subprocess.run(['which', 'kind'],
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE,
-                                      text=True)
+            kind_check = subprocess.run(
+                ["which", "kind"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
 
             if kind_check.returncode != 0:
                 logger.error("Kind CLI is not installed or not in PATH")
                 return []
 
             # Get list of clusters
-            result = subprocess.run(['kind', 'get', 'clusters'],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   text=True)
+            result = subprocess.run(
+                ["kind", "get", "clusters"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
 
             if result.returncode != 0:
                 logger.error(f"Failed to list clusters: {result.stderr}")
@@ -297,7 +305,7 @@ class KindDataProvider(DataProvider):
 
             # Parse the output (one cluster name per line)
             clusters = []
-            cluster_names = [line for line in result.stdout.strip().split('\n') if line]
+            cluster_names = [line for line in result.stdout.strip().split("\n") if line]
 
             logger.info(f"Found {len(cluster_names)} Kind clusters: {cluster_names}")
 
@@ -306,23 +314,29 @@ class KindDataProvider(DataProvider):
                 try:
                     # Get node count using kubectl
                     kubectl_cmd = [
-                        'kubectl', 'get', 'nodes',
-                        '--context', f'kind-{cluster_name}',
-                        '--no-headers',
-                        '-o', 'custom-columns=NAME:.metadata.name'
+                        "kubectl",
+                        "get",
+                        "nodes",
+                        "--context",
+                        f"kind-{cluster_name}",
+                        "--no-headers",
+                        "-o",
+                        "custom-columns=NAME:.metadata.name",
                     ]
 
                     nodes_result = subprocess.run(
                         kubectl_cmd,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
-                        text=True
+                        text=True,
                     )
 
                     # Count nodes
                     node_count = 0
                     if nodes_result.returncode == 0:
-                        nodes = [n for n in nodes_result.stdout.strip().split('\n') if n]
+                        nodes = [
+                            n for n in nodes_result.stdout.strip().split("\n") if n
+                        ]
                         node_count = len(nodes)
 
                     # Get creation time
@@ -332,26 +346,32 @@ class KindDataProvider(DataProvider):
                     is_running = self._is_cluster_running(cluster_name)
                     status = "Running" if is_running else "Stopped"
 
-                    clusters.append({
-                        "name": cluster_name,
-                        "status": status,
-                        "nodes": node_count,
-                        "created": created_at
-                    })
+                    clusters.append(
+                        {
+                            "name": cluster_name,
+                            "status": status,
+                            "nodes": node_count,
+                            "created": created_at,
+                        }
+                    )
 
                 except Exception as e:
-                    logger.error(f"Error getting details for cluster {cluster_name}: {str(e)}")
+                    logger.error(
+                        f"Error getting details for cluster {cluster_name}: {str(e)}"
+                    )
                     # Check if cluster is actually running by checking Docker containers
                     is_running = self._is_cluster_running(cluster_name)
                     status = "Running" if is_running else "Stopped"
 
                     # Add with minimal information
-                    clusters.append({
-                        "name": cluster_name,
-                        "status": status,
-                        "nodes": 0,
-                        "created": "Unknown"
-                    })
+                    clusters.append(
+                        {
+                            "name": cluster_name,
+                            "status": status,
+                            "nodes": 0,
+                            "created": "Unknown",
+                        }
+                    )
 
             return clusters
         except Exception as e:
@@ -363,27 +383,30 @@ class KindDataProvider(DataProvider):
         try:
             # Try to get the creation time of the first node
             kubectl_cmd = [
-                'kubectl', 'get', 'nodes',
-                '--context', f'kind-{cluster_name}',
-                '--no-headers',
-                '-o', 'custom-columns=CREATED:.metadata.creationTimestamp'
+                "kubectl",
+                "get",
+                "nodes",
+                "--context",
+                f"kind-{cluster_name}",
+                "--no-headers",
+                "-o",
+                "custom-columns=CREATED:.metadata.creationTimestamp",
             ]
 
             result = subprocess.run(
-                kubectl_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                kubectl_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             if result.returncode == 0 and result.stdout.strip():
                 # Return the first creation timestamp
-                return result.stdout.strip().split('\n')[0]
+                return result.stdout.strip().split("\n")[0]
 
             # Fallback to current time if we can't get the actual creation time
             return datetime.datetime.now().isoformat()
         except Exception as e:
-            logger.error(f"Error getting creation time for cluster {cluster_name}: {str(e)}")
+            logger.error(
+                f"Error getting creation time for cluster {cluster_name}: {str(e)}"
+            )
             return datetime.datetime.now().isoformat()
 
     def get_cluster_status(self, environments: List[str]) -> Dict[str, Any]:
@@ -399,7 +422,7 @@ class KindDataProvider(DataProvider):
                 "cpu_usage": 0,
                 "clusters": clusters,
                 "environments_checked": environments,
-                "nodes": []
+                "nodes": [],
             }
 
             # Get node metrics if possible
@@ -412,27 +435,30 @@ class KindDataProvider(DataProvider):
                 try:
                     # Get node metrics using kubectl top
                     kubectl_cmd = [
-                        'kubectl', 'top', 'nodes',
-                        '--context', f'kind-{cluster_name}'
+                        "kubectl",
+                        "top",
+                        "nodes",
+                        "--context",
+                        f"kind-{cluster_name}",
                     ]
 
                     metrics_result = subprocess.run(
                         kubectl_cmd,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
-                        text=True
+                        text=True,
                     )
 
                     if metrics_result.returncode == 0:
                         # Parse metrics output
-                        lines = metrics_result.stdout.strip().split('\n')
+                        lines = metrics_result.stdout.strip().split("\n")
                         if len(lines) > 1:  # Skip header
                             for line in lines[1:]:
                                 parts = line.split()
                                 if len(parts) >= 5:
                                     node_name = parts[0]
-                                    cpu_usage = int(parts[2].rstrip('%'))
-                                    memory_usage = int(parts[4].rstrip('%'))
+                                    cpu_usage = int(parts[2].rstrip("%"))
+                                    memory_usage = int(parts[4].rstrip("%"))
 
                                     # Add to totals
                                     total_cpu += cpu_usage
@@ -440,17 +466,27 @@ class KindDataProvider(DataProvider):
                                     node_count += 1
 
                                     # Add node info
-                                    response["nodes"].append({
-                                        "name": node_name,
-                                        "role": "control-plane" if "control-plane" in node_name else "worker",
-                                        "status": "Ready",
-                                        "cpu": cpu_usage,
-                                        "memory": memory_usage,
-                                        "disk": 0,  # Not available from kubectl top
-                                        "version": self._get_node_version(cluster_name, node_name)
-                                    })
+                                    response["nodes"].append(
+                                        {
+                                            "name": node_name,
+                                            "role": (
+                                                "control-plane"
+                                                if "control-plane" in node_name
+                                                else "worker"
+                                            ),
+                                            "status": "Ready",
+                                            "cpu": cpu_usage,
+                                            "memory": memory_usage,
+                                            "disk": 0,  # Not available from kubectl top
+                                            "version": self._get_node_version(
+                                                cluster_name, node_name
+                                            ),
+                                        }
+                                    )
                 except Exception as e:
-                    logger.error(f"Error getting metrics for cluster {cluster_name}: {str(e)}")
+                    logger.error(
+                        f"Error getting metrics for cluster {cluster_name}: {str(e)}"
+                    )
 
             # Calculate averages
             if node_count > 0:
@@ -461,7 +497,7 @@ class KindDataProvider(DataProvider):
                 response["overall"] = {
                     "cpu": response["cpu_usage"],
                     "memory": response["memory_usage"],
-                    "storage": 0  # Not available from kubectl top
+                    "storage": 0,  # Not available from kubectl top
                 }
 
             return response
@@ -474,7 +510,7 @@ class KindDataProvider(DataProvider):
                 "cpu_usage": 0,
                 "clusters": self.get_clusters(),
                 "environments_checked": environments,
-                "nodes": []
+                "nodes": [],
             }
 
     def get_cluster_details(self, cluster_name: str) -> Dict[str, Any]:
@@ -486,27 +522,20 @@ class KindDataProvider(DataProvider):
             context = f"kind-{cluster_name}"
 
             # Get cluster info
-            cluster_info_cmd = [
-                'kubectl', 'cluster-info', '--context', context
-            ]
+            cluster_info_cmd = ["kubectl", "cluster-info", "--context", context]
 
             cluster_info_result = subprocess.run(
                 cluster_info_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             # Get Kubernetes version
-            version_cmd = [
-                'kubectl', 'version', '--context', context, '-o', 'json'
-            ]
+            version_cmd = ["kubectl", "version", "--context", context, "-o", "json"]
 
             version_result = subprocess.run(
-                version_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                version_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             version_info = {}
@@ -514,11 +543,18 @@ class KindDataProvider(DataProvider):
                 try:
                     version_data = json.loads(version_result.stdout)
                     version_info = {
-                        "client_version": version_data.get("clientVersion", {}).get("gitVersion", "Unknown"),
-                        "server_version": version_data.get("serverVersion", {}).get("gitVersion", "Unknown")
+                        "client_version": version_data.get("clientVersion", {}).get(
+                            "gitVersion", "Unknown"
+                        ),
+                        "server_version": version_data.get("serverVersion", {}).get(
+                            "gitVersion", "Unknown"
+                        ),
                     }
                 except json.JSONDecodeError:
-                    version_info = {"client_version": "Unknown", "server_version": "Unknown"}
+                    version_info = {
+                        "client_version": "Unknown",
+                        "server_version": "Unknown",
+                    }
 
             # Get cluster status
             cluster_status = self._get_cluster_status_simple(cluster_name)
@@ -527,9 +563,13 @@ class KindDataProvider(DataProvider):
                 "name": cluster_name,
                 "status": cluster_status,
                 "version": version_info,
-                "cluster_info": cluster_info_result.stdout if cluster_info_result.returncode == 0 else "Unable to fetch cluster info",
+                "cluster_info": (
+                    cluster_info_result.stdout
+                    if cluster_info_result.returncode == 0
+                    else "Unable to fetch cluster info"
+                ),
                 "created": self._get_cluster_creation_time(cluster_name),
-                "context": context
+                "context": context,
             }
 
         except Exception as e:
@@ -541,7 +581,7 @@ class KindDataProvider(DataProvider):
                 "cluster_info": "Error fetching cluster info",
                 "created": datetime.datetime.now().isoformat(),
                 "context": f"kind-{cluster_name}",
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_cluster_nodes_detailed(self, cluster_name: str) -> Dict[str, Any]:
@@ -553,15 +593,10 @@ class KindDataProvider(DataProvider):
             context = f"kind-{cluster_name}"
 
             # Get nodes with detailed info
-            nodes_cmd = [
-                'kubectl', 'get', 'nodes', '--context', context, '-o', 'json'
-            ]
+            nodes_cmd = ["kubectl", "get", "nodes", "--context", context, "-o", "json"]
 
             nodes_result = subprocess.run(
-                nodes_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                nodes_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             nodes_data = []
@@ -572,7 +607,9 @@ class KindDataProvider(DataProvider):
                         node_info = self._parse_node_info(node)
 
                         # Get node metrics if available
-                        metrics = self._get_node_metrics(cluster_name, node_info["name"])
+                        metrics = self._get_node_metrics(
+                            cluster_name, node_info["name"]
+                        )
                         if metrics:
                             node_info.update(metrics)
 
@@ -584,7 +621,7 @@ class KindDataProvider(DataProvider):
             return {
                 "cluster_name": cluster_name,
                 "node_count": len(nodes_data),
-                "nodes": nodes_data
+                "nodes": nodes_data,
             }
 
         except Exception as e:
@@ -593,7 +630,7 @@ class KindDataProvider(DataProvider):
                 "cluster_name": cluster_name,
                 "node_count": 0,
                 "nodes": [],
-                "error": str(e)
+                "error": str(e),
             }
 
     def _parse_node_info(self, node_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -634,7 +671,7 @@ class KindDataProvider(DataProvider):
             "conditions": conditions,
             "labels": labels,
             "annotations": metadata.get("annotations", {}),
-            "creation_timestamp": creation_time
+            "creation_timestamp": creation_time,
         }
 
     def _get_node_metrics(self, cluster_name: str, node_name: str) -> Dict[str, Any]:
@@ -644,19 +681,22 @@ class KindDataProvider(DataProvider):
 
             # Try to get node metrics
             metrics_cmd = [
-                'kubectl', 'top', 'node', node_name, '--context', context, '--no-headers'
+                "kubectl",
+                "top",
+                "node",
+                node_name,
+                "--context",
+                context,
+                "--no-headers",
             ]
 
             metrics_result = subprocess.run(
-                metrics_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                metrics_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             if metrics_result.returncode == 0:
                 # Parse metrics output
-                lines = metrics_result.stdout.strip().split('\n')
+                lines = metrics_result.stdout.strip().split("\n")
                 if lines and lines[0]:
                     parts = lines[0].split()
                     if len(parts) >= 5:
@@ -664,7 +704,7 @@ class KindDataProvider(DataProvider):
                             "cpu_usage": parts[1],
                             "cpu_percentage": parts[2],
                             "memory_usage": parts[3],
-                            "memory_percentage": parts[4]
+                            "memory_percentage": parts[4],
                         }
 
             return {}
@@ -677,7 +717,9 @@ class KindDataProvider(DataProvider):
         """Calculate age from creation timestamp."""
         try:
             # Parse ISO timestamp
-            created = datetime.datetime.fromisoformat(creation_timestamp.replace('Z', '+00:00'))
+            created = datetime.datetime.fromisoformat(
+                creation_timestamp.replace("Z", "+00:00")
+            )
             now = datetime.datetime.now(datetime.timezone.utc)
             delta = now - created
 
@@ -704,16 +746,14 @@ class KindDataProvider(DataProvider):
             context = f"kind-{cluster_name}"
 
             # Try to get cluster info to check if it's running
-            cluster_info_cmd = [
-                'kubectl', 'cluster-info', '--context', context
-            ]
+            cluster_info_cmd = ["kubectl", "cluster-info", "--context", context]
 
             result = subprocess.run(
                 cluster_info_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             if result.returncode == 0:
@@ -732,10 +772,16 @@ class KindDataProvider(DataProvider):
         try:
             # For Kind clusters, we can try to get the creation time from the container
             result = subprocess.run(
-                ['docker', 'inspect', f'{cluster_name}-control-plane', '--format', '{{.Created}}'],
+                [
+                    "docker",
+                    "inspect",
+                    f"{cluster_name}-control-plane",
+                    "--format",
+                    "{{.Created}}",
+                ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             if result.returncode == 0:
@@ -757,14 +803,20 @@ class KindDataProvider(DataProvider):
 
             # Get component status
             components_cmd = [
-                'kubectl', 'get', 'componentstatuses', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "componentstatuses",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             components_result = subprocess.run(
                 components_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             components = []
@@ -774,10 +826,14 @@ class KindDataProvider(DataProvider):
                     for comp in components_json.get("items", []):
                         comp_info = {
                             "name": comp.get("metadata", {}).get("name", "Unknown"),
-                            "conditions": comp.get("conditions", [])
+                            "conditions": comp.get("conditions", []),
                         }
                         # Determine health status
-                        healthy = all(c.get("status") == "True" for c in comp_info["conditions"] if c.get("type") == "Healthy")
+                        healthy = all(
+                            c.get("status") == "True"
+                            for c in comp_info["conditions"]
+                            if c.get("type") == "Healthy"
+                        )
                         comp_info["healthy"] = healthy
                         comp_info["status"] = "Healthy" if healthy else "Unhealthy"
                         components.append(comp_info)
@@ -786,14 +842,22 @@ class KindDataProvider(DataProvider):
 
             # Get system pods status
             system_pods_cmd = [
-                'kubectl', 'get', 'pods', '-n', 'kube-system', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                "kube-system",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             system_pods_result = subprocess.run(
                 system_pods_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             system_pods = []
@@ -813,7 +877,9 @@ class KindDataProvider(DataProvider):
             overall_health = "Healthy"
             if len(components) > 0 and healthy_components < len(components):
                 overall_health = "Degraded"
-            if len(system_pods) > 0 and healthy_pods < len(system_pods) * 0.8:  # 80% threshold
+            if (
+                len(system_pods) > 0 and healthy_pods < len(system_pods) * 0.8
+            ):  # 80% threshold
                 overall_health = "Degraded"
 
             return {
@@ -825,8 +891,8 @@ class KindDataProvider(DataProvider):
                     "total_components": len(components),
                     "healthy_components": healthy_components,
                     "total_system_pods": len(system_pods),
-                    "healthy_system_pods": healthy_pods
-                }
+                    "healthy_system_pods": healthy_pods,
+                },
             }
 
         except Exception as e:
@@ -840,9 +906,9 @@ class KindDataProvider(DataProvider):
                     "total_components": 0,
                     "healthy_components": 0,
                     "total_system_pods": 0,
-                    "healthy_system_pods": 0
+                    "healthy_system_pods": 0,
                 },
-                "error": str(e)
+                "error": str(e),
             }
 
     def _parse_pod_info(self, pod_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -872,7 +938,7 @@ class KindDataProvider(DataProvider):
             "node": spec.get("nodeName", "Unknown"),
             "creation_timestamp": creation_time,
             "labels": metadata.get("labels", {}),
-            "containers": [c.get("name") for c in spec.get("containers", [])]
+            "containers": [c.get("name") for c in spec.get("containers", [])],
         }
 
     def get_cluster_resources(self, cluster_name: str) -> Dict[str, Any]:
@@ -885,14 +951,20 @@ class KindDataProvider(DataProvider):
 
             # Get all namespaces
             namespaces_cmd = [
-                'kubectl', 'get', 'namespaces', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "namespaces",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             namespaces_result = subprocess.run(
                 namespaces_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             namespace_resources = []
@@ -903,7 +975,9 @@ class KindDataProvider(DataProvider):
                         ns_name = ns.get("metadata", {}).get("name", "Unknown")
 
                         # Get resource usage for this namespace
-                        ns_resources = self._get_namespace_resources(cluster_name, ns_name)
+                        ns_resources = self._get_namespace_resources(
+                            cluster_name, ns_name
+                        )
                         namespace_resources.append(ns_resources)
 
                 except json.JSONDecodeError:
@@ -911,8 +985,12 @@ class KindDataProvider(DataProvider):
 
             # Calculate totals
             total_pods = sum(ns.get("pod_count", 0) for ns in namespace_resources)
-            total_services = sum(ns.get("service_count", 0) for ns in namespace_resources)
-            total_deployments = sum(ns.get("deployment_count", 0) for ns in namespace_resources)
+            total_services = sum(
+                ns.get("service_count", 0) for ns in namespace_resources
+            )
+            total_deployments = sum(
+                ns.get("deployment_count", 0) for ns in namespace_resources
+            )
 
             return {
                 "cluster_name": cluster_name,
@@ -921,12 +999,14 @@ class KindDataProvider(DataProvider):
                     "total_namespaces": len(namespace_resources),
                     "total_pods": total_pods,
                     "total_services": total_services,
-                    "total_deployments": total_deployments
-                }
+                    "total_deployments": total_deployments,
+                },
             }
 
         except Exception as e:
-            logger.error(f"Error getting cluster resources for {cluster_name}: {str(e)}")
+            logger.error(
+                f"Error getting cluster resources for {cluster_name}: {str(e)}"
+            )
             return {
                 "cluster_name": cluster_name,
                 "namespaces": [],
@@ -934,26 +1014,33 @@ class KindDataProvider(DataProvider):
                     "total_namespaces": 0,
                     "total_pods": 0,
                     "total_services": 0,
-                    "total_deployments": 0
+                    "total_deployments": 0,
                 },
-                "error": str(e)
+                "error": str(e),
             }
 
-    def _get_namespace_resources(self, cluster_name: str, namespace: str) -> Dict[str, Any]:
+    def _get_namespace_resources(
+        self, cluster_name: str, namespace: str
+    ) -> Dict[str, Any]:
         """Get resource information for a specific namespace."""
         try:
             context = f"kind-{cluster_name}"
 
             # Get pods in namespace
             pods_cmd = [
-                'kubectl', 'get', 'pods', '-n', namespace, '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "pods",
+                "-n",
+                namespace,
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             pods_result = subprocess.run(
-                pods_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                pods_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             pod_count = 0
@@ -963,20 +1050,27 @@ class KindDataProvider(DataProvider):
                     pods_json = json.loads(pods_result.stdout)
                     pods = pods_json.get("items", [])
                     pod_count = len(pods)
-                    running_pods = sum(1 for p in pods if p.get("status", {}).get("phase") == "Running")
+                    running_pods = sum(
+                        1 for p in pods if p.get("status", {}).get("phase") == "Running"
+                    )
                 except json.JSONDecodeError:
                     pass
 
             # Get services in namespace
             services_cmd = [
-                'kubectl', 'get', 'services', '-n', namespace, '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "services",
+                "-n",
+                namespace,
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             services_result = subprocess.run(
-                services_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                services_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             service_count = 0
@@ -989,14 +1083,22 @@ class KindDataProvider(DataProvider):
 
             # Get deployments in namespace
             deployments_cmd = [
-                'kubectl', 'get', 'deployments', '-n', namespace, '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "deployments",
+                "-n",
+                namespace,
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             deployments_result = subprocess.run(
                 deployments_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             deployment_count = 0
@@ -1013,7 +1115,7 @@ class KindDataProvider(DataProvider):
                 "running_pods": running_pods,
                 "service_count": service_count,
                 "deployment_count": deployment_count,
-                "status": "Active"  # Namespaces are typically active if they exist
+                "status": "Active",  # Namespaces are typically active if they exist
             }
 
         except Exception as e:
@@ -1025,7 +1127,7 @@ class KindDataProvider(DataProvider):
                 "service_count": 0,
                 "deployment_count": 0,
                 "status": "Unknown",
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_cluster_network_info(self, cluster_name: str) -> Dict[str, Any]:
@@ -1038,14 +1140,18 @@ class KindDataProvider(DataProvider):
 
             # Get services
             services_cmd = [
-                'kubectl', 'get', 'services', '--all-namespaces', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "services",
+                "--all-namespaces",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             services_result = subprocess.run(
-                services_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                services_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             services = []
@@ -1060,14 +1166,18 @@ class KindDataProvider(DataProvider):
 
             # Get ingresses
             ingresses_cmd = [
-                'kubectl', 'get', 'ingresses', '--all-namespaces', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "ingresses",
+                "--all-namespaces",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             ingresses_result = subprocess.run(
-                ingresses_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                ingresses_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             ingresses = []
@@ -1087,10 +1197,16 @@ class KindDataProvider(DataProvider):
                 "summary": {
                     "total_services": len(services),
                     "total_ingresses": len(ingresses),
-                    "cluster_ip_services": sum(1 for s in services if s.get("type") == "ClusterIP"),
-                    "nodeport_services": sum(1 for s in services if s.get("type") == "NodePort"),
-                    "loadbalancer_services": sum(1 for s in services if s.get("type") == "LoadBalancer")
-                }
+                    "cluster_ip_services": sum(
+                        1 for s in services if s.get("type") == "ClusterIP"
+                    ),
+                    "nodeport_services": sum(
+                        1 for s in services if s.get("type") == "NodePort"
+                    ),
+                    "loadbalancer_services": sum(
+                        1 for s in services if s.get("type") == "LoadBalancer"
+                    ),
+                },
             }
 
         except Exception as e:
@@ -1104,9 +1220,9 @@ class KindDataProvider(DataProvider):
                     "total_ingresses": 0,
                     "cluster_ip_services": 0,
                     "nodeport_services": 0,
-                    "loadbalancer_services": 0
+                    "loadbalancer_services": 0,
                 },
-                "error": str(e)
+                "error": str(e),
             }
 
     def _parse_service_info(self, service_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1122,7 +1238,7 @@ class KindDataProvider(DataProvider):
             "external_ip": spec.get("externalIPs", []),
             "ports": spec.get("ports", []),
             "selector": spec.get("selector", {}),
-            "age": self._calculate_age(metadata.get("creationTimestamp", ""))
+            "age": self._calculate_age(metadata.get("creationTimestamp", "")),
         }
 
     def _parse_ingress_info(self, ingress_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1135,9 +1251,13 @@ class KindDataProvider(DataProvider):
             "name": metadata.get("name", "Unknown"),
             "namespace": metadata.get("namespace", "Unknown"),
             "hosts": [rule.get("host", "*") for rule in spec.get("rules", [])],
-            "paths": [path.get("path", "/") for rule in spec.get("rules", []) for path in rule.get("http", {}).get("paths", [])],
+            "paths": [
+                path.get("path", "/")
+                for rule in spec.get("rules", [])
+                for path in rule.get("http", {}).get("paths", [])
+            ],
             "load_balancer": status.get("loadBalancer", {}),
-            "age": self._calculate_age(metadata.get("creationTimestamp", ""))
+            "age": self._calculate_age(metadata.get("creationTimestamp", "")),
         }
 
     def get_cluster_storage_info(self, cluster_name: str) -> Dict[str, Any]:
@@ -1150,14 +1270,17 @@ class KindDataProvider(DataProvider):
 
             # Get storage classes
             sc_cmd = [
-                'kubectl', 'get', 'storageclasses', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "storageclasses",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             sc_result = subprocess.run(
-                sc_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                sc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             storage_classes = []
@@ -1169,23 +1292,23 @@ class KindDataProvider(DataProvider):
                             "name": sc.get("metadata", {}).get("name", "Unknown"),
                             "provisioner": sc.get("provisioner", "Unknown"),
                             "reclaim_policy": sc.get("reclaimPolicy", "Unknown"),
-                            "volume_binding_mode": sc.get("volumeBindingMode", "Unknown"),
-                            "default": sc.get("metadata", {}).get("annotations", {}).get("storageclass.kubernetes.io/is-default-class") == "true"
+                            "volume_binding_mode": sc.get(
+                                "volumeBindingMode", "Unknown"
+                            ),
+                            "default": sc.get("metadata", {})
+                            .get("annotations", {})
+                            .get("storageclass.kubernetes.io/is-default-class")
+                            == "true",
                         }
                         storage_classes.append(sc_info)
                 except json.JSONDecodeError:
                     logger.error("Error parsing storage classes JSON")
 
             # Get persistent volumes
-            pv_cmd = [
-                'kubectl', 'get', 'pv', '--context', context, '-o', 'json'
-            ]
+            pv_cmd = ["kubectl", "get", "pv", "--context", context, "-o", "json"]
 
             pv_result = subprocess.run(
-                pv_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                pv_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             persistent_volumes = []
@@ -1195,12 +1318,20 @@ class KindDataProvider(DataProvider):
                     for pv in pv_json.get("items", []):
                         pv_info = {
                             "name": pv.get("metadata", {}).get("name", "Unknown"),
-                            "capacity": pv.get("spec", {}).get("capacity", {}).get("storage", "Unknown"),
+                            "capacity": pv.get("spec", {})
+                            .get("capacity", {})
+                            .get("storage", "Unknown"),
                             "access_modes": pv.get("spec", {}).get("accessModes", []),
-                            "reclaim_policy": pv.get("spec", {}).get("persistentVolumeReclaimPolicy", "Unknown"),
+                            "reclaim_policy": pv.get("spec", {}).get(
+                                "persistentVolumeReclaimPolicy", "Unknown"
+                            ),
                             "status": pv.get("status", {}).get("phase", "Unknown"),
-                            "claim": pv.get("spec", {}).get("claimRef", {}).get("name", "None"),
-                            "storage_class": pv.get("spec", {}).get("storageClassName", "None")
+                            "claim": pv.get("spec", {})
+                            .get("claimRef", {})
+                            .get("name", "None"),
+                            "storage_class": pv.get("spec", {}).get(
+                                "storageClassName", "None"
+                            ),
                         }
                         persistent_volumes.append(pv_info)
                 except json.JSONDecodeError:
@@ -1208,14 +1339,18 @@ class KindDataProvider(DataProvider):
 
             # Get persistent volume claims
             pvc_cmd = [
-                'kubectl', 'get', 'pvc', '--all-namespaces', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "pvc",
+                "--all-namespaces",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             pvc_result = subprocess.run(
-                pvc_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                pvc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             persistent_volume_claims = []
@@ -1225,12 +1360,18 @@ class KindDataProvider(DataProvider):
                     for pvc in pvc_json.get("items", []):
                         pvc_info = {
                             "name": pvc.get("metadata", {}).get("name", "Unknown"),
-                            "namespace": pvc.get("metadata", {}).get("namespace", "Unknown"),
+                            "namespace": pvc.get("metadata", {}).get(
+                                "namespace", "Unknown"
+                            ),
                             "status": pvc.get("status", {}).get("phase", "Unknown"),
                             "volume": pvc.get("spec", {}).get("volumeName", "None"),
-                            "capacity": pvc.get("status", {}).get("capacity", {}).get("storage", "Unknown"),
+                            "capacity": pvc.get("status", {})
+                            .get("capacity", {})
+                            .get("storage", "Unknown"),
                             "access_modes": pvc.get("spec", {}).get("accessModes", []),
-                            "storage_class": pvc.get("spec", {}).get("storageClassName", "None")
+                            "storage_class": pvc.get("spec", {}).get(
+                                "storageClassName", "None"
+                            ),
                         }
                         persistent_volume_claims.append(pvc_info)
                 except json.JSONDecodeError:
@@ -1245,9 +1386,15 @@ class KindDataProvider(DataProvider):
                     "total_storage_classes": len(storage_classes),
                     "total_persistent_volumes": len(persistent_volumes),
                     "total_persistent_volume_claims": len(persistent_volume_claims),
-                    "bound_pvs": sum(1 for pv in persistent_volumes if pv.get("status") == "Bound"),
-                    "bound_pvcs": sum(1 for pvc in persistent_volume_claims if pvc.get("status") == "Bound")
-                }
+                    "bound_pvs": sum(
+                        1 for pv in persistent_volumes if pv.get("status") == "Bound"
+                    ),
+                    "bound_pvcs": sum(
+                        1
+                        for pvc in persistent_volume_claims
+                        if pvc.get("status") == "Bound"
+                    ),
+                },
             }
 
         except Exception as e:
@@ -1262,9 +1409,9 @@ class KindDataProvider(DataProvider):
                     "total_persistent_volumes": 0,
                     "total_persistent_volume_claims": 0,
                     "bound_pvs": 0,
-                    "bound_pvcs": 0
+                    "bound_pvcs": 0,
                 },
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_cluster_events(self, cluster_name: str, limit: int = 100) -> Dict[str, Any]:
@@ -1277,38 +1424,56 @@ class KindDataProvider(DataProvider):
 
             # Get events from all namespaces
             events_cmd = [
-                'kubectl', 'get', 'events', '--all-namespaces', '--context', context,
-                '--sort-by=.metadata.creationTimestamp', '-o', 'json'
+                "kubectl",
+                "get",
+                "events",
+                "--all-namespaces",
+                "--context",
+                context,
+                "--sort-by=.metadata.creationTimestamp",
+                "-o",
+                "json",
             ]
 
             events_result = subprocess.run(
-                events_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                events_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             events = []
             if events_result.returncode == 0:
                 try:
                     events_json = json.loads(events_result.stdout)
-                    for event in events_json.get("items", [])[-limit:]:  # Get last N events
+                    for event in events_json.get("items", [])[
+                        -limit:
+                    ]:  # Get last N events
                         event_info = {
-                            "namespace": event.get("metadata", {}).get("namespace", "Unknown"),
+                            "namespace": event.get("metadata", {}).get(
+                                "namespace", "Unknown"
+                            ),
                             "name": event.get("metadata", {}).get("name", "Unknown"),
                             "type": event.get("type", "Unknown"),
                             "reason": event.get("reason", "Unknown"),
                             "message": event.get("message", "Unknown"),
-                            "source": event.get("source", {}).get("component", "Unknown"),
+                            "source": event.get("source", {}).get(
+                                "component", "Unknown"
+                            ),
                             "object": {
-                                "kind": event.get("involvedObject", {}).get("kind", "Unknown"),
-                                "name": event.get("involvedObject", {}).get("name", "Unknown"),
-                                "namespace": event.get("involvedObject", {}).get("namespace", "Unknown")
+                                "kind": event.get("involvedObject", {}).get(
+                                    "kind", "Unknown"
+                                ),
+                                "name": event.get("involvedObject", {}).get(
+                                    "name", "Unknown"
+                                ),
+                                "namespace": event.get("involvedObject", {}).get(
+                                    "namespace", "Unknown"
+                                ),
                             },
                             "first_timestamp": event.get("firstTimestamp", ""),
                             "last_timestamp": event.get("lastTimestamp", ""),
                             "count": event.get("count", 1),
-                            "age": self._calculate_age(event.get("metadata", {}).get("creationTimestamp", ""))
+                            "age": self._calculate_age(
+                                event.get("metadata", {}).get("creationTimestamp", "")
+                            ),
                         }
                         events.append(event_info)
                 except json.JSONDecodeError:
@@ -1328,8 +1493,8 @@ class KindDataProvider(DataProvider):
                     "total_events": len(events),
                     "warning_events": len(warning_events),
                     "normal_events": len(normal_events),
-                    "recent_warnings": warning_events[:10]  # Last 10 warnings
-                }
+                    "recent_warnings": warning_events[:10],  # Last 10 warnings
+                },
             }
 
         except Exception as e:
@@ -1341,9 +1506,9 @@ class KindDataProvider(DataProvider):
                     "total_events": 0,
                     "warning_events": 0,
                     "normal_events": 0,
-                    "recent_warnings": []
+                    "recent_warnings": [],
                 },
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_cluster_workloads(self, cluster_name: str) -> Dict[str, Any]:
@@ -1356,14 +1521,18 @@ class KindDataProvider(DataProvider):
 
             # Get all pods
             pods_cmd = [
-                'kubectl', 'get', 'pods', '--all-namespaces', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "pods",
+                "--all-namespaces",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             pods_result = subprocess.run(
-                pods_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                pods_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             pods = []
@@ -1378,14 +1547,21 @@ class KindDataProvider(DataProvider):
 
             # Get all deployments
             deployments_cmd = [
-                'kubectl', 'get', 'deployments', '--all-namespaces', '--context', context, '-o', 'json'
+                "kubectl",
+                "get",
+                "deployments",
+                "--all-namespaces",
+                "--context",
+                context,
+                "-o",
+                "json",
             ]
 
             deployments_result = subprocess.run(
                 deployments_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
 
             deployments = []
@@ -1403,7 +1579,11 @@ class KindDataProvider(DataProvider):
             for pod in pods:
                 ns = pod.get("namespace", "Unknown")
                 if ns not in namespace_workloads:
-                    namespace_workloads[ns] = {"pods": [], "running_pods": 0, "failed_pods": 0}
+                    namespace_workloads[ns] = {
+                        "pods": [],
+                        "running_pods": 0,
+                        "failed_pods": 0,
+                    }
                 namespace_workloads[ns]["pods"].append(pod)
                 if pod.get("status") == "Running":
                     namespace_workloads[ns]["running_pods"] += 1
@@ -1417,11 +1597,21 @@ class KindDataProvider(DataProvider):
                 "namespace_workloads": namespace_workloads,
                 "summary": {
                     "total_pods": len(pods),
-                    "running_pods": sum(1 for p in pods if p.get("status") == "Running"),
-                    "failed_pods": sum(1 for p in pods if p.get("status") in ["Failed", "Error", "CrashLoopBackOff"]),
+                    "running_pods": sum(
+                        1 for p in pods if p.get("status") == "Running"
+                    ),
+                    "failed_pods": sum(
+                        1
+                        for p in pods
+                        if p.get("status") in ["Failed", "Error", "CrashLoopBackOff"]
+                    ),
                     "total_deployments": len(deployments),
-                    "ready_deployments": sum(1 for d in deployments if d.get("ready_replicas", 0) == d.get("replicas", 0))
-                }
+                    "ready_deployments": sum(
+                        1
+                        for d in deployments
+                        if d.get("ready_replicas", 0) == d.get("replicas", 0)
+                    ),
+                },
             }
 
         except Exception as e:
@@ -1436,9 +1626,9 @@ class KindDataProvider(DataProvider):
                     "running_pods": 0,
                     "failed_pods": 0,
                     "total_deployments": 0,
-                    "ready_deployments": 0
+                    "ready_deployments": 0,
                 },
-                "error": str(e)
+                "error": str(e),
             }
 
     def _parse_deployment_info(self, deployment_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1457,24 +1647,26 @@ class KindDataProvider(DataProvider):
             "strategy": spec.get("strategy", {}).get("type", "Unknown"),
             "age": self._calculate_age(metadata.get("creationTimestamp", "")),
             "labels": metadata.get("labels", {}),
-            "selector": spec.get("selector", {})
+            "selector": spec.get("selector", {}),
         }
 
     def _get_node_version(self, cluster_name: str, node_name: str) -> str:
         """Get Kubernetes version for a node."""
         try:
             kubectl_cmd = [
-                'kubectl', 'get', 'nodes', node_name,
-                '--context', f'kind-{cluster_name}',
-                '--no-headers',
-                '-o', 'custom-columns=VERSION:.status.nodeInfo.kubeletVersion'
+                "kubectl",
+                "get",
+                "nodes",
+                node_name,
+                "--context",
+                f"kind-{cluster_name}",
+                "--no-headers",
+                "-o",
+                "custom-columns=VERSION:.status.nodeInfo.kubeletVersion",
             ]
 
             result = subprocess.run(
-                kubectl_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                kubectl_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             if result.returncode == 0 and result.stdout.strip():
@@ -1498,63 +1690,90 @@ class KindDataProvider(DataProvider):
                 try:
                     # Get all namespaces
                     kubectl_cmd = [
-                        'kubectl', 'get', 'namespaces',
-                        '--context', f'kind-{cluster_name}',
-                        '--no-headers',
-                        '-o', 'custom-columns=NAME:.metadata.name'
+                        "kubectl",
+                        "get",
+                        "namespaces",
+                        "--context",
+                        f"kind-{cluster_name}",
+                        "--no-headers",
+                        "-o",
+                        "custom-columns=NAME:.metadata.name",
                     ]
 
                     ns_result = subprocess.run(
                         kubectl_cmd,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
-                        text=True
+                        text=True,
                     )
 
                     if ns_result.returncode == 0:
-                        namespaces = [ns for ns in ns_result.stdout.strip().split('\n') if ns]
+                        namespaces = [
+                            ns for ns in ns_result.stdout.strip().split("\n") if ns
+                        ]
 
                         # Skip system namespaces
-                        app_namespaces = [ns for ns in namespaces if not ns.startswith('kube-') and ns != 'default']
+                        app_namespaces = [
+                            ns
+                            for ns in namespaces
+                            if not ns.startswith("kube-") and ns != "default"
+                        ]
 
                         for namespace in app_namespaces:
                             # Get deployments in namespace
                             deploy_cmd = [
-                                'kubectl', 'get', 'deployments',
-                                '--context', f'kind-{cluster_name}',
-                                '-n', namespace,
-                                '--no-headers',
-                                '-o', 'custom-columns=NAME:.metadata.name,READY:.status.readyReplicas'
+                                "kubectl",
+                                "get",
+                                "deployments",
+                                "--context",
+                                f"kind-{cluster_name}",
+                                "-n",
+                                namespace,
+                                "--no-headers",
+                                "-o",
+                                "custom-columns=NAME:.metadata.name,READY:.status.readyReplicas",
                             ]
 
                             deploy_result = subprocess.run(
                                 deploy_cmd,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                text=True
+                                text=True,
                             )
 
-                            if deploy_result.returncode == 0 and deploy_result.stdout.strip():
-                                for line in deploy_result.stdout.strip().split('\n'):
+                            if (
+                                deploy_result.returncode == 0
+                                and deploy_result.stdout.strip()
+                            ):
+                                for line in deploy_result.stdout.strip().split("\n"):
                                     if not line:
                                         continue
 
                                     parts = line.split()
                                     if len(parts) >= 2:
                                         app_name = parts[0]
-                                        ready = parts[1] != "None" and int(parts[1] or 0) > 0
+                                        ready = (
+                                            parts[1] != "None"
+                                            and int(parts[1] or 0) > 0
+                                        )
 
-                                        applications.append({
-                                            "id": f"{cluster_name}-{namespace}-{app_name}",
-                                            "name": app_name,
-                                            "display_name": app_name.title(),
-                                            "status": "Running" if ready else "Pending",
-                                            "cluster": cluster_name,
-                                            "namespace": namespace,
-                                            "deployment_method": "kubectl"  # Assume kubectl as default
-                                        })
+                                        applications.append(
+                                            {
+                                                "id": f"{cluster_name}-{namespace}-{app_name}",
+                                                "name": app_name,
+                                                "display_name": app_name.title(),
+                                                "status": (
+                                                    "Running" if ready else "Pending"
+                                                ),
+                                                "cluster": cluster_name,
+                                                "namespace": namespace,
+                                                "deployment_method": "kubectl",  # Assume kubectl as default
+                                            }
+                                        )
                 except Exception as e:
-                    logger.error(f"Error getting applications for cluster {cluster_name}: {str(e)}")
+                    logger.error(
+                        f"Error getting applications for cluster {cluster_name}: {str(e)}"
+                    )
 
             return applications
         except Exception as e:
@@ -1572,7 +1791,7 @@ class MockDataProvider(DataProvider):
         """Initialize with mock data."""
         self.mock_clusters = [
             {"name": "my-kind-cluster-dev", "status": "Running"},
-            {"name": "test-1", "status": "Running"}
+            {"name": "test-1", "status": "Running"},
         ]
 
         self.mock_applications = [
@@ -1586,7 +1805,9 @@ class MockDataProvider(DataProvider):
                 "cluster": "my-kind-cluster-dev",
                 "namespace": "airflow",
                 "deployment_method": "helm",
-                "access_urls": [{"type": "ingress", "url": "http://localhost:8080/airflow"}]
+                "access_urls": [
+                    {"type": "ingress", "url": "http://localhost:8080/airflow"}
+                ],
             },
             {
                 "id": "app-2",
@@ -1598,7 +1819,9 @@ class MockDataProvider(DataProvider):
                 "cluster": "my-kind-cluster-dev",
                 "namespace": "postgres",
                 "deployment_method": "kubectl",
-                "access_urls": [{"type": "service", "url": "postgresql://localhost:5432"}]
+                "access_urls": [
+                    {"type": "service", "url": "postgresql://localhost:5432"}
+                ],
             },
         ]
 
@@ -1618,7 +1841,7 @@ class MockDataProvider(DataProvider):
                 "cpu": 42.5,
                 "memory": 52.5,
                 "storage": 26.25,
-            }
+            },
         }
 
     def get_clusters(self) -> List[Dict[str, Any]]:

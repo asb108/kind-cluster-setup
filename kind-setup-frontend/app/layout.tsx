@@ -1,14 +1,14 @@
 import React from 'react';
-import './globals.css'
-import '../styles/custom.css'
-import '../styles/enhanced-ui.css'
-import '../styles/themes.css'
-import type { Metadata, Viewport } from 'next'
-import LayoutWithSidebar from '../components/app-layout'
-import { Toaster } from '@/components/ui/toaster'
-import { ThemeProvider } from '@/context/theme-context'
-import { SidebarProvider } from '../components/sidebar-context'
-import { inter, jetbrainsMono, getFontVariables } from '@/lib/fonts'
+import './globals.css';
+import '../styles/custom.css';
+import '../styles/enhanced-ui.css';
+import '../styles/themes.css';
+import type { Metadata, Viewport } from 'next';
+import LayoutWithSidebar from '../components/app-layout';
+import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/context/theme-context';
+import { SidebarProvider } from '../components/sidebar-context';
+import { inter, jetbrainsMono, getFontVariables } from '@/lib/fonts';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -16,9 +16,9 @@ export const viewport: Viewport = {
   maximumScale: 5,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f172a' }
+    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
   ],
-}
+};
 
 export const metadata: Metadata = {
   title: {
@@ -64,22 +64,16 @@ export const metadata: Metadata = {
     'mobile-web-app-capable': 'yes',
     'msapplication-tap-highlight': 'no',
   },
-}
-
-
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={getFontVariables()}
-    >
-      <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang='en' suppressHydrationWarning className={getFontVariables()}>
+      <body className='min-h-screen bg-background font-sans antialiased'>
         <ThemeProvider>
           <SidebarProvider>
             <LayoutWithSidebar>{children}</LayoutWithSidebar>
@@ -88,5 +82,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

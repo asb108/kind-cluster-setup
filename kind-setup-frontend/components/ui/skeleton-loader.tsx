@@ -37,20 +37,20 @@ export function Skeleton({
         return '';
     }
   };
-  
+
   // Get rounded classes
   const getRoundedClasses = () => {
     if (typeof rounded === 'string') {
       return `rounded-${rounded}`;
     }
-    
+
     if (rounded === true) {
       return variant === 'circle' ? 'rounded-full' : 'rounded-md';
     }
-    
+
     return '';
   };
-  
+
   return (
     <div
       className={cn(
@@ -62,8 +62,18 @@ export function Skeleton({
         className
       )}
       style={{
-        width: width !== undefined ? (typeof width === 'number' ? `${width}px` : width) : undefined,
-        height: height !== undefined ? (typeof height === 'number' ? `${height}px` : height) : undefined,
+        width:
+          width !== undefined
+            ? typeof width === 'number'
+              ? `${width}px`
+              : width
+            : undefined,
+        height:
+          height !== undefined
+            ? typeof height === 'number'
+              ? `${height}px`
+              : height
+            : undefined,
       }}
     />
   );
@@ -101,17 +111,17 @@ export function SkeletonText({
         return 'space-y-2';
     }
   };
-  
+
   return (
     <div className={cn('flex flex-col', getSpacingClasses(), className)}>
       {Array.from({ length: lines }).map((_, index) => {
         const isLast = index === lines - 1;
-        const width = widths ? widths[index] : (isLast ? lastLineWidth : '100%');
-        
+        const width = widths ? widths[index] : isLast ? lastLineWidth : '100%';
+
         return (
           <Skeleton
             key={index}
-            variant="text"
+            variant='text'
             width={width}
             className={lineClassName}
             animated={animated}
@@ -150,51 +160,60 @@ export function SkeletonCard({
     <div
       className={cn(
         'border bg-card overflow-hidden',
-        typeof rounded === 'string' ? `rounded-${rounded}` : (rounded ? 'rounded-lg' : ''),
+        typeof rounded === 'string'
+          ? `rounded-${rounded}`
+          : rounded
+            ? 'rounded-lg'
+            : '',
         className
       )}
     >
       {header && (
         <div
-          className="border-b"
+          className='border-b'
           style={{
-            height: typeof headerHeight === 'number' ? `${headerHeight}px` : headerHeight,
+            height:
+              typeof headerHeight === 'number'
+                ? `${headerHeight}px`
+                : headerHeight,
           }}
         >
-          <div className="p-4">
+          <div className='p-4'>
             <Skeleton
-              width="40%"
-              height="1rem"
+              width='40%'
+              height='1rem'
               animated={animated}
               shimmer={shimmer}
             />
           </div>
         </div>
       )}
-      
+
       <div
-        className="p-4"
+        className='p-4'
         style={{
-          height: typeof contentHeight === 'number' ? `${contentHeight}px` : contentHeight,
+          height:
+            typeof contentHeight === 'number'
+              ? `${contentHeight}px`
+              : contentHeight,
         }}
       >
-        <SkeletonText
-          lines={3}
-          animated={animated}
-          shimmer={shimmer}
-        />
+        <SkeletonText lines={3} animated={animated} shimmer={shimmer} />
       </div>
-      
+
       {footer && (
         <div
-          className="border-t"
+          className='border-t'
           style={{
-            height: typeof footerHeight === 'number' ? `${footerHeight}px` : footerHeight,
+            height:
+              typeof footerHeight === 'number'
+                ? `${footerHeight}px`
+                : footerHeight,
           }}
         >
-          <div className="p-4 flex justify-end">
+          <div className='p-4 flex justify-end'>
             <Skeleton
-              variant="button"
+              variant='button'
               width={100}
               animated={animated}
               shimmer={shimmer}
@@ -225,63 +244,63 @@ export function SkeletonStatsCard({
 }: SkeletonStatsCardProps) {
   return (
     <div className={cn('border rounded-lg p-6 bg-card', className)}>
-      <div className="flex justify-between items-start">
-        <div className="space-y-3 flex-1">
+      <div className='flex justify-between items-start'>
+        <div className='space-y-3 flex-1'>
           <Skeleton
-            width="40%"
-            height="0.875rem"
+            width='40%'
+            height='0.875rem'
             animated={animated}
             shimmer={shimmer}
           />
-          
+
           <Skeleton
-            width="30%"
-            height="1.5rem"
+            width='30%'
+            height='1.5rem'
             animated={animated}
             shimmer={shimmer}
           />
-          
+
           <Skeleton
-            width="60%"
-            height="0.875rem"
+            width='60%'
+            height='0.875rem'
             animated={animated}
             shimmer={shimmer}
           />
-          
+
           {showTrend && (
-            <div className="flex items-center mt-2 space-x-2">
+            <div className='flex items-center mt-2 space-x-2'>
               <Skeleton
                 width={40}
-                height="1.25rem"
-                rounded="full"
+                height='1.25rem'
+                rounded='full'
                 animated={animated}
                 shimmer={shimmer}
               />
               <Skeleton
                 width={80}
-                height="0.75rem"
+                height='0.75rem'
                 animated={animated}
                 shimmer={shimmer}
               />
             </div>
           )}
-          
+
           {showProgress && (
-            <div className="mt-3">
+            <div className='mt-3'>
               <Skeleton
-                width="100%"
-                height="0.5rem"
-                rounded="full"
+                width='100%'
+                height='0.5rem'
+                rounded='full'
                 animated={animated}
                 shimmer={shimmer}
               />
             </div>
           )}
         </div>
-        
+
         {showIcon && (
           <Skeleton
-            variant="circle"
+            variant='circle'
             width={40}
             height={40}
             animated={animated}
@@ -314,18 +333,18 @@ export function SkeletonTable({
 }: SkeletonTableProps) {
   return (
     <div className={cn('space-y-4', className)}>
-      <div className="rounded-md border">
-        <div className="divide-y">
+      <div className='rounded-md border'>
+        <div className='divide-y'>
           {showHeader && (
-            <div className="bg-muted/30 p-4">
-              <div className="grid grid-cols-12 gap-4">
+            <div className='bg-muted/30 p-4'>
+              <div className='grid grid-cols-12 gap-4'>
                 {Array.from({ length: columns }).map((_, index) => (
                   <div
                     key={`header-${index}`}
                     className={`col-span-${12 / columns}`}
                   >
                     <Skeleton
-                      height="1.25rem"
+                      height='1.25rem'
                       animated={animated}
                       shimmer={shimmer}
                     />
@@ -334,17 +353,17 @@ export function SkeletonTable({
               </div>
             </div>
           )}
-          
+
           {Array.from({ length: rows }).map((_, rowIndex) => (
-            <div key={`row-${rowIndex}`} className="p-4">
-              <div className="grid grid-cols-12 gap-4">
+            <div key={`row-${rowIndex}`} className='p-4'>
+              <div className='grid grid-cols-12 gap-4'>
                 {Array.from({ length: columns }).map((_, colIndex) => (
                   <div
                     key={`cell-${rowIndex}-${colIndex}`}
                     className={`col-span-${12 / columns}`}
                   >
                     <Skeleton
-                      height="1rem"
+                      height='1rem'
                       width={`${Math.floor(Math.random() * 40) + 60}%`}
                       animated={animated}
                       shimmer={shimmer}
@@ -356,28 +375,28 @@ export function SkeletonTable({
           ))}
         </div>
       </div>
-      
+
       {showPagination && (
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <Skeleton
             width={150}
-            height="1rem"
+            height='1rem'
             animated={animated}
             shimmer={shimmer}
           />
-          
-          <div className="flex space-x-2">
+
+          <div className='flex space-x-2'>
             <Skeleton
               width={100}
-              height="2rem"
-              rounded="md"
+              height='2rem'
+              rounded='md'
               animated={animated}
               shimmer={shimmer}
             />
             <Skeleton
               width={100}
-              height="2rem"
-              rounded="md"
+              height='2rem'
+              rounded='md'
               animated={animated}
               shimmer={shimmer}
             />
@@ -390,27 +409,20 @@ export function SkeletonTable({
 
 export function SkeletonDashboard() {
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className='space-y-8'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         <SkeletonStatsCard showTrend />
         <SkeletonStatsCard showProgress />
         <SkeletonStatsCard />
         <SkeletonStatsCard showTrend showProgress />
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <SkeletonCard
-            contentHeight="20rem"
-            header
-            footer
-          />
+
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className='lg:col-span-2'>
+          <SkeletonCard contentHeight='20rem' header footer />
         </div>
         <div>
-          <SkeletonCard
-            contentHeight="20rem"
-            header
-          />
+          <SkeletonCard contentHeight='20rem' header />
         </div>
       </div>
     </div>

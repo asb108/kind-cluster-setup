@@ -40,14 +40,24 @@ export function AnimatedTabs({
   fullWidth = false,
   iconPosition = 'left',
 }: AnimatedTabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTabId || (tabs.length > 0 ? tabs[0].id : ''));
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, top: 0, height: 0 });
+  const [activeTab, setActiveTab] = useState(
+    defaultTabId || (tabs.length > 0 ? tabs[0].id : '')
+  );
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    left: 0,
+    width: 0,
+    top: 0,
+    height: 0,
+  });
   const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Create a callback ref function
-  const setTabRef = useCallback((id: string) => (el: HTMLButtonElement | null) => {
-    tabRefs.current[id] = el;
-  }, []);
+  const setTabRef = useCallback(
+    (id: string) => (el: HTMLButtonElement | null) => {
+      tabRefs.current[id] = el;
+    },
+    []
+  );
 
   // Update the active tab when defaultTabId changes
   useEffect(() => {
@@ -101,7 +111,8 @@ export function AnimatedTabs({
           tabs: 'bg-muted/30 p-1 rounded-lg',
           tab: 'rounded-md font-medium transition-colors',
           activeTab: 'bg-card shadow-sm text-foreground',
-          inactiveTab: 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+          inactiveTab:
+            'text-muted-foreground hover:text-foreground hover:bg-muted/50',
           indicator: 'hidden',
         };
       case 'enclosed':
@@ -109,7 +120,8 @@ export function AnimatedTabs({
           tabs: 'border-b border-border',
           tab: 'font-medium transition-colors border-b-2 border-transparent -mb-px',
           activeTab: 'border-primary text-primary',
-          inactiveTab: 'text-muted-foreground hover:text-foreground hover:border-border',
+          inactiveTab:
+            'text-muted-foreground hover:text-foreground hover:border-border',
           indicator: 'hidden',
         };
       case 'soft':
@@ -117,7 +129,8 @@ export function AnimatedTabs({
           tabs: 'gap-2',
           tab: 'font-medium transition-colors rounded-md',
           activeTab: 'bg-primary/10 text-primary',
-          inactiveTab: 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+          inactiveTab:
+            'text-muted-foreground hover:text-foreground hover:bg-muted/50',
           indicator: 'hidden',
         };
       case 'minimal':
@@ -174,13 +187,13 @@ export function AnimatedTabs({
       {/* Tab list */}
       <div
         className={`relative flex ${orientation === 'vertical' ? 'flex-col' : 'flex-row'} ${variantClasses.tabs} ${tabsClassName}`}
-        role="tablist"
+        role='tablist'
       >
-        {tabs.map((tab) => (
+        {tabs.map(tab => (
           <button
             key={tab.id}
             ref={setTabRef(tab.id)}
-            role="tab"
+            role='tab'
             aria-selected={activeTab === tab.id}
             aria-controls={`panel-${tab.id}`}
             id={`tab-${tab.id}`}
@@ -210,8 +223,16 @@ export function AnimatedTabs({
             className={`absolute ${orientation === 'vertical' ? 'w-0.5' : 'h-0.5'} ${variantClasses.indicator}`}
             style={
               orientation === 'vertical'
-                ? { top: indicatorStyle.top, height: indicatorStyle.height, right: 0 }
-                : { left: indicatorStyle.left, width: indicatorStyle.width, bottom: 0 }
+                ? {
+                    top: indicatorStyle.top,
+                    height: indicatorStyle.height,
+                    right: 0,
+                  }
+                : {
+                    left: indicatorStyle.left,
+                    width: indicatorStyle.width,
+                    bottom: 0,
+                  }
             }
             layout
             transition={{ duration: 0.2 }}
@@ -222,38 +243,40 @@ export function AnimatedTabs({
       {/* Tab content */}
       <div className={`mt-4 ${contentClassName}`}>
         {animated ? (
-          <AnimatePresence mode="wait">
-            {tabs.map((tab) => (
-              activeTab === tab.id && (
-                <motion.div
-                  key={tab.id}
-                  role="tabpanel"
-                  aria-labelledby={`tab-${tab.id}`}
-                  id={`panel-${tab.id}`}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={contentAnimationVariants}
-                  transition={{ duration: 0.2 }}
-                >
-                  {tab.content}
-                </motion.div>
-              )
-            ))}
+          <AnimatePresence mode='wait'>
+            {tabs.map(
+              tab =>
+                activeTab === tab.id && (
+                  <motion.div
+                    key={tab.id}
+                    role='tabpanel'
+                    aria-labelledby={`tab-${tab.id}`}
+                    id={`panel-${tab.id}`}
+                    initial='hidden'
+                    animate='visible'
+                    exit='exit'
+                    variants={contentAnimationVariants}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {tab.content}
+                  </motion.div>
+                )
+            )}
           </AnimatePresence>
         ) : (
-          tabs.map((tab) => (
-            activeTab === tab.id && (
-              <div
-                key={tab.id}
-                role="tabpanel"
-                aria-labelledby={`tab-${tab.id}`}
-                id={`panel-${tab.id}`}
-              >
-                {tab.content}
-              </div>
-            )
-          ))
+          tabs.map(
+            tab =>
+              activeTab === tab.id && (
+                <div
+                  key={tab.id}
+                  role='tabpanel'
+                  aria-labelledby={`tab-${tab.id}`}
+                  id={`panel-${tab.id}`}
+                >
+                  {tab.content}
+                </div>
+              )
+          )
         )}
       </div>
     </div>

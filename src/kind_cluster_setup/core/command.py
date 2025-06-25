@@ -9,12 +9,13 @@ import os
 import subprocess
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 
 @dataclass
 class CommandResult:
     """Result of a command execution."""
+
     returncode: int
     stdout: str
     stderr: str
@@ -34,12 +35,14 @@ class CommandExecutor(ABC):
     """
 
     @abstractmethod
-    def execute(self,
-                command: List[str],
-                env: Optional[Dict[str, str]] = None,
-                cwd: Optional[str] = None,
-                check: bool = True,
-                timeout: Optional[float] = None) -> CommandResult:
+    def execute(
+        self,
+        command: List[str],
+        env: Optional[Dict[str, str]] = None,
+        cwd: Optional[str] = None,
+        check: bool = True,
+        timeout: Optional[float] = None,
+    ) -> CommandResult:
         """
         Execute a command and return the result.
 
@@ -65,9 +68,11 @@ class CommandExecutionError(Exception):
     def __init__(self, command: List[str], result: CommandResult):
         self.command = command
         self.result = result
-        message = (f"Command '{' '.join(command)}' failed with exit code {result.returncode}.\n"
-                  f"STDOUT: {result.stdout}\n"
-                  f"STDERR: {result.stderr}")
+        message = (
+            f"Command '{' '.join(command)}' failed with exit code {result.returncode}.\n"
+            f"STDOUT: {result.stdout}\n"
+            f"STDERR: {result.stderr}"
+        )
         super().__init__(message)
 
 
@@ -79,12 +84,14 @@ class SubprocessCommandExecutor(CommandExecutor):
     to execute commands.
     """
 
-    def execute(self,
-                command: List[str],
-                env: Optional[Dict[str, str]] = None,
-                cwd: Optional[str] = None,
-                check: bool = True,
-                timeout: Optional[float] = None) -> CommandResult:
+    def execute(
+        self,
+        command: List[str],
+        env: Optional[Dict[str, str]] = None,
+        cwd: Optional[str] = None,
+        check: bool = True,
+        timeout: Optional[float] = None,
+    ) -> CommandResult:
         """
         Execute a command using subprocess and return the result.
 
@@ -115,14 +122,12 @@ class SubprocessCommandExecutor(CommandExecutor):
                 text=True,
                 env=env_copy,
                 cwd=cwd,
-                timeout=timeout
+                timeout=timeout,
             )
 
             # Create the result object
             command_result = CommandResult(
-                returncode=result.returncode,
-                stdout=result.stdout,
-                stderr=result.stderr
+                returncode=result.returncode, stdout=result.stdout, stderr=result.stderr
             )
 
             # Check if the command failed
@@ -136,7 +141,7 @@ class SubprocessCommandExecutor(CommandExecutor):
             command_result = CommandResult(
                 returncode=-1,
                 stdout="",
-                stderr=f"Command timed out after {timeout} seconds"
+                stderr=f"Command timed out after {timeout} seconds",
             )
 
             if check:
@@ -165,7 +170,9 @@ class MockCommandExecutor(CommandExecutor):
         self.default_result = None
         self.command_history = []
 
-    def add_mock_result(self, command: Union[str, List[str]], result: CommandResult) -> None:
+    def add_mock_result(
+        self, command: Union[str, List[str]], result: CommandResult
+    ) -> None:
         """
         Add a mock result for a command.
 
@@ -174,7 +181,7 @@ class MockCommandExecutor(CommandExecutor):
             result: Result to return when the command is executed
         """
         if isinstance(command, list):
-            command = ' '.join(command)
+            command = " ".join(command)
         self.mock_results[command] = result
 
     def add_default_mock_result(self, result: CommandResult) -> None:
@@ -186,12 +193,14 @@ class MockCommandExecutor(CommandExecutor):
         """
         self.default_result = result
 
-    def execute(self,
-                command: List[str],
-                env: Optional[Dict[str, str]] = None,
-                cwd: Optional[str] = None,
-                check: bool = True,
-                timeout: Optional[float] = None) -> CommandResult:
+    def execute(
+        self,
+        command: List[str],
+        env: Optional[Dict[str, str]] = None,
+        cwd: Optional[str] = None,
+        check: bool = True,
+        timeout: Optional[float] = None,
+    ) -> CommandResult:
         """
         Return a predefined result for the command.
 
@@ -210,14 +219,10 @@ class MockCommandExecutor(CommandExecutor):
             KeyError: If no mock result is defined for the command
         """
         # Convert command list to string for lookup
-        command_str = ' '.join(command)
+        command_str = " ".join(command)
 
         # Record the executed command
-        self.executed_commands.append({
-            'command': command,
-            'env': env,
-            'cwd': cwd
-        })
+        self.executed_commands.append({"command": command, "env": env, "cwd": cwd})
 
         # Add to command history
         self.command_history.append(command_str)

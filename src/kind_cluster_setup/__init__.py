@@ -11,7 +11,7 @@ Key Components:
 - cli: Command-line interface tools
 """
 
-__version__ = '0.1.0'
+__version__ = "0.1.0"
 
 from .utils.logging import setup_logging
 

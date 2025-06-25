@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+export function useLocalStorage<T>(
+  key: string,
+  initialValue: T
+): [T, (value: T) => void] {
   // Get from local storage then
   // parse stored json or return initialValue
   const readValue = (): T => {
@@ -28,7 +31,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
     // Prevent build error "window is undefined" but keep working
     if (typeof window === 'undefined') {
       console.warn(
-        `Tried setting localStorage key "${key}" even though environment is not a client`,
+        `Tried setting localStorage key "${key}" even though environment is not a client`
       );
     }
 
@@ -36,10 +39,10 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
       // Allow value to be a function so we have the same API as useState
       const valueToStore =
         value instanceof Function ? value(storedValue) : value;
-      
+
       // Save to local storage
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      
+
       // Save state
       setStoredValue(valueToStore);
     } catch (error) {
@@ -59,10 +62,10 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
 
     // this only works for other documents, not the current one
     window.addEventListener('storage', handleStorageChange);
-    
+
     // this is a custom event, triggered in writeValueToLocalStorage
     window.addEventListener('local-storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('local-storage', handleStorageChange);

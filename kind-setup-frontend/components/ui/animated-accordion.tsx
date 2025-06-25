@@ -40,10 +40,10 @@ export function AnimatedAccordion({
   onChange,
 }: AnimatedAccordionProps) {
   const [expandedIds, setExpandedIds] = useState<string[]>(defaultExpandedIds);
-  
+
   const toggleItem = (itemId: string) => {
     let newExpandedIds: string[];
-    
+
     if (expandedIds.includes(itemId)) {
       // Collapse the item
       newExpandedIds = expandedIds.filter(id => id !== itemId);
@@ -55,14 +55,14 @@ export function AnimatedAccordion({
         newExpandedIds = [itemId];
       }
     }
-    
+
     setExpandedIds(newExpandedIds);
-    
+
     if (onChange) {
       onChange(newExpandedIds);
     }
   };
-  
+
   // Variant classes
   const getVariantClasses = () => {
     switch (variant) {
@@ -97,23 +97,27 @@ export function AnimatedAccordion({
         };
     }
   };
-  
+
   const variantClasses = getVariantClasses();
-  
+
   // Icon component based on variant and state
   const getIcon = (itemId: string) => {
     const isExpanded = expandedIds.includes(itemId);
-    
+
     switch (iconVariant) {
       case 'plus':
-        return isExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />;
+        return isExpanded ? (
+          <Minus className='h-4 w-4' />
+        ) : (
+          <Plus className='h-4 w-4' />
+        );
       case 'arrow':
         return (
           <motion.div
             animate={{ rotate: isExpanded ? 90 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className='h-4 w-4' />
           </motion.div>
         );
       case 'chevron':
@@ -122,7 +126,7 @@ export function AnimatedAccordion({
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className='h-4 w-4' />
           </motion.div>
         );
       case 'none':
@@ -130,11 +134,11 @@ export function AnimatedAccordion({
         return null;
     }
   };
-  
+
   return (
     <div className={`${variantClasses.container} ${className}`}>
-      {items.map((item) => (
-        <div 
+      {items.map(item => (
+        <div
           key={item.id}
           className={`${variantClasses.item} ${itemClassName}`}
         >
@@ -146,43 +150,47 @@ export function AnimatedAccordion({
             aria-controls={`accordion-content-${item.id}`}
             id={`accordion-header-${item.id}`}
           >
-            <div className={`flex items-center ${iconPosition === 'left' && iconVariant !== 'none' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div
+              className={`flex items-center ${iconPosition === 'left' && iconVariant !== 'none' ? 'flex-row-reverse' : 'flex-row'}`}
+            >
               {iconPosition === 'left' && iconVariant !== 'none' && (
-                <span className={`${iconPosition === 'left' ? 'mr-2' : 'ml-2'} flex-shrink-0`}>
+                <span
+                  className={`${iconPosition === 'left' ? 'mr-2' : 'ml-2'} flex-shrink-0`}
+                >
                   {getIcon(item.id)}
                 </span>
               )}
-              
-              <div className="flex items-center">
+
+              <div className='flex items-center'>
                 {item.icon && (
-                  <span className="mr-2 flex-shrink-0">
-                    {item.icon}
-                  </span>
+                  <span className='mr-2 flex-shrink-0'>{item.icon}</span>
                 )}
                 <span>{item.title}</span>
               </div>
-              
+
               {iconPosition === 'right' && iconVariant !== 'none' && (
-                <span className="ml-2 flex-shrink-0">
-                  {getIcon(item.id)}
-                </span>
+                <span className='ml-2 flex-shrink-0'>{getIcon(item.id)}</span>
               )}
             </div>
           </button>
-          
+
           <AnimatePresence initial={false}>
             {expandedIds.includes(item.id) && (
               <motion.div
                 id={`accordion-content-${item.id}`}
                 aria-labelledby={`accordion-header-${item.id}`}
-                role="region"
+                role='region'
                 initial={animated ? { height: 0, opacity: 0 } : false}
-                animate={animated ? { height: 'auto', opacity: 1 } : { opacity: 1 }}
+                animate={
+                  animated ? { height: 'auto', opacity: 1 } : { opacity: 1 }
+                }
                 exit={animated ? { height: 0, opacity: 0 } : { opacity: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="overflow-hidden"
+                className='overflow-hidden'
               >
-                <div className={`${variantClasses.content} ${contentClassName}`}>
+                <div
+                  className={`${variantClasses.content} ${contentClassName}`}
+                >
                   {item.content}
                 </div>
               </motion.div>

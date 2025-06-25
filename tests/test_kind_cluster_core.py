@@ -6,7 +6,7 @@ the core abstractions.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from kind_cluster_setup.cluster.kind_cluster import KindCluster
 from kind_cluster_setup.core.command import CommandResult
@@ -18,28 +18,21 @@ class TestKindClusterCore(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.cluster_config = {
-            'name': 'test-cluster',
-            'worker_nodes': 1,
-            'apply_resource_limits': True,
-            'worker_config': {
-                'cpu': '1',
-                'memory': '2GB'
-            },
-            'control_plane_config': {
-                'cpu': '1',
-                'memory': '2GB'
-            }
+            "name": "test-cluster",
+            "worker_nodes": 1,
+            "apply_resource_limits": True,
+            "worker_config": {"cpu": "1", "memory": "2GB"},
+            "control_plane_config": {"cpu": "1", "memory": "2GB"},
         }
 
-        self.env_config = {
-            'environment': 'dev',
-            'namespace': 'default'
-        }
+        self.env_config = {"environment": "dev", "namespace": "default"}
 
-    @patch('kind_cluster_setup.cluster.kind_cluster.KindClient')
-    @patch('kind_cluster_setup.cluster.kind_cluster.DockerClient')
-    @patch('kind_cluster_setup.cluster.kind_cluster.KindCluster.wait_for_ready')
-    def test_create_cluster(self, mock_wait_for_ready, mock_docker_client, mock_kind_client):
+    @patch("kind_cluster_setup.cluster.kind_cluster.KindClient")
+    @patch("kind_cluster_setup.cluster.kind_cluster.DockerClient")
+    @patch("kind_cluster_setup.cluster.kind_cluster.KindCluster.wait_for_ready")
+    def test_create_cluster(
+        self, mock_wait_for_ready, mock_docker_client, mock_kind_client
+    ):
         """Test creating a cluster."""
         # Set up mocks
         mock_docker_instance = MagicMock()
@@ -49,7 +42,9 @@ class TestKindClusterCore(unittest.TestCase):
         mock_kind_instance = MagicMock()
         mock_kind_instance.is_installed.return_value = True
         mock_kind_instance.get_clusters.return_value = []
-        mock_kind_instance.create_cluster.return_value = CommandResult(returncode=0, stdout="", stderr="")
+        mock_kind_instance.create_cluster.return_value = CommandResult(
+            returncode=0, stdout="", stderr=""
+        )
         mock_kind_client.return_value = mock_kind_instance
 
         # Mock wait_for_ready to return True
@@ -69,13 +64,15 @@ class TestKindClusterCore(unittest.TestCase):
         self.assertTrue(cluster._created)
         self.assertTrue(result)
 
-    @patch('kind_cluster_setup.cluster.kind_cluster.KindClient')
+    @patch("kind_cluster_setup.cluster.kind_cluster.KindClient")
     def test_delete_cluster(self, mock_kind_client):
         """Test deleting a cluster."""
         # Set up mocks
         mock_kind_instance = MagicMock()
         mock_kind_instance.get_clusters.return_value = ["test-cluster"]
-        mock_kind_instance.delete_cluster.return_value = CommandResult(returncode=0, stdout="", stderr="")
+        mock_kind_instance.delete_cluster.return_value = CommandResult(
+            returncode=0, stdout="", stderr=""
+        )
         mock_kind_client.return_value = mock_kind_instance
 
         # Create a cluster
@@ -88,19 +85,23 @@ class TestKindClusterCore(unittest.TestCase):
         # Verify the result
         self.assertTrue(result)
 
-    @patch('kind_cluster_setup.cluster.kind_cluster.KubectlClient')
+    @patch("kind_cluster_setup.cluster.kind_cluster.KubectlClient")
     def test_install_ingress(self, mock_kubectl_client):
         """Test installing ingress."""
         # Set up mocks
         mock_kubectl_instance = MagicMock()
-        mock_kubectl_instance.apply.return_value = CommandResult(returncode=0, stdout="", stderr="")
-        mock_kubectl_instance.wait_for_condition.return_value = CommandResult(returncode=0, stdout="", stderr="")
+        mock_kubectl_instance.apply.return_value = CommandResult(
+            returncode=0, stdout="", stderr=""
+        )
+        mock_kubectl_instance.wait_for_condition.return_value = CommandResult(
+            returncode=0, stdout="", stderr=""
+        )
         mock_kubectl_client.return_value = mock_kubectl_instance
 
         # Create a cluster
         cluster = KindCluster(self.cluster_config, self.env_config)
         cluster.kubectl_client = mock_kubectl_instance
-        result = cluster.install_ingress('nginx')
+        result = cluster.install_ingress("nginx")
 
         # Verify that the kubectl client was called
         mock_kubectl_instance.apply.assert_called_once()
@@ -109,15 +110,13 @@ class TestKindClusterCore(unittest.TestCase):
         # Verify the result
         self.assertTrue(result)
 
-    @patch('kind_cluster_setup.cluster.kind_cluster.KubectlClient')
+    @patch("kind_cluster_setup.cluster.kind_cluster.KubectlClient")
     def test_wait_for_ready(self, mock_kubectl_client):
         """Test waiting for the cluster to be ready."""
         # Set up mocks
         mock_kubectl_instance = MagicMock()
         mock_kubectl_instance.execute.return_value = CommandResult(
-            returncode=0,
-            stdout="'True True'",
-            stderr=""
+            returncode=0, stdout="'True True'", stderr=""
         )
         mock_kubectl_client.return_value = mock_kubectl_instance
 
@@ -132,14 +131,14 @@ class TestKindClusterCore(unittest.TestCase):
         # Verify the result
         self.assertTrue(result)
 
-    @patch('kind_cluster_setup.cluster.kind_cluster.KubectlClient')
+    @patch("kind_cluster_setup.cluster.kind_cluster.KubectlClient")
     def test_get_info(self, mock_kubectl_client):
         """Test getting cluster info."""
         # Set up mocks
         mock_kubectl_instance = MagicMock()
         mock_kubectl_instance.execute.side_effect = [
             CommandResult(returncode=0, stdout="node1 Ready", stderr=""),
-            CommandResult(returncode=0, stdout="node1 10% 20%", stderr="")
+            CommandResult(returncode=0, stdout="node1 10% 20%", stderr=""),
         ]
         mock_kubectl_client.return_value = mock_kubectl_instance
 
@@ -152,17 +151,15 @@ class TestKindClusterCore(unittest.TestCase):
         self.assertEqual(mock_kubectl_instance.execute.call_count, 2)
 
         # Verify the result
-        self.assertIn('nodes', result)
+        self.assertIn("nodes", result)
 
-    @patch('kind_cluster_setup.cluster.kind_cluster.KubectlClient')
+    @patch("kind_cluster_setup.cluster.kind_cluster.KubectlClient")
     def test_check_health(self, mock_kubectl_client):
         """Test checking cluster health."""
         # Set up mocks
         mock_kubectl_instance = MagicMock()
         mock_kubectl_instance.execute.return_value = CommandResult(
-            returncode=0,
-            stdout="'node1 True'",
-            stderr=""
+            returncode=0, stdout="'node1 True'", stderr=""
         )
         mock_kubectl_client.return_value = mock_kubectl_instance
 
@@ -175,8 +172,8 @@ class TestKindClusterCore(unittest.TestCase):
         mock_kubectl_instance.execute.assert_called_once()
 
         # Verify the result
-        self.assertEqual(result['status'], 'healthy')
-        self.assertEqual(len(result['issues']), 0)
+        self.assertEqual(result["status"], "healthy")
+        self.assertEqual(len(result["issues"]), 0)
 
     def test_context_manager(self):
         """Test using the cluster as a context manager."""
@@ -199,5 +196,5 @@ class TestKindClusterCore(unittest.TestCase):
         cluster.delete.assert_called_once()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle, Bell } from 'lucide-react';
+import {
+  X,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  AlertTriangle,
+  Bell,
+} from 'lucide-react';
 import { EnhancedButton } from './enhanced-button';
 
 type NotificationType = 'success' | 'error' | 'info' | 'warning';
@@ -12,7 +19,13 @@ interface AnimatedNotificationProps {
   isOpen?: boolean;
   onClose?: () => void;
   duration?: number;
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  position?:
+    | 'top-right'
+    | 'top-left'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'top-center'
+    | 'bottom-center';
   showIcon?: boolean;
   showCloseButton?: boolean;
   action?: {
@@ -77,14 +90,14 @@ export function AnimatedNotification({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-5 w-5 text-success" />;
+        return <CheckCircle className='h-5 w-5 text-success' />;
       case 'error':
-        return <AlertCircle className="h-5 w-5 text-error" />;
+        return <AlertCircle className='h-5 w-5 text-error' />;
       case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-warning" />;
+        return <AlertTriangle className='h-5 w-5 text-warning' />;
       case 'info':
       default:
-        return <Info className="h-5 w-5 text-info" />;
+        return <Info className='h-5 w-5 text-info' />;
     }
   };
 
@@ -176,22 +189,28 @@ export function AnimatedNotification({
         <motion.div
           className={`fixed ${getPositionClasses()} max-w-md w-full pointer-events-auto ${className}`}
           style={{ zIndex }}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
+          initial='hidden'
+          animate='visible'
+          exit='exit'
           variants={getAnimationVariants()}
           transition={{ duration: 0.2 }}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <div className={`rounded-lg shadow-elevated border ${getBackgroundColor()} p-4 relative overflow-hidden`}>
+          <div
+            className={`rounded-lg shadow-elevated border ${getBackgroundColor()} p-4 relative overflow-hidden`}
+          >
             {/* Progress bar */}
             {duration > 0 && (
               <motion.div
                 className={`absolute bottom-0 left-0 h-1 ${
-                  type === 'success' ? 'bg-success' :
-                  type === 'error' ? 'bg-error' :
-                  type === 'warning' ? 'bg-warning' : 'bg-info'
+                  type === 'success'
+                    ? 'bg-success'
+                    : type === 'error'
+                      ? 'bg-error'
+                      : type === 'warning'
+                        ? 'bg-warning'
+                        : 'bg-info'
                 }`}
                 initial={{ width: '100%' }}
                 animate={{ width: `${progress}%` }}
@@ -199,35 +218,31 @@ export function AnimatedNotification({
               />
             )}
 
-            <div className="flex">
+            <div className='flex'>
               {/* Icon */}
               {showIcon && (
-                <div className="flex-shrink-0 mr-3">
-                  {getIcon()}
-                </div>
+                <div className='flex-shrink-0 mr-3'>{getIcon()}</div>
               )}
 
               {/* Content */}
-              <div className="flex-1">
-                {title && (
-                  <h4 className="text-sm font-medium mb-1">
-                    {title}
-                  </h4>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  {message}
-                </p>
+              <div className='flex-1'>
+                {title && <h4 className='text-sm font-medium mb-1'>{title}</h4>}
+                <p className='text-sm text-muted-foreground'>{message}</p>
 
                 {/* Action button */}
                 {action && (
-                  <div className="mt-3">
+                  <div className='mt-3'>
                     <EnhancedButton
                       variant={
-                        type === 'success' ? 'default' :
-                        type === 'error' ? 'destructive' :
-                        type === 'warning' ? 'secondary' : 'default'
+                        type === 'success'
+                          ? 'default'
+                          : type === 'error'
+                            ? 'destructive'
+                            : type === 'warning'
+                              ? 'secondary'
+                              : 'default'
                       }
-                      size="sm"
+                      size='sm'
                       onClick={action.onClick}
                     >
                       {action.label}
@@ -239,11 +254,11 @@ export function AnimatedNotification({
               {/* Close button */}
               {showCloseButton && (
                 <button
-                  className="ml-4 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                  className='ml-4 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors'
                   onClick={handleClose}
-                  aria-label="Close notification"
+                  aria-label='Close notification'
                 >
-                  <X className="h-4 w-4" />
+                  <X className='h-4 w-4' />
                 </button>
               )}
             </div>

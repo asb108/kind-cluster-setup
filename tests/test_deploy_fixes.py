@@ -1,13 +1,16 @@
-import unittest
 import os
 import tempfile
+import unittest
+from unittest.mock import MagicMock, patch
+
 import yaml
-from unittest.mock import patch, MagicMock
 
 from kind_cluster_setup.commands.deploy import DeployCommand
-from kind_cluster_setup.deployment.kubernetes import KubernetesDeploymentStrategy
 from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
-from kind_cluster_setup.utils.yaml_handler import load_yaml, dump_yaml, dump_multi_yaml
+from kind_cluster_setup.deployment.kubernetes import \
+    KubernetesDeploymentStrategy
+from kind_cluster_setup.utils.yaml_handler import (dump_multi_yaml, dump_yaml,
+                                                   load_yaml)
 
 
 class TestDeployFixes(unittest.TestCase):
@@ -23,60 +26,35 @@ class TestDeployFixes(unittest.TestCase):
         single_doc = {
             "apiVersion": "apps/v1",
             "kind": "Deployment",
-            "metadata": {
-                "name": "test-app",
-                "namespace": "dev"
-            },
+            "metadata": {"name": "test-app", "namespace": "dev"},
             "spec": {
                 "replicas": 1,
-                "selector": {
-                    "matchLabels": {
-                        "app": "test-app"
-                    }
-                },
+                "selector": {"matchLabels": {"app": "test-app"}},
                 "template": {
-                    "metadata": {
-                        "labels": {
-                            "app": "test-app"
-                        }
-                    },
+                    "metadata": {"labels": {"app": "test-app"}},
                     "spec": {
                         "containers": [
                             {
                                 "name": "nginx",
                                 "image": "nginx:latest",
-                                "ports": [
-                                    {
-                                        "containerPort": 80
-                                    }
-                                ]
+                                "ports": [{"containerPort": 80}],
                             }
                         ]
-                    }
-                }
-            }
+                    },
+                },
+            },
         }
 
         # Create multi-document YAML
         service_doc = {
             "apiVersion": "v1",
             "kind": "Service",
-            "metadata": {
-                "name": "test-app",
-                "namespace": "dev"
-            },
+            "metadata": {"name": "test-app", "namespace": "dev"},
             "spec": {
-                "selector": {
-                    "app": "test-app"
-                },
-                "ports": [
-                    {
-                        "port": 80,
-                        "targetPort": 80
-                    }
-                ],
-                "type": "ClusterIP"
-            }
+                "selector": {"app": "test-app"},
+                "ports": [{"port": 80, "targetPort": 80}],
+                "type": "ClusterIP",
+            },
         }
 
         # Write the YAML files
@@ -84,12 +62,16 @@ class TestDeployFixes(unittest.TestCase):
         dump_multi_yaml([single_doc, service_doc], self.multi_doc_yaml)
 
         # Create application directory structure
-        self.app_dir = os.path.join(self.temp_dir.name, "applications", "test-app", "config")
+        self.app_dir = os.path.join(
+            self.temp_dir.name, "applications", "test-app", "config"
+        )
         os.makedirs(self.app_dir, exist_ok=True)
 
         # Copy the YAML files to the application directory
         dump_yaml(single_doc, os.path.join(self.app_dir, "dev.yaml"))
-        dump_multi_yaml([single_doc, service_doc], os.path.join(self.app_dir, "multi_dev.yaml"))
+        dump_multi_yaml(
+            [single_doc, service_doc], os.path.join(self.app_dir, "multi_dev.yaml")
+        )
 
     def tearDown(self):
         # Clean up temporary directory
@@ -129,13 +111,15 @@ class TestDeployFixes(unittest.TestCase):
         self.assertEqual(new_multi_docs[0]["kind"], "Deployment")
         self.assertEqual(new_multi_docs[1]["kind"], "Service")
 
-    @patch('kind_cluster_setup.deployment.kubernetes.KubectlClient')
+    @patch("kind_cluster_setup.deployment.kubernetes.KubectlClient")
     def test_kubernetes_deploy_multi_doc(self, mock_kubectl):
         """Test that KubernetesDeploymentStrategy can deploy multiple documents."""
         # Mock the kubectl client
         mock_kubectl_instance = MagicMock()
         mock_kubectl.return_value = mock_kubectl_instance
-        mock_kubectl_instance.apply.return_value = MagicMock(stdout="deployment.apps/test-app created\nservice/test-app created")
+        mock_kubectl_instance.apply.return_value = MagicMock(
+            stdout="deployment.apps/test-app created\nservice/test-app created"
+        )
 
         # Create the strategy
         strategy = KubernetesDeploymentStrategy()
@@ -148,7 +132,7 @@ class TestDeployFixes(unittest.TestCase):
             app="test-app",
             app_config=app_config,
             env_config={"namespace": "dev", "environment": "dev"},
-            cluster_name="my-kind-cluster"
+            cluster_name="my-kind-cluster",
         )
 
         # Check that the deployment was successful
@@ -157,8 +141,8 @@ class TestDeployFixes(unittest.TestCase):
         # Check that kubectl apply was called
         mock_kubectl_instance.apply.assert_called_once()
 
-    @patch('kind_cluster_setup.deployment.helm.HelmClient')
-    @patch('kind_cluster_setup.deployment.helm.KubectlClient')
+    @patch("kind_cluster_setup.deployment.helm.HelmClient")
+    @patch("kind_cluster_setup.deployment.helm.KubectlClient")
     def test_helm_deploy_with_values(self, mock_kubectl, mock_helm):
         """Test that HelmDeploymentStrategy can deploy with values."""
         # Mock the kubectl and helm clients
@@ -167,7 +151,9 @@ class TestDeployFixes(unittest.TestCase):
         mock_kubectl.return_value = mock_kubectl_instance
         mock_helm.return_value = mock_helm_instance
         mock_helm_instance.is_installed.return_value = True
-        mock_helm_instance.install_or_upgrade.return_value = MagicMock(stdout="Release test-app-release has been upgraded")
+        mock_helm_instance.install_or_upgrade.return_value = MagicMock(
+            stdout="Release test-app-release has been upgraded"
+        )
 
         # Create the strategy
         strategy = HelmDeploymentStrategy()
@@ -187,7 +173,7 @@ class TestDeployFixes(unittest.TestCase):
             env_config={"namespace": "dev", "environment": "dev"},
             template_dir=chart_dir,
             cluster_name="my-kind-cluster",
-            values={"replicas": 2}
+            values={"replicas": 2},
         )
 
         # Check that the deployment was successful
@@ -196,16 +182,20 @@ class TestDeployFixes(unittest.TestCase):
         # Check that helm install_or_upgrade was called
         mock_helm_instance.install_or_upgrade.assert_called_once()
 
-    @patch('kind_cluster_setup.commands.deploy.KubernetesDeploymentStrategy')
-    @patch('kind_cluster_setup.commands.deploy.load_app_config')
-    @patch('kind_cluster_setup.commands.deploy.Command.__init__')
-    def test_deploy_command_with_kubernetes(self, mock_init, mock_load_app_config, mock_kubernetes_strategy):
+    @patch("kind_cluster_setup.commands.deploy.KubernetesDeploymentStrategy")
+    @patch("kind_cluster_setup.commands.deploy.load_app_config")
+    @patch("kind_cluster_setup.commands.deploy.Command.__init__")
+    def test_deploy_command_with_kubernetes(
+        self, mock_init, mock_load_app_config, mock_kubernetes_strategy
+    ):
         """Test that DeployCommand can deploy with KubernetesDeploymentStrategy."""
         # Mock the Command.__init__ method to avoid repository initialization
         mock_init.return_value = None
 
         # Mock the load_app_config function
-        mock_load_app_config.return_value = load_yaml(self.multi_doc_yaml, multi_doc=True)
+        mock_load_app_config.return_value = load_yaml(
+            self.multi_doc_yaml, multi_doc=True
+        )
 
         # Mock the KubernetesDeploymentStrategy
         mock_strategy_instance = MagicMock()

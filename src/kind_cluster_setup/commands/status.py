@@ -7,17 +7,19 @@ checking the status of Kind clusters and deployed applications.
 
 import argparse
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from kind_cluster_setup.commands.base import Command
 from kind_cluster_setup.cluster.kind_cluster import KindCluster
-from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
-from kind_cluster_setup.deployment.kubernetes import KubernetesDeploymentStrategy
-from kind_cluster_setup.config.config_loader import load_cluster_config, get_environment_config
-from kind_cluster_setup.utils.logging import get_logger
+from kind_cluster_setup.commands.base import Command
+from kind_cluster_setup.config.config_loader import (get_environment_config,
+                                                     load_cluster_config)
 from kind_cluster_setup.core.command import SubprocessCommandExecutor
 from kind_cluster_setup.core.kind import KindClient
-from kind_cluster_setup.domain.entities import Cluster, Task, Application
+from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
+from kind_cluster_setup.deployment.kubernetes import \
+    KubernetesDeploymentStrategy
+from kind_cluster_setup.domain.entities import Application, Cluster, Task
+from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -46,7 +48,9 @@ class StatusCommand(Command):
             cluster_config = load_cluster_config(args.environment)
 
             # Create a task to track the status check process
-            task = self._create_task(args.environment, args.apps if hasattr(args, 'apps') else [])
+            task = self._create_task(
+                args.environment, args.apps if hasattr(args, "apps") else []
+            )
 
             # Create command executor and clients
             executor = SubprocessCommandExecutor()
@@ -67,39 +71,46 @@ class StatusCommand(Command):
                 logger.info(f"Found {len(clusters)} Kind clusters: {clusters}")
 
                 # Get info for each cluster that wasn't already processed
-                all_nodes = cluster_info.get('nodes', [])
-                existing_cluster_names = [node['name'].split('-control-plane')[0] for node in all_nodes
-                                         if 'control-plane' in node['name']]
+                all_nodes = cluster_info.get("nodes", [])
+                existing_cluster_names = [
+                    node["name"].split("-control-plane")[0]
+                    for node in all_nodes
+                    if "control-plane" in node["name"]
+                ]
 
                 for cluster_name in clusters:
                     # Skip if we already have info for this cluster
                     if cluster_name in existing_cluster_names:
-                        logger.info(f"Cluster {cluster_name} already processed, skipping")
+                        logger.info(
+                            f"Cluster {cluster_name} already processed, skipping"
+                        )
                         continue
 
                     # Create a temporary config for this cluster
-                    temp_config = {'name': cluster_name}
+                    temp_config = {"name": cluster_name}
                     temp_cluster = KindCluster(temp_config, env_config, executor)
 
                     try:
                         temp_info = temp_cluster.get_info()
-                        if 'nodes' in temp_info:
-                            all_nodes.extend(temp_info['nodes'])
+                        if "nodes" in temp_info:
+                            all_nodes.extend(temp_info["nodes"])
                             logger.info(f"Added info for cluster {cluster_name}")
 
                             # Update the cluster entity in the repository
                             self._update_cluster_entities(temp_info)
                     except Exception as e:
-                        logger.warning(f"Failed to get info for cluster {cluster_name}: {e}")
+                        logger.warning(
+                            f"Failed to get info for cluster {cluster_name}: {e}"
+                        )
 
                 # Update the cluster_info with all nodes
-                cluster_info['nodes'] = all_nodes
+                cluster_info["nodes"] = all_nodes
             except Exception as e:
                 logger.warning(f"Failed to get list of Kind clusters: {e}")
 
             # Check application status if apps are specified
             app_statuses = []
-            if hasattr(args, 'apps') and args.apps:
+            if hasattr(args, "apps") and args.apps:
                 for app, deployment_method in zip(args.apps, args.deployments):
                     try:
                         if deployment_method == "helm":
@@ -107,7 +118,9 @@ class StatusCommand(Command):
                         elif deployment_method == "kubernetes":
                             strategy = KubernetesDeploymentStrategy()
                         else:
-                            raise ValueError(f"Unsupported deployment method: {deployment_method}")
+                            raise ValueError(
+                                f"Unsupported deployment method: {deployment_method}"
+                            )
 
                         if deployment_method == "helm":
                             # For Helm strategy, use the new interface
@@ -117,30 +130,33 @@ class StatusCommand(Command):
                             # For Kubernetes strategy, use the original parameter order
                             app_status = strategy.check_status(app, env_config)
 
-                        logger.info(f"Status for {app} ({deployment_method}):\n{app_status}")
+                        logger.info(
+                            f"Status for {app} ({deployment_method}):\n{app_status}"
+                        )
 
                         # Update the application entity in the repository
                         self._update_application_status(app, app_status)
 
-                        app_statuses.append({
-                            "app": app,
-                            "deployment_method": deployment_method,
-                            "status": app_status
-                        })
+                        app_statuses.append(
+                            {
+                                "app": app,
+                                "deployment_method": deployment_method,
+                                "status": app_status,
+                            }
+                        )
                     except Exception as e:
                         logger.error(f"Failed to check status for {app}: {e}")
-                        app_statuses.append({
-                            "app": app,
-                            "deployment_method": deployment_method,
-                            "status": "error",
-                            "error": str(e)
-                        })
+                        app_statuses.append(
+                            {
+                                "app": app,
+                                "deployment_method": deployment_method,
+                                "status": "error",
+                                "error": str(e),
+                            }
+                        )
 
             # Combine cluster and application status
-            status_info = {
-                "clusters": cluster_info,
-                "applications": app_statuses
-            }
+            status_info = {"clusters": cluster_info, "applications": app_statuses}
 
             # Update the task status
             self._update_task_status(task, "completed", status_info)
@@ -150,7 +166,7 @@ class StatusCommand(Command):
             logger.error(f"Failed to check status: {e}")
 
             # Update the task status if it exists
-            if 'task' in locals():
+            if "task" in locals():
                 self._update_task_status(task, "failed", {"error": str(e)})
 
             raise
@@ -175,10 +191,7 @@ class StatusCommand(Command):
             description=f"Check status of clusters and applications in {environment} environment",
             status="running",
             command="status",
-            args={
-                "environment": environment,
-                "apps": apps
-            }
+            args={"environment": environment, "apps": apps},
         )
 
         return self.task_repository.save(task)
@@ -191,14 +204,16 @@ class StatusCommand(Command):
             cluster_info: Cluster information from KindCluster.get_info().
         """
         if self.cluster_repository is None:
-            logger.warning("Cluster repository not available, skipping cluster entity update")
+            logger.warning(
+                "Cluster repository not available, skipping cluster entity update"
+            )
             return
 
         # Extract cluster names from nodes
         cluster_names = set()
-        for node in cluster_info.get('nodes', []):
-            if 'name' in node and '-control-plane' in node['name']:
-                cluster_name = node['name'].split('-control-plane')[0]
+        for node in cluster_info.get("nodes", []):
+            if "name" in node and "-control-plane" in node["name"]:
+                cluster_name = node["name"].split("-control-plane")[0]
                 cluster_names.add(cluster_name)
 
         # Update each cluster entity
@@ -213,8 +228,9 @@ class StatusCommand(Command):
 
                 # Extract nodes for this cluster
                 cluster_nodes = [
-                    node for node in cluster_info.get('nodes', [])
-                    if 'name' in node and node['name'].startswith(cluster_name)
+                    node
+                    for node in cluster_info.get("nodes", [])
+                    if "name" in node and node["name"].startswith(cluster_name)
                 ]
 
                 # Update nodes in the cluster entity
@@ -223,7 +239,9 @@ class StatusCommand(Command):
 
                 self.cluster_repository.save(cluster)
             else:
-                logger.info(f"Cluster {cluster_name} not found in repository, creating it")
+                logger.info(
+                    f"Cluster {cluster_name} not found in repository, creating it"
+                )
 
                 # Create a new cluster entity
                 new_cluster = Cluster(
@@ -232,14 +250,17 @@ class StatusCommand(Command):
                     environment="unknown",
                     status="running",
                     nodes=[
-                        node for node in cluster_info.get('nodes', [])
-                        if 'name' in node and node['name'].startswith(cluster_name)
-                    ]
+                        node
+                        for node in cluster_info.get("nodes", [])
+                        if "name" in node and node["name"].startswith(cluster_name)
+                    ],
                 )
 
                 self.cluster_repository.save(new_cluster)
 
-    def _update_application_status(self, app_name: str, app_status: Dict[str, Any]) -> None:
+    def _update_application_status(
+        self, app_name: str, app_status: Dict[str, Any]
+    ) -> None:
         """
         Update application status in the repository.
 
@@ -248,7 +269,9 @@ class StatusCommand(Command):
             app_status: Status information for the application.
         """
         if self.application_repository is None:
-            logger.warning("Application repository not available, skipping application status update")
+            logger.warning(
+                "Application repository not available, skipping application status update"
+            )
             return
 
         # Find the application in the repository
@@ -258,12 +281,14 @@ class StatusCommand(Command):
             logger.info(f"Updating status for application {app_name}")
 
             # Update the application status
-            application.status = app_status.get('status', 'unknown')
+            application.status = app_status.get("status", "unknown")
             application.updated_at = datetime.now()
 
             self.application_repository.save(application)
 
-    def _update_task_status(self, task: Optional[Task], status: str, result: Dict[str, Any]) -> Optional[Task]:
+    def _update_task_status(
+        self, task: Optional[Task], status: str, result: Dict[str, Any]
+    ) -> Optional[Task]:
         """
         Update the status of a task.
 
