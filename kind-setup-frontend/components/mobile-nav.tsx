@@ -7,7 +7,7 @@ import { Menu, X, ChevronRight, Server } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from './sidebar-context';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { navSections } from './Sidebar';
 import { AnimatedNavItem } from './ui/animated-nav-item';
 

@@ -6,7 +6,7 @@ import Sidebar from './Sidebar';
 import MobileNav from './mobile-nav';
 import { useSidebar } from './sidebar-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LayoutWithSidebar({

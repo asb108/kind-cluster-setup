@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { AnimatedProgress } from '@/components/ui/animated-progress';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 interface EnhancedStatsCardProps {

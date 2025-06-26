@@ -6,7 +6,7 @@ import { useSidebar } from './sidebar-context';
 import ThemeSwitcher from './ThemeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { usePathname } from 'next/navigation';
 import { getBreadcrumbs } from './Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';

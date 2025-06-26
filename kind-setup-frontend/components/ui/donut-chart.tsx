@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import { AnimatedText } from '@/components/ui/animated-text';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
 

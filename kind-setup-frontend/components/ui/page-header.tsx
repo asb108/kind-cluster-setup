@@ -4,7 +4,7 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronRight, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import { getBreadcrumbs } from '../Sidebar';
 import {
   Breadcrumb,
