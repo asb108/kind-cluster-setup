@@ -5,8 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import yaml
 
-from kind_cluster_setup.core.command import (CommandResult,
-                                             SubprocessCommandExecutor)
+from kind_cluster_setup.core.command import CommandResult, SubprocessCommandExecutor
 from kind_cluster_setup.core.kubernetes import KubectlClient
 from kind_cluster_setup.deployment.base import DeploymentStrategy
 from kind_cluster_setup.utils.constants import K8S_MANIFEST_PATH, PROJECT_ROOT
@@ -56,7 +55,9 @@ class KubernetesDeploymentStrategy(DeploymentStrategy):
                     break
             # Fallback to env_config or default
             if not namespace:
-                namespace = env_config.get("namespace", f"{app}-{env_config.get('environment', 'dev')}")
+                namespace = env_config.get(
+                    "namespace", f"{app}-{env_config.get('environment', 'dev')}"
+                )
         else:
             # Single document case
             namespace = app_config.get("namespace") or env_config.get(
@@ -119,8 +120,7 @@ class KubernetesDeploymentStrategy(DeploymentStrategy):
 
                 # Handle both single document and multi-document configs
                 if isinstance(app_config, list):
-                    from kind_cluster_setup.utils.yaml_handler import \
-                        dump_multi_yaml
+                    from kind_cluster_setup.utils.yaml_handler import dump_multi_yaml
 
                     dump_multi_yaml(app_config, yaml_file)
                 else:

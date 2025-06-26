@@ -13,17 +13,20 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, PropertyMock, patch
 
-from kind_cluster_setup.cluster.kind_cluster import (ClusterOperationError,
-                                                     DockerNotRunningError,
-                                                     KindNotInstalledError)
+from kind_cluster_setup.cluster.kind_cluster import (
+    ClusterOperationError,
+    DockerNotRunningError,
+    KindNotInstalledError,
+)
 from kind_cluster_setup.commands.create import CreateCommand
 from kind_cluster_setup.commands.delete import DeleteCommand
 from kind_cluster_setup.commands.deploy import DeployCommand
 from kind_cluster_setup.commands.status import StatusCommand
 from kind_cluster_setup.core.command import CommandResult
 from kind_cluster_setup.domain.entities import Application, Cluster, Task
-from kind_cluster_setup.infrastructure.repositories.factory import \
-    init_repository_factory
+from kind_cluster_setup.infrastructure.repositories.factory import (
+    init_repository_factory,
+)
 
 
 class BaseCommandTest(unittest.TestCase):

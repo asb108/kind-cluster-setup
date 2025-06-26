@@ -11,14 +11,15 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from kind_cluster_setup.commands.base import Command
-from kind_cluster_setup.config.config_loader import (get_environment_config,
-                                                     load_app_config)
+from kind_cluster_setup.config.config_loader import (
+    get_environment_config,
+    load_app_config,
+)
 from kind_cluster_setup.core.command import SubprocessCommandExecutor
 from kind_cluster_setup.core.deployment import DeploymentStrategyFactory
 from kind_cluster_setup.domain.entities import Application, Task
 from kind_cluster_setup.utils.logging import get_logger
-from kind_cluster_setup.utils.yaml_handler import (dump_multi_yaml, dump_yaml,
-                                                   load_yaml)
+from kind_cluster_setup.utils.yaml_handler import dump_multi_yaml, dump_yaml, load_yaml
 
 logger = get_logger(__name__)
 

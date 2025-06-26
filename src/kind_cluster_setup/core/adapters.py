@@ -9,8 +9,7 @@ import os
 import subprocess
 from typing import Any, Dict, List, Optional, Union
 
-from kind_cluster_setup.core.cluster import (Cluster, ClusterConfig,
-                                             EnvironmentConfig)
+from kind_cluster_setup.core.cluster import Cluster, ClusterConfig, EnvironmentConfig
 from kind_cluster_setup.core.command import CommandExecutor, CommandResult
 from kind_cluster_setup.core.docker import DockerClient
 from kind_cluster_setup.core.kind import KindClient

@@ -14,10 +14,16 @@ from datetime import datetime
 
 from kind_cluster_setup.domain.entities import Application, Cluster, Task, User
 from kind_cluster_setup.infrastructure.repositories.factory import (
-    RepositoryFactory, get_repository_factory, init_repository_factory)
+    RepositoryFactory,
+    get_repository_factory,
+    init_repository_factory,
+)
 from kind_cluster_setup.infrastructure.repositories.json_repositories import (
-    JsonApplicationRepository, JsonClusterRepository, JsonTaskRepository,
-    JsonUserRepository)
+    JsonApplicationRepository,
+    JsonClusterRepository,
+    JsonTaskRepository,
+    JsonUserRepository,
+)
 
 
 class TestJsonClusterRepository(unittest.TestCase):

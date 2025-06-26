@@ -1,8 +1,7 @@
 import os
 from typing import Any, Dict, List, Union
 
-from kind_cluster_setup.utils.constants import (APP_CONFIG_PATH,
-                                                CLUSTER_CONFIG_PATH)
+from kind_cluster_setup.utils.constants import APP_CONFIG_PATH, CLUSTER_CONFIG_PATH
 from kind_cluster_setup.utils.logging import get_logger
 from kind_cluster_setup.utils.yaml_handler import load_yaml
 

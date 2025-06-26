@@ -10,13 +10,26 @@ import subprocess
 import time
 import traceback
 from functools import wraps
-from typing import (Any, Callable, ContextManager, Dict, Iterator, List,
-                    Optional, Tuple, TypeVar, Union)
+from typing import (
+    Any,
+    Callable,
+    ContextManager,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from kind_cluster_setup.core.cluster import NodeConfig as CoreNodeConfig
-from kind_cluster_setup.core.command import (CommandExecutor, CommandResult,
-                                             MockCommandExecutor,
-                                             SubprocessCommandExecutor)
+from kind_cluster_setup.core.command import (
+    CommandExecutor,
+    CommandResult,
+    MockCommandExecutor,
+    SubprocessCommandExecutor,
+)
 from kind_cluster_setup.core.docker import DockerClient
 from kind_cluster_setup.core.kind import KindClient
 from kind_cluster_setup.core.kubernetes import KubectlClient
@@ -599,7 +612,9 @@ class KindCluster:
                 pass
 
             # Convert to ClusterOperationError for consistency
-            raise ClusterOperationError(f"Failed to create cluster: {error_message}") from e
+            raise ClusterOperationError(
+                f"Failed to create cluster: {error_message}"
+            ) from e
 
     @retry(max_attempts=2, delay=1.0, exceptions=(ClusterOperationError,))
     def delete(self) -> bool:

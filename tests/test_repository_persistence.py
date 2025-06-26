@@ -14,8 +14,11 @@ from datetime import datetime
 
 from kind_cluster_setup.domain.entities import Application, Cluster, Task, User
 from kind_cluster_setup.infrastructure.repositories.json_repositories import (
-    JsonApplicationRepository, JsonClusterRepository, JsonTaskRepository,
-    JsonUserRepository)
+    JsonApplicationRepository,
+    JsonClusterRepository,
+    JsonTaskRepository,
+    JsonUserRepository,
+)
 
 
 class TestRepositoryPersistence(unittest.TestCase):

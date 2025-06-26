@@ -27,12 +27,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from kind_cluster_setup.api.data_provider import get_data_provider
 from kind_cluster_setup.api.task_persistence import get_task_store
-from kind_cluster_setup.commands import (CreateCommand, DeployCommand,
-                                         StatusCommand)
-from kind_cluster_setup.config.server_config import (API_STATUS,
-                                                     DEFAULT_ENVIRONMENTS,
-                                                     TASK_MESSAGES,
-                                                     get_server_config)
+from kind_cluster_setup.commands import CreateCommand, DeployCommand, StatusCommand
+from kind_cluster_setup.config.server_config import (
+    API_STATUS,
+    DEFAULT_ENVIRONMENTS,
+    TASK_MESSAGES,
+    get_server_config,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -843,8 +844,9 @@ def deploy_application_task(task_id: str, deployment_config: Dict[str, Any]):
         # Instead of using DeployCommand which expects config files,
         # we'll use the template system directly for deployment
         from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
-        from kind_cluster_setup.deployment.kubernetes import \
-            KubernetesDeploymentStrategy
+        from kind_cluster_setup.deployment.kubernetes import (
+            KubernetesDeploymentStrategy,
+        )
 
         # Load the template for the application using existing template loading logic
         templates = load_app_templates()
@@ -892,8 +894,7 @@ def deploy_application_task(task_id: str, deployment_config: Dict[str, Any]):
         }
 
         # Get environment config
-        from kind_cluster_setup.config.config_loader import \
-            get_environment_config
+        from kind_cluster_setup.config.config_loader import get_environment_config
 
         env_config = get_environment_config(environment)
 

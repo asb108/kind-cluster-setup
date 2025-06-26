@@ -10,12 +10,13 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from kind_cluster_setup.commands.base import Command
-from kind_cluster_setup.config.config_loader import (get_environment_config,
-                                                     load_app_config)
+from kind_cluster_setup.config.config_loader import (
+    get_environment_config,
+    load_app_config,
+)
 from kind_cluster_setup.core.command import SubprocessCommandExecutor
 from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
-from kind_cluster_setup.deployment.kubernetes import \
-    KubernetesDeploymentStrategy
+from kind_cluster_setup.deployment.kubernetes import KubernetesDeploymentStrategy
 from kind_cluster_setup.domain.entities import Application, Cluster, Task
 from kind_cluster_setup.utils.logging import get_logger
 

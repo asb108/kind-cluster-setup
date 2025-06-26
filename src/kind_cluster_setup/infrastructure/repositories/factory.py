@@ -9,13 +9,18 @@ import os
 from typing import Dict, Optional, Type, TypeVar, cast
 
 from kind_cluster_setup.core.repository import Repository
-from kind_cluster_setup.domain.repositories import (ApplicationRepository,
-                                                    ClusterRepository,
-                                                    TaskRepository,
-                                                    UserRepository)
+from kind_cluster_setup.domain.repositories import (
+    ApplicationRepository,
+    ClusterRepository,
+    TaskRepository,
+    UserRepository,
+)
 from kind_cluster_setup.infrastructure.repositories.json_repositories import (
-    JsonApplicationRepository, JsonClusterRepository, JsonTaskRepository,
-    JsonUserRepository)
+    JsonApplicationRepository,
+    JsonClusterRepository,
+    JsonTaskRepository,
+    JsonUserRepository,
+)
 from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)

@@ -1,7 +1,11 @@
 import argparse
 
-from kind_cluster_setup.commands import (CreateCommand, DeleteCommand,
-                                         DeployCommand, StatusCommand)
+from kind_cluster_setup.commands import (
+    CreateCommand,
+    DeleteCommand,
+    DeployCommand,
+    StatusCommand,
+)
 from kind_cluster_setup.commands.delete_app import DeleteAppCommand
 from kind_cluster_setup.commands.modify import ModifyCommand
 

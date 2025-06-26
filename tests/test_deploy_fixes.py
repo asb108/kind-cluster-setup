@@ -7,10 +7,8 @@ import yaml
 
 from kind_cluster_setup.commands.deploy import DeployCommand
 from kind_cluster_setup.deployment.helm import HelmDeploymentStrategy
-from kind_cluster_setup.deployment.kubernetes import \
-    KubernetesDeploymentStrategy
-from kind_cluster_setup.utils.yaml_handler import (dump_multi_yaml, dump_yaml,
-                                                   load_yaml)
+from kind_cluster_setup.deployment.kubernetes import KubernetesDeploymentStrategy
+from kind_cluster_setup.utils.yaml_handler import dump_multi_yaml, dump_yaml, load_yaml
 
 
 class TestDeployFixes(unittest.TestCase):

@@ -11,8 +11,9 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from kind_cluster_setup.cli.parser import create_parser
-from kind_cluster_setup.infrastructure.repositories.factory import \
-    init_repository_factory
+from kind_cluster_setup.infrastructure.repositories.factory import (
+    init_repository_factory,
+)
 from kind_cluster_setup.utils.constants import PROJECT_ROOT
 from kind_cluster_setup.utils.logging import get_logger, setup_logging
 

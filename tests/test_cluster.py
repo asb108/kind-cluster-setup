@@ -3,10 +3,12 @@ import time
 import unittest
 from unittest.mock import MagicMock, call, patch
 
-from kind_cluster_setup.cluster.kind_cluster import (ClusterOperationError,
-                                                     DockerNotRunningError,
-                                                     KindCluster,
-                                                     KindNotInstalledError)
+from kind_cluster_setup.cluster.kind_cluster import (
+    ClusterOperationError,
+    DockerNotRunningError,
+    KindCluster,
+    KindNotInstalledError,
+)
 from kind_cluster_setup.utils.constants import PROJECT_ROOT
 
 
@@ -93,9 +95,13 @@ class TestKindCluster(unittest.TestCase):
         kind_cluster.wait_for_ready = MagicMock(return_value=True)
 
         # Mock time.sleep to avoid waiting - patch in the cluster module
-        with patch("kind_cluster_setup.cluster.kind_cluster.time.sleep") as mock_sleep, patch("os.path.join"), patch(
+        with patch(
+            "kind_cluster_setup.cluster.kind_cluster.time.sleep"
+        ) as mock_sleep, patch("os.path.join"), patch(
             "kind_cluster_setup.utils.yaml_handler.dump_yaml"
-        ), patch("os.remove"):
+        ), patch(
+            "os.remove"
+        ):
 
             # Call the create method
             kind_cluster.create()
@@ -118,6 +124,7 @@ class TestKindCluster(unittest.TestCase):
             def mock_create_side_effect():
                 self.kind_cluster._created = True
                 return True
+
             mock_create.side_effect = mock_create_side_effect
 
             # Use KindCluster as a context manager

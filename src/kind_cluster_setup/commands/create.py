@@ -18,12 +18,16 @@ from kind_cluster_setup.cluster.kind_cluster import (
     ClusterOperationError,
 )
 from kind_cluster_setup.commands.base import Command
-from kind_cluster_setup.config.config_loader import (get_environment_config,
-                                                     load_cluster_config)
+from kind_cluster_setup.config.config_loader import (
+    get_environment_config,
+    load_cluster_config,
+)
 from kind_cluster_setup.core.command import SubprocessCommandExecutor
 from kind_cluster_setup.domain.entities import Cluster, Task
-from kind_cluster_setup.utils.constants import (DEFAULT_CLUSTER_CONFIG,
-                                                DEFAULT_ENV_CONFIG)
+from kind_cluster_setup.utils.constants import (
+    DEFAULT_CLUSTER_CONFIG,
+    DEFAULT_ENV_CONFIG,
+)
 from kind_cluster_setup.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -92,7 +96,11 @@ class CreateCommand(Command):
             try:
                 if not kind_cluster.create():
                     raise Exception("Failed to create cluster")
-            except (DockerNotRunningError, KindNotInstalledError, ClusterOperationError):
+            except (
+                DockerNotRunningError,
+                KindNotInstalledError,
+                ClusterOperationError,
+            ):
                 # Re-raise specific exceptions without wrapping
                 raise
 
@@ -131,7 +139,11 @@ class CreateCommand(Command):
                 "status": "success",
             }
 
-        except (DockerNotRunningError, KindNotInstalledError, ClusterOperationError) as e:
+        except (
+            DockerNotRunningError,
+            KindNotInstalledError,
+            ClusterOperationError,
+        ) as e:
             # Update task status for specific exceptions before re-raising
             if "task" in locals():
                 self._update_task_status(task, "failed", {"error": str(e)})
@@ -201,8 +213,6 @@ class CreateCommand(Command):
             },
         )
         return self.task_repository.save(task)
-
-
 
     def _update_task_status(
         self, task: Optional[Task], status: str, result: Dict[str, Any]
@@ -411,8 +421,7 @@ class CreateCommand(Command):
             task = self._create_task(cluster_config, env_config)
 
             # Create command executor
-            from kind_cluster_setup.core.command import \
-                SubprocessCommandExecutor
+            from kind_cluster_setup.core.command import SubprocessCommandExecutor
 
             executor = SubprocessCommandExecutor()
 

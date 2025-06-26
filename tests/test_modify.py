@@ -12,8 +12,7 @@ from unittest.mock import MagicMock, patch
 
 from kind_cluster_setup.commands.modify import ModifyCommand
 from kind_cluster_setup.domain.entities import Application, Cluster, Task
-from kind_cluster_setup.utils.yaml_handler import (dump_multi_yaml, dump_yaml,
-                                                   load_yaml)
+from kind_cluster_setup.utils.yaml_handler import dump_multi_yaml, dump_yaml, load_yaml
 
 
 class TestModifyCommand(unittest.TestCase):
