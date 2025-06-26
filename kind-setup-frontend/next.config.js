@@ -5,7 +5,6 @@ const nextConfig = {
   // Disable experimental features that are causing errors
   experimental: {
     ppr: false,
-    optimizeServerReact: false,
   },
 
   // API proxy configuration to forward API calls to backend
