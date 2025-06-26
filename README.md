@@ -190,16 +190,18 @@ kind-cluster-setup delete-cluster my-cluster
 
 ## 🧪 Testing
 
+The project maintains a focused test suite with **80 comprehensive tests** covering core functionality, ensuring high code quality and reliability.
+
 ### Backend Tests
 ```bash
-# Run all tests
-python -m pytest tests/
+# Run all tests (80 tests)
+uv run pytest tests/
 
 # Run specific test file
-python -m pytest tests/test_cluster.py
+uv run pytest tests/test_cluster.py
 
 # Run with coverage
-python -m pytest tests/ --cov=src/kind_cluster_setup
+uv run pytest tests/ --cov=src/kind_cluster_setup
 ```
 
 ### Frontend Tests

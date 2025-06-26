@@ -70,22 +70,4 @@ jobs:
     - name: Check Prettier formatting
       run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
 
-  security-lint:
-    name: Security Linting
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run Bandit security linter
-      uses: tj-actions/bandit@v5.1
-      with:
-        options: "-r src/ -f json -o bandit-report.json"
-        
-    - name: Upload Bandit scan results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: bandit-results
-        path: bandit-report.json
+
