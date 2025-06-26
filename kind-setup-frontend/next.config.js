@@ -7,6 +7,15 @@ const nextConfig = {
     ppr: false,
   },
 
+  // Webpack configuration for path aliases
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': __dirname,
+    };
+    return config;
+  },
+
   // API proxy configuration to forward API calls to backend
   async rewrites() {
     return [
