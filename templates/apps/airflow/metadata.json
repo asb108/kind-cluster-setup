@@ -1,13 +1,13 @@
 {
   "display_name": "Apache Airflow",
   "description": "Apache Airflow is a platform to programmatically author, schedule, and monitor workflows",
-  "version": "3.0.0",
+  "version": "2.8.1",
   "icon": "https://airflow.apache.org/images/feature-image.png",
   "deployment_methods": ["kubectl", "helm"],
   "category": "Workflow Management",
   "default_values": {
     "replicas": 1,
-    "version": "3.0.0",
+    "version": "2.8.1",
     "service_type": "ClusterIP",
     "memory_request": "1Gi",
     "cpu_request": "500m",
@@ -20,6 +20,8 @@
     "expose_ui": true,
     "ui_port": 8080,
     "ingress_host": "airflow.local",
-    "create_ingress": false
+    "create_ingress": false,
+    "enable_kubernetes_executor": true,
+    "kubernetes_namespace": "airflow"
   }
 }

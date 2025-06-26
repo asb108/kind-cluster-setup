@@ -1,0 +1,111 @@
+"""
+Example DAG demonstrating KubernetesPodOperator usage.
+This DAG shows how to run tasks in separate containers, avoiding dependency conflicts.
+"""
+
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.operators.dummy import DummyOperator
+
+# Default arguments for the DAG
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2024, 1, 1),
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
+# Define the DAG
+dag = DAG(
+    'kubernetes_pod_example',
+    default_args=default_args,
+    description='Example DAG using KubernetesPodOperator',
+    schedule_interval=timedelta(days=1),
+    catchup=False,
+    tags=['example', 'kubernetes'],
+)
+
+# Start task
+start = DummyOperator(
+    task_id='start',
+    dag=dag,
+)
+
+# Python task using KubernetesPodOperator
+python_task = KubernetesPodOperator(
+    task_id='python_task',
+    name='python-task',
+    namespace='airflow',
+    image='python:3.9-slim',
+    cmds=['python', '-c'],
+    arguments=['''
+import sys
+import json
+print("Hello from Python container!")
+print(f"Python version: {sys.version}")
+data = {"message": "Task completed successfully", "status": "success"}
+print(json.dumps(data, indent=2))
+    '''],
+    labels={'app': 'airflow', 'task': 'python'},
+    get_logs=True,
+    dag=dag,
+)
+
+# Spark task using KubernetesPodOperator (example without dependency conflicts)
+spark_task = KubernetesPodOperator(
+    task_id='spark_task',
+    name='spark-task',
+    namespace='airflow',
+    image='bitnami/spark:3.4',
+    cmds=['spark-submit'],
+    arguments=[
+        '--class', 'org.apache.spark.examples.SparkPi',
+        '/opt/bitnami/spark/examples/jars/spark-examples_2.12-3.4.0.jar',
+        '10'
+    ],
+    labels={'app': 'airflow', 'task': 'spark'},
+    get_logs=True,
+    dag=dag,
+)
+
+# Data processing task with custom image
+data_processing_task = KubernetesPodOperator(
+    task_id='data_processing_task',
+    name='data-processing-task',
+    namespace='airflow',
+    image='pandas/pandas:latest',
+    cmds=['python', '-c'],
+    arguments=['''
+import pandas as pd
+import numpy as np
+
+print("Creating sample dataset...")
+data = {
+    'id': range(1, 101),
+    'value': np.random.randn(100),
+    'category': np.random.choice(['A', 'B', 'C'], 100)
+}
+df = pd.DataFrame(data)
+
+print("Dataset summary:")
+print(df.describe())
+print(f"Shape: {df.shape}")
+print("Data processing completed!")
+    '''],
+    labels={'app': 'airflow', 'task': 'data-processing'},
+    get_logs=True,
+    dag=dag,
+)
+
+# End task
+end = DummyOperator(
+    task_id='end',
+    dag=dag,
+)
+
+# Define task dependencies
+start >> [python_task, spark_task, data_processing_task] >> end

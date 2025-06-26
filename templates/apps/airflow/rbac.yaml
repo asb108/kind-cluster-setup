@@ -1,0 +1,72 @@
+---
+# ServiceAccount for Airflow
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: airflow
+  namespace: {{ kubernetes_namespace }}
+---
+# ClusterRole for Airflow KubernetesExecutor
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: airflow-kubernetes-executor
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "patch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create", "get"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["list"]
+---
+# ClusterRoleBinding for Airflow
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: airflow-kubernetes-executor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: airflow-kubernetes-executor
+subjects:
+- kind: ServiceAccount
+  name: airflow
+  namespace: {{ kubernetes_namespace }}
+---
+# Role for namespace-specific operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ kubernetes_namespace }}
+  name: airflow-worker-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "patch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+---
+# RoleBinding for namespace-specific operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-worker-binding
+  namespace: {{ kubernetes_namespace }}
+subjects:
+- kind: ServiceAccount
+  name: airflow
+  namespace: {{ kubernetes_namespace }}
+roleRef:
+  kind: Role
+  name: airflow-worker-role
+  apiGroup: rbac.authorization.k8s.io

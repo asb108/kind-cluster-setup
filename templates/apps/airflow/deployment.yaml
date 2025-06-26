@@ -104,6 +104,7 @@ spec:
         app: airflow
         component: webserver
     spec:
+      serviceAccountName: airflow
       containers:
       - name: webserver
         image: apache/airflow:{{ version }}
@@ -111,46 +112,51 @@ spec:
         - containerPort: 8080
         env:
         - name: AIRFLOW__CORE__EXECUTOR
-          value: CeleryExecutor
+          value: KubernetesExecutor
         - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
           value: postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
-        - name: AIRFLOW__CELERY__BROKER_URL
-          value: redis://airflow-redis:6379/0
-        - name: AIRFLOW__CELERY__RESULT_BACKEND
-          value: db+postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE
+          value: "{{ kubernetes_namespace }}"
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_REPOSITORY
+          value: apache/airflow
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_TAG
+          value: "{{ version }}"
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS
+          value: "true"
         - name: AIRFLOW__WEBSERVER__SECRET_KEY
           value: admin
         - name: AIRFLOW__CORE__LOAD_EXAMPLES
           value: "{{ enable_dag_examples }}"
-        # Simple Auth Manager configuration for Airflow 3.0 with fixed admin/admin credentials
-        - name: AIRFLOW__CORE__AUTH_MANAGER
-          value: airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
-        - name: AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE
-          value: /tmp/fixed_passwords.json
-        - name: AIRFLOW_ADMIN_USERNAME
-          value: admin
-        - name: AIRFLOW_ADMIN_PASSWORD
-          value: admin
+        # Authentication configuration for Airflow 2.8
+        - name: AIRFLOW__WEBSERVER__AUTHENTICATE
+          value: "true"
+        - name: AIRFLOW__WEBSERVER__AUTH_BACKEND
+          value: airflow.contrib.auth.backends.password_auth
         command:
         - bash
         - -c
         - |
-          echo "🚀 Starting Airflow 3.0 API Server Setup..."
-
-          # Create Simple Auth Manager passwords file with admin/admin credentials
-          echo "🔐 Creating Simple Auth Manager passwords file..."
-          echo '{"admin": "admin"}' > /tmp/fixed_passwords.json
-          echo "✅ Created passwords file with admin/admin credentials"
+          echo "🚀 Starting Airflow 2.8 Webserver Setup..."
 
           # Initialize the database
-          echo "📊 Migrating database..."
-          airflow db migrate
+          echo "📊 Initializing database..."
+          airflow db init
 
-          echo "✅ Setup complete! Starting API server..."
+          # Create admin user
+          echo "👤 Creating admin user..."
+          airflow users create \
+            --username admin \
+            --password admin \
+            --firstname Admin \
+            --lastname User \
+            --role Admin \
+            --email admin@example.com
+
+          echo "✅ Setup complete! Starting webserver..."
           echo "📝 Login credentials: admin/admin"
 
-          # Start the API server (replaces webserver in 3.0)
-          airflow api-server --port 8080
+          # Start the webserver
+          airflow webserver --port 8080
         resources:
           requests:
             memory: "{{ memory_request }}"
@@ -158,6 +164,13 @@ spec:
           limits:
             memory: "{{ memory_limit }}"
             cpu: "{{ cpu_limit }}"
+        volumeMounts:
+        - name: dags-volume
+          mountPath: /opt/airflow/dags
+      volumes:
+      - name: dags-volume
+        configMap:
+          name: airflow-dags
 ---
 # Airflow Scheduler Deployment
 apiVersion: apps/v1
@@ -179,18 +192,23 @@ spec:
         app: airflow
         component: scheduler
     spec:
+      serviceAccountName: airflow
       containers:
       - name: scheduler
         image: apache/airflow:{{ version }}
         env:
         - name: AIRFLOW__CORE__EXECUTOR
-          value: CeleryExecutor
+          value: KubernetesExecutor
         - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
           value: postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
-        - name: AIRFLOW__CELERY__BROKER_URL
-          value: redis://airflow-redis:6379/0
-        - name: AIRFLOW__CELERY__RESULT_BACKEND
-          value: db+postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE
+          value: "{{ kubernetes_namespace }}"
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_REPOSITORY
+          value: apache/airflow
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_TAG
+          value: "{{ version }}"
+        - name: AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS
+          value: "true"
         - name: AIRFLOW__CORE__LOAD_EXAMPLES
           value: "{{ enable_dag_examples }}"
         command:
@@ -203,47 +221,11 @@ spec:
           limits:
             memory: "{{ memory_limit }}"
             cpu: "{{ cpu_limit }}"
----
-# Airflow Worker Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: airflow-worker
-  labels:
-    app: airflow
-    component: worker
-spec:
-  replicas: {{ replicas }}
-  selector:
-    matchLabels:
-      app: airflow
-      component: worker
-  template:
-    metadata:
-      labels:
-        app: airflow
-        component: worker
-    spec:
-      containers:
-      - name: worker
-        image: apache/airflow:{{ version }}
-        env:
-        - name: AIRFLOW__CORE__EXECUTOR
-          value: CeleryExecutor
-        - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-          value: postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
-        - name: AIRFLOW__CELERY__BROKER_URL
-          value: redis://airflow-redis:6379/0
-        - name: AIRFLOW__CELERY__RESULT_BACKEND
-          value: db+postgresql://airflow:{{ postgres_password }}@airflow-postgres:5432/airflow
-        command:
-        - airflow
-        - celery
-        - worker
-        resources:
-          requests:
-            memory: "{{ memory_request }}"
-            cpu: "{{ cpu_request }}"
-          limits:
-            memory: "{{ memory_limit }}"
-            cpu: "{{ cpu_limit }}"
+        volumeMounts:
+        - name: dags-volume
+          mountPath: /opt/airflow/dags
+      volumes:
+      - name: dags-volume
+        configMap:
+          name: airflow-dags
+# Note: Worker deployment removed - KubernetesExecutor creates workers dynamically
