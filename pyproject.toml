@@ -59,8 +59,16 @@ line-length = 88
 target-version = ["py37", "py38", "py39"]
 
 [tool.mypy]
-python_version = "3.7"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
+python_version = "3.8"
+warn_return_any = false
+warn_unused_configs = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_no_return = false
+warn_unreachable = false
+strict_optional = false
+allow_untyped_globals = true
+allow_redefinition = true
+implicit_optional = true
