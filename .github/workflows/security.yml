@@ -55,10 +55,10 @@ jobs:
     - name: Install dependencies
       run: uv sync --all-extras
       
-    - name: Run Safety check for known vulnerabilities
+    - name: Run Safety scan for known vulnerabilities
       run: |
         uv tool install safety
-        uv export --format requirements-txt | uv tool run safety check --stdin --json --output safety-report.json
+        uv export --format requirements-txt | uv tool run safety scan --stdin --json --output safety-report.json
       continue-on-error: true
       
     - name: Upload Safety scan results
