@@ -69,7 +69,7 @@ jobs:
         path: safety-report.json
 
     - name: Run Bandit security linter
-      uses: tj-actions/bandit@v5.1
+      uses: tj-actions/bandit@v5.5
       with:
         options: "-r src/ -f json -o bandit-report.json"
 
