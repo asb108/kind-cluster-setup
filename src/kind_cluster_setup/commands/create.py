@@ -11,7 +11,12 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from kind_cluster_setup.cluster.kind_cluster import KindCluster
+from kind_cluster_setup.cluster.kind_cluster import (
+    KindCluster,
+    DockerNotRunningError,
+    KindNotInstalledError,
+    ClusterOperationError,
+)
 from kind_cluster_setup.commands.base import Command
 from kind_cluster_setup.config.config_loader import (get_environment_config,
                                                      load_cluster_config)
@@ -84,8 +89,12 @@ class CreateCommand(Command):
 
             # Create the cluster
             kind_cluster = KindCluster(cluster_config, env_config, executor)
-            if not kind_cluster.create():
-                raise Exception("Failed to create cluster")
+            try:
+                if not kind_cluster.create():
+                    raise Exception("Failed to create cluster")
+            except (DockerNotRunningError, KindNotInstalledError, ClusterOperationError):
+                # Re-raise specific exceptions without wrapping
+                raise
 
             # Apply resource limits if needed
             if apply_resource_limits and (worker_config or control_plane_config):
@@ -122,6 +131,12 @@ class CreateCommand(Command):
                 "status": "success",
             }
 
+        except (DockerNotRunningError, KindNotInstalledError, ClusterOperationError) as e:
+            # Update task status for specific exceptions before re-raising
+            if "task" in locals():
+                self._update_task_status(task, "failed", {"error": str(e)})
+            # Re-raise specific exceptions without wrapping for tests
+            raise
         except Exception as e:
             error_message = str(e)
 
@@ -187,33 +202,7 @@ class CreateCommand(Command):
         )
         return self.task_repository.save(task)
 
-    def _create_cluster_entity(
-        self, cluster_name: str, cluster_config: dict, env_config: dict
-    ) -> Optional[Cluster]:
-        """
-        Create a cluster entity and save it to the repository.
 
-        Args:
-            cluster_name: The name of the cluster.
-            cluster_config: The cluster configuration.
-            env_config: The environment configuration.
-
-        Returns:
-            The created cluster entity, or None if the cluster repository is not available.
-        """
-        if not hasattr(self, "cluster_repository") or not self.cluster_repository:
-            return None
-
-        cluster = Cluster(
-            id=str(uuid.uuid4()),
-            name=cluster_name,
-            status="running",
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-            config=cluster_config,
-            environment=env_config.get("environment", "dev"),
-        )
-        return self.cluster_repository.save(cluster)
 
     def _update_task_status(
         self, task: Optional[Task], status: str, result: Dict[str, Any]

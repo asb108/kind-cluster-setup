@@ -46,9 +46,22 @@ class KubernetesDeploymentStrategy(DeploymentStrategy):
         logger.info(f"Deploying Kubernetes manifests for {app}")
 
         # Get namespace from app_config first (from frontend), then env_config, or use default format
-        namespace = app_config.get("namespace") or env_config.get(
-            "namespace", f"{app}-{env_config.get('environment', 'dev')}"
-        )
+        # Handle both single document (dict) and multi-document (list) app_config
+        if isinstance(app_config, list):
+            # For multi-document, try to get namespace from first document with metadata
+            namespace = None
+            for doc in app_config:
+                if isinstance(doc, dict) and doc.get("metadata", {}).get("namespace"):
+                    namespace = doc["metadata"]["namespace"]
+                    break
+            # Fallback to env_config or default
+            if not namespace:
+                namespace = env_config.get("namespace", f"{app}-{env_config.get('environment', 'dev')}")
+        else:
+            # Single document case
+            namespace = app_config.get("namespace") or env_config.get(
+                "namespace", f"{app}-{env_config.get('environment', 'dev')}"
+            )
 
         # Set kubectl context to the target cluster
         if cluster_name is None:

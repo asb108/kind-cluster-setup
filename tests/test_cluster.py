@@ -92,8 +92,8 @@ class TestKindCluster(unittest.TestCase):
         # Mock the wait_for_ready method
         kind_cluster.wait_for_ready = MagicMock(return_value=True)
 
-        # Mock time.sleep to avoid waiting
-        with patch("time.sleep") as mock_sleep, patch("os.path.join"), patch(
+        # Mock time.sleep to avoid waiting - patch in the cluster module
+        with patch("kind_cluster_setup.cluster.kind_cluster.time.sleep") as mock_sleep, patch("os.path.join"), patch(
             "kind_cluster_setup.utils.yaml_handler.dump_yaml"
         ), patch("os.remove"):
 
@@ -114,6 +114,11 @@ class TestKindCluster(unittest.TestCase):
         with patch.object(KindCluster, "create") as mock_create, patch.object(
             KindCluster, "delete"
         ) as mock_delete:
+            # Mock create to return True and set _created attribute
+            def mock_create_side_effect():
+                self.kind_cluster._created = True
+                return True
+            mock_create.side_effect = mock_create_side_effect
 
             # Use KindCluster as a context manager
             with self.kind_cluster as cluster:

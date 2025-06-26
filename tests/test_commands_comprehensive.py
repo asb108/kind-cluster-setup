@@ -40,6 +40,7 @@ class BaseCommandTest(unittest.TestCase):
         # Create mock arguments
         self.args = argparse.Namespace()
         self.args.environment = "dev"
+        self.args.name = "test-cluster"
 
         # Set up common patches
         self.mock_load_cluster_config = patch(

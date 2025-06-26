@@ -557,6 +557,9 @@ class KindCluster:
                 if os.path.exists(config_path):
                     os.remove(config_path)
 
+        except (DockerNotRunningError, KindNotInstalledError, ClusterOperationError):
+            # Re-raise specific exceptions for retry decorator
+            raise
         except Exception as e:
             error_message = str(e)
             logger.error(f"Failed to create cluster: {error_message}")
@@ -594,7 +597,9 @@ class KindCluster:
                 self.kind_client.delete_cluster(self.cluster_name)
             except Exception:
                 pass
-            return False
+
+            # Convert to ClusterOperationError for consistency
+            raise ClusterOperationError(f"Failed to create cluster: {error_message}") from e
 
     @retry(max_attempts=2, delay=1.0, exceptions=(ClusterOperationError,))
     def delete(self) -> bool:
